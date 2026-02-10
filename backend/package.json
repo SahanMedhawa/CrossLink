@@ -1,0 +1,34 @@
+{
+  "name": "crosslink-backend",
+  "version": "1.0.0",
+  "main": "src/server.js",
+  "scripts": {
+    "dev": "nodemon src/server.js",
+    "start": "node src/server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "crosslink",
+    "collaboration",
+    "ngo",
+    "volunteer",
+    "corporate"
+  ],
+  "author": "",
+  "license": "ISC",
+  "description": "CrossLink - Cross-sector collaboration platform API",
+  "dependencies": {
+    "bcryptjs": "^3.0.2",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.1",
+    "express": "^4.21.2",
+    "express-mongo-sanitize": "^2.2.0",
+    "express-rate-limit": "^8.2.1",
+    "helmet": "^8.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.17.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10"
+  }
+}
