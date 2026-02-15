@@ -4,6 +4,8 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const mongoSanitize = require('express-mongo-sanitize');
 const authRoutes = require('./routes/auth.routes');
+const ngoRoutes = require('./routes/ngo_management/ngo.routes');
+
 
 const app = express();
 
@@ -54,6 +56,7 @@ app.use('/api', apiLimiter);
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/ngos', ngoRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -80,5 +83,8 @@ app.use((err, req, res, next) => {
     message: 'Internal server error',
   });
 });
+
+
+
 
 module.exports = app;

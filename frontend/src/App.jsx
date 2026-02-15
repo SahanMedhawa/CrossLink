@@ -5,7 +5,7 @@ import HomePage from "./components/Home";
 import Register from "./pages/user/Register";
 import Login from "./pages/user/Login";
 import Projects from "./pages/Projects";
-import NGOs from "./pages/NGOs";
+import NGOs from "./pages/ngo/NGOList";
 import NGODashboard from "./pages/ngo/NGODashboard";
 import VolunteerDashboard from "./pages/volunteer/VolunteerDashboard";
 import CorporateDashboard from "./pages/corporate/CorporateDashboard";
