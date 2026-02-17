@@ -8,7 +8,9 @@ import Projects from "./pages/Projects";
 import NGOs from "./pages/ngo/NGOList";
 import NGODashboard from "./pages/ngo/NGODashboard";
 import VolunteerDashboard from "./pages/volunteer/VolunteerDashboard";
+import CreateProject from "./pages/ngo/createproject";
 import CorporateDashboard from "./pages/corporate/CorporateDashboard";
+import NGOProjects from "./pages/ngo/myprojects";
 import "./App.css";
 
 // Protected Route Component
@@ -59,6 +61,24 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
+
+      <Route
+        path="/ngo/create-project"
+        element={
+          <ProtectedRoute allowedRoles={["ngo"]}>
+            <CreateProject />
+          </ProtectedRoute>
+      }
+    />
+
+      <Route
+        path="/ngo/ngoprojects"
+        element={
+          <ProtectedRoute allowedRoles={["ngo"]}>
+            <NGOProjects />
+          </ProtectedRoute>
+      }
+    />
 
       {/* Volunteer Routes - Protected */}
       <Route
