@@ -8,6 +8,9 @@ const ngoRoutes = require('./routes/ngo_management/ngo.routes');
 const projectRoutes = require('./routes/ngo_management/Projectroutes');
 const path = require('path');
 const fs = require('fs');
+const proposalRoutes = require('./routes/corporate_management/proposal.routes');
+const corporateRoutes = require('./routes/corporate_management/corporate.routes');
+const fundingRoutes = require('./routes/corporate_management/funding.routes');
 
 const app = express();
 
@@ -71,6 +74,10 @@ app.use('/api', apiLimiter);
 app.use('/api/auth', authRoutes);
 app.use('/api/ngos', ngoRoutes);
 app.use('/api/projects', projectRoutes);
+app.use('/api/corporates', corporateRoutes); 
+app.use('/api/funding', fundingRoutes);
+
+app.use('/api/proposals', proposalRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
