@@ -5,9 +5,16 @@ const rateLimit = require('express-rate-limit');
 const mongoSanitize = require('express-mongo-sanitize');
 const authRoutes = require('./routes/auth.routes');
 const ngoRoutes = require('./routes/ngo_management/ngo.routes');
-
+const projectRoutes = require('./routes/ngo_management/Projectroutes');
+const path = require('path');
+const fs = require('fs');
 
 const app = express();
+
+const uploadsDir = path.join(__dirname, 'uploads', 'projects');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
 
 // Security headers
 app.use(helmet());
@@ -49,6 +56,12 @@ const apiLimiter = rateLimit({
   legacyHeaders: false,
 });
 
+app.use('/uploads', (req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+  next();
+}, express.static(path.join(__dirname, 'uploads')));
+
 // Apply rate limiters
 app.use('/api/auth/signup', authLimiter);
 app.use('/api/auth/login', authLimiter);
@@ -57,6 +70,7 @@ app.use('/api', apiLimiter);
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/ngos', ngoRoutes);
+app.use('/api/projects', projectRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

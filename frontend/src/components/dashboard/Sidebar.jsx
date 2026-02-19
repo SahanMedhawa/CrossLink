@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, Link } from "react-router-dom";
 import {
   HomeIcon,
   UserGroupIcon,
@@ -66,7 +66,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isMobile, userType }) => {
           },
           {
             name: "Projects",
-            href: "/ngo/projects",
+            href: "/ngo/ngoprojects",
             icon: <FolderIcon className="w-5 h-5" />,
           },
           {
@@ -219,16 +219,15 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isMobile, userType }) => {
           {navigationItems.map((item) => {
             const isActive = location.pathname === item.href;
             return (
-              <button
+              <Link
                 key={item.name}
-                type="button"
+                to={item.href}
                 onClick={() => isMobile && setSidebarOpen(false)}
                 className={`group flex items-center w-full text-left px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 ${
                   isActive
                     ? "bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-700 ring-1 ring-blue-200"
                     : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
                 }`}
-                aria-disabled="true"
               >
                 <span
                   className={`inline-flex items-center justify-center w-8 h-8 rounded-lg mr-3 ${
@@ -246,7 +245,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isMobile, userType }) => {
                 >
                   {item.name}
                 </span>
-              </button>
+              </Link>
             );
           })}
         </nav>

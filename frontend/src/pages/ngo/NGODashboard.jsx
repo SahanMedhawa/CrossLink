@@ -1,10 +1,20 @@
-import React from "react";
+import React, { useState } from "react"; // Added useState
 import { Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import DashboardLayout from "../../components/dashboard/DashboardLayout";
+import CreateProjectModal from "./createproject"; // Import your new modal
 
 const NGODashboard = () => {
   const { user } = useAuth();
+  
+  // State to control modal visibility
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Optional: Function to refresh data after project creation
+  const handleProjectCreated = () => {
+    console.log("Project created! Refreshing dashboard stats...");
+    // You could trigger a fetch request here to update the 'Active Projects' count
+  };
 
   return (
     <DashboardLayout userType="ngo">
@@ -78,28 +88,13 @@ const NGODashboard = () => {
           </div>
         </div>
 
-        {/* Focus Areas */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mb-8">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Focus Areas</h3>
-          <div className="flex flex-wrap gap-2">
-            {user?.focusAreas && user.focusAreas.length > 0 ? (
-              user.focusAreas.map((area, index) => (
-                <span
-                  key={index}
-                  className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium"
-                >
-                  {area}
-                </span>
-              ))
-            ) : (
-              <p className="text-gray-500 text-sm">No focus areas added yet. Update your profile!</p>
-            )}
-          </div>
-        </div>
-
         {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow cursor-pointer">
+          {/* Create Project Card - Modal Trigger Linked Here */}
+          <div 
+            onClick={() => setIsModalOpen(true)}
+            className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow cursor-pointer border-l-4 border-l-blue-500"
+          >
             <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
               <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -131,15 +126,19 @@ const NGODashboard = () => {
         </div>
 
         {/* Back to Home */}
-        <div className="text-center">
-          <Link
-            to="/"
-            className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
-          >
+        <div className="text-center mt-8">
+          <Link to="/" className="text-sm text-gray-500 hover:text-gray-700 transition-colors">
             ← Back to Home
           </Link>
         </div>
       </div>
+
+      {/* --- Project Creation Modal --- */}
+      <CreateProjectModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)}
+        onProjectCreated={handleProjectCreated}
+      />
     </DashboardLayout>
   );
 };
