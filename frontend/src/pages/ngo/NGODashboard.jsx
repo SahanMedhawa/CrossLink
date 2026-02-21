@@ -18,7 +18,7 @@ const NGODashboard = () => {
 
   return (
     <DashboardLayout userType="ngo">
-      <div className="space-y-6">
+      <div className="space-y-6 min-h-screen">
         {/* Welcome Section */}
         <div className="bg-gradient-to-r from-blue-600 to-blue-600 rounded-2xl p-8 text-white mb-8">
           <h2 className="text-2xl font-bold mb-2">
