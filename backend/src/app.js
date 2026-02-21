@@ -11,6 +11,7 @@ const fs = require('fs');
 const proposalRoutes = require('./routes/corporate_management/proposal.routes');
 const corporateRoutes = require('./routes/corporate_management/corporate.routes');
 const fundingRoutes = require('./routes/corporate_management/funding.routes');
+const resourceRoutes = require('./routes/resource_management/resourceRoutes');
 
 const app = express();
 
@@ -78,6 +79,8 @@ app.use('/api/corporates', corporateRoutes);
 app.use('/api/funding', fundingRoutes);
 
 app.use('/api/proposals', proposalRoutes);
+
+app.use('/api/resources', resourceRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

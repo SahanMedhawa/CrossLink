@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Header from '../../components/user/Navbar'
+import ResourceForm from '../resource/ResourceForm';
 const AllProjects = () => {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -11,6 +12,7 @@ const AllProjects = () => {
     location: '', 
     skills: '' 
   });
+  const [showResourceForm, setShowResourceForm] = useState(false);
 
   const styles = {
     container: {
@@ -731,7 +733,7 @@ const AllProjects = () => {
                     {selectedProject.resources && selectedProject.resources.length > 0 && (
                       <button 
                         style={styles.tertiaryButton}
-                        onClick={() => handleProvideResources(selectedProject)}
+                        onClick={() => setShowResourceForm(true)}
                         onMouseOver={(e) => {
                           e.target.style.background = '#2E7D32';
                           e.target.style.color = 'white';
@@ -743,6 +745,14 @@ const AllProjects = () => {
                       >
                         Provide Resources
                       </button>
+                    )}
+
+                    {/* Render the form when showResourceForm is true */}
+                    {showResourceForm && (
+                      <ResourceForm 
+                        project={selectedProject} 
+                        onClose={() => setShowResourceForm(false)}
+                      />
                     )}
                   </div>
                 </div>

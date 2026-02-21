@@ -11,6 +11,7 @@ import VolunteerDashboard from "./pages/volunteer/VolunteerDashboard";
 import CreateProject from "./pages/ngo/createproject";
 import CorporateDashboard from "./pages/corporate/CorporateDashboard";
 import NGOProjects from "./pages/ngo/myprojects";
+import ResourceForm from "./pages/resource/ResourceForm";
 import "./App.css";
 
 // Protected Route Component
@@ -99,6 +100,16 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
+
+      <Route
+        path="/corporate/projects/:projectId/resources"
+        element={
+          <ProtectedRoute allowedRoles={["corporate"]}>
+            <ResourceForm />
+          </ProtectedRoute>
+        }
+      />
+
 
       {/* Catch all - redirect to home */}
       <Route path="*" element={<Navigate to="/" replace />} />

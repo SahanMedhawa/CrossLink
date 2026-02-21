@@ -116,6 +116,10 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isMobile, userType }) => {
             name: "Impact Reports",
             href: "/corporate/reports",
             icon: <ChartBarIcon className="w-5 h-5" />,
+          }, {
+            name: "Resource Managment",
+            href: "/corporate/dashboard",
+            icon: <HomeIcon className="w-5 h-5" />,
           },
           {
             name: "Settings",
