@@ -9,7 +9,14 @@
     "install:all": "npm install && cd backend && npm install && cd ../frontend && npm install",
     "build": "cd frontend && npm run build"
   },
-  "keywords": ["crosslink", "ngo", "volunteer", "corporate", "collaboration", "social-impact"],
+  "keywords": [
+    "crosslink",
+    "ngo",
+    "volunteer",
+    "corporate",
+    "collaboration",
+    "social-impact"
+  ],
   "author": "",
   "license": "ISC",
   "devDependencies": {

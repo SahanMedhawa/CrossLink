@@ -156,12 +156,12 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isMobile, userType }) => {
     }
   };
 
-  const sidebarClasses = `
-    ${isMobile ? "fixed inset-y-0 left-0 z-40" : "relative"}
-    ${isMobile ? (sidebarOpen ? "translate-x-0" : "-translate-x-full") : "translate-x-0"}
-    ${isMobile ? "w-64" : isOpen ? "w-64" : "w-20"}
-    bg-white border-r border-gray-200 shadow-xl transition-all duration-300 ease-in-out flex flex-col
-  `;
+ const sidebarClasses = `
+  ${isMobile ? "fixed inset-y-0 left-0 z-40 h-screen" : "relative h-screen"}
+  ${isMobile ? (sidebarOpen ? "translate-x-0" : "-translate-x-full") : "translate-x-0"}
+  ${isMobile ? "w-64" : isOpen ? "w-64" : "w-20"}
+  bg-white border-r border-gray-200 shadow-xl transition-all duration-300 ease-in-out flex flex-col
+`;
 
   return (
     <>
