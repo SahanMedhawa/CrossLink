@@ -106,9 +106,16 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isMobile, userType }) => {
           },
           {
             name: "NGO Partners",
-            href: "/corporate/partners",
+            href: "/corporate/ngo-partners", //Updated
             icon: <BuildingOfficeIcon className="w-5 h-5" />,
           },
+
+          {
+           name: "My Proposals & Funding", // Updated 
+           href: "/corporate/my-activities", 
+           icon: <ChartBarIcon className="w-5 h-5" />, 
+          },
+
           {
             name: "Employee Volunteering",
             href: "/corporate/volunteering",

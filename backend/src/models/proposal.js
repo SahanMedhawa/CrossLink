@@ -42,7 +42,7 @@ const proposalSchema = new mongoose.Schema({
     maxlength: 1000
   },
 
-  // --- GOOGLE MAPS LOCATION ---
+     // --- GOOGLE MAPS LOCATION ---
   deliveryLocation: {
     address: String,
     coordinates: {
