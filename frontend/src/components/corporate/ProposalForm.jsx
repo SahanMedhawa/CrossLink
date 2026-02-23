@@ -23,6 +23,10 @@ const ProposalForm = ({ project, existingData, onClose, onSubmit }) => {
     locationName: existingData?.deliveryLocation?.address || project?.location || '',
     latitude: defaultLat,
     longitude: defaultLng,
+    // Add missing fields for safety
+    expectedImpact: existingData?.expectedImpact || '',
+    message: existingData?.message || '',
+    priority: existingData?.priority || 'Medium',
   });
 
   const [markerPosition, setMarkerPosition] = useState([defaultLat, defaultLng]);
@@ -38,28 +42,28 @@ const ProposalForm = ({ project, existingData, onClose, onSubmit }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
-    // ✅ TRANSFORM DATA TO MATCH BACKEND SCHEMA
+
     const finalData = {
+      // 1. Map Basic Fields
       proposalTitle: formData.title,
       description: formData.description,
       amount: parseFloat(formData.amount),
-      // Adding default values for required fields not in UI yet
-      expectedImpact: "To drive positive social change and support the proposed initiative effectively.", 
-      message: "We are committed to partnering with you to make this project a success.",
+      expectedImpact: formData.expectedImpact || "Community Support",
+      message: formData.message || "Please consider this proposal.",
+      priority: formData.priority || "Medium",
       
-      deliveryLocation: {
-        address: formData.locationName,
-        coordinates: {
-          lat: formData.latitude,
-          lng: formData.longitude
-        }
+      // 2. CRITICAL FIX: Map Map-State to Backend-Expected Keys
+      deliveryAddress: formData.locationName,      
+      deliveryCoordinates: {                       
+        lat: formData.latitude,                    
+        lng: formData.longitude                   
       },
-      
+
+      // 3. Project ID
       projectId: project._id
     };
-    
-    console.log("🚀 Submitting to Backend:", finalData);
+
+    console.log("Sending to API:", finalData); 
     onSubmit(finalData);
   };
 
@@ -75,7 +79,7 @@ const ProposalForm = ({ project, existingData, onClose, onSubmit }) => {
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
         </div>
 
-        {/* Form Body */}
+        {/* ✅ FORM STARTS HERE */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4 flex-grow">
           
           {/* Title */}
@@ -158,25 +162,24 @@ const ProposalForm = ({ project, existingData, onClose, onSubmit }) => {
             </div>
           </div>
 
-        </form>
+          {/* ✅ FOOTER MOVED INSIDE FORM SO SUBMIT WORKS */}
+          <div className="pt-6 border-t border-gray-100 flex justify-end gap-3">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-5 py-2.5 text-gray-700 bg-white border border-gray-300 rounded-lg font-medium hover:bg-gray-50 transition"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="px-5 py-2.5 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 shadow-md transition transform active:scale-95"
+            >
+              {existingData ? 'Update Proposal' : 'Submit Proposal'}
+            </button>
+          </div>
 
-        {/* Footer Actions */}
-        <div className="p-6 border-t border-gray-100 bg-gray-50 rounded-b-xl flex justify-end gap-3">
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-5 py-2.5 text-gray-700 bg-white border border-gray-300 rounded-lg font-medium hover:bg-gray-50 transition"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            onClick={handleSubmit}
-            className="px-5 py-2.5 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 shadow-md transition transform active:scale-95"
-          >
-            {existingData ? 'Update Proposal' : 'Submit Proposal'}
-          </button>
-        </div>
+        </form> {/* ✅ FORM ENDS HERE */}
       </div>
     </div>
   );
