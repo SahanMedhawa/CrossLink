@@ -3,7 +3,7 @@ import axios from 'axios';
 import DashboardLayout from '../../components/dashboard/DashboardLayout';
 
 // NEWS API KEY FROM newsapi.org
-const NEWS_API_KEY = 'f4f479d5c1bb4bf4ad5d2db5a5f32fa7'; 
+const NEWS_API_KEY = import.meta.env.VITE_NEWS_API_KEY;
 
 const CsrInitiatives = () => {
   const [stats, setStats] = useState({
