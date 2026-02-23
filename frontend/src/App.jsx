@@ -1,6 +1,7 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
+import { Toaster } from 'react-hot-toast';
 import HomePage from "./components/Home";
 import Register from "./pages/user/Register";
 import Login from "./pages/user/Login";
@@ -12,6 +13,8 @@ import CreateProject from "./pages/ngo/createproject";
 import CorporateDashboard from "./pages/corporate/CorporateDashboard";
 import NGOProjects from "./pages/ngo/myprojects";
 import ResourceForm from "./pages/resource/ResourceForm";
+import ResourceManage from "./pages/resource/resourceManage";
+import ProjectDonations from "./pages/resource/ProjectDonations";
 import "./App.css";
 
 // Protected Route Component
@@ -81,6 +84,15 @@ function AppRoutes() {
       }
     />
 
+    <Route
+        path="/ngo/ProjectDonations"
+        element={
+          <ProtectedRoute allowedRoles={["ngo"]}>
+            <ProjectDonations />
+          </ProtectedRoute>
+      }
+    />
+
       {/* Volunteer Routes - Protected */}
       <Route
         path="/volunteer/dashboard"
@@ -101,6 +113,7 @@ function AppRoutes() {
         }
       />
 
+      {/* Resource Routes - Protected */}
       <Route
         path="/corporate/projects/:projectId/resources"
         element={
@@ -110,6 +123,15 @@ function AppRoutes() {
         }
       />
 
+      {/* Resource Routes - Protected */}
+      <Route
+        path="/corporate/resourcehManage"
+        element={
+          <ProtectedRoute allowedRoles={["corporate"]}>
+            < ResourceManage/>
+          </ProtectedRoute>
+        }
+      />
 
       {/* Catch all - redirect to home */}
       <Route path="*" element={<Navigate to="/" replace />} />
@@ -121,6 +143,39 @@ function App() {
   return (
     <AuthProvider>
       <Router>
+        <Toaster 
+          position="top-right"
+          toastOptions={{
+            duration: 4000,
+            style: {
+              background: '#363636',
+              color: '#fff',
+              padding: '16px',
+              borderRadius: '8px',
+              fontSize: '14px',
+            },
+            success: {
+              duration: 5000,
+              icon: '🎉',
+              style: {
+                background: '#10b981',
+              },
+            },
+            error: {
+              duration: 4000,
+              icon: '❌',
+              style: {
+                background: '#ef4444',
+              },
+            },
+            loading: {
+              icon: '⏳',
+              style: {
+                background: '#3b82f6',
+              },
+            },
+          }}
+        />
         <AppRoutes />
       </Router>
     </AuthProvider>
