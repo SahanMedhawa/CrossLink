@@ -15,6 +15,8 @@ import {
   MagnifyingGlassIcon,
   DocumentTextIcon,
   Cog6ToothIcon,
+  WrenchScrewdriverIcon,
+  HeartIcon as HeartSolidIcon  
 } from "@heroicons/react/24/outline";
 
 const Sidebar = ({ sidebarOpen, setSidebarOpen, isMobile, userType }) => {
@@ -80,9 +82,9 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isMobile, userType }) => {
             icon: <BriefcaseIcon className="w-5 h-5" />,
           },
           {
-            name: "Reports",
-            href: "/ngo/reports",
-            icon: <ChartBarIcon className="w-5 h-5" />,
+            name: "Project Donations",
+            href: "/ngo/ProjectDonations",
+            icon: <HeartSolidIcon  className="w-5 h-5" />,
           },
           {
             name: "Settings",
@@ -125,8 +127,8 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isMobile, userType }) => {
             icon: <ChartBarIcon className="w-5 h-5" />,
           }, {
             name: "Resource Managment",
-            href: "/corporate/dashboard",
-            icon: <HomeIcon className="w-5 h-5" />,
+            href: "/corporate/resourcehManage",
+            icon: <WrenchScrewdriverIcon className="w-5 h-5" />,
           },
           {
             name: "Settings",
