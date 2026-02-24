@@ -101,16 +101,25 @@ exports.getMyFunding = async (req, res) => {
   try {
     const corporateId = req.user.id;
     
+    // ✅ FIX: Populate 'projectId' AND 'projectId.ngoId'
     const fundings = await Funding.find({ corporateId })
-      .populate('projectId', 'title organizationName location')
+      .populate({
+        path: 'projectId',
+        select: 'title location ngoId', // Select the ngoId field from Project
+        populate: {
+          path: 'ngoId', // Populate the NGO details inside the project
+          select: 'organizationName' // Select only the name we need
+        }
+      })
       .sort({ createdAt: -1 });
 
     res.json({ 
       success: true, 
       count: fundings.length, 
-       fundings 
+      data: fundings // Ensure key is 'data' to match frontend
     });
   } catch (error) {
+    console.error("Get My Funding Error:", error);
     res.status(500).json({ success: false, message: 'Server Error', error: error.message });
   }
 };

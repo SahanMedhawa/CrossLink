@@ -15,6 +15,11 @@ import NGOProjects from "./pages/ngo/myprojects";
 import ResourceForm from "./pages/resource/ResourceForm";
 import ResourceManage from "./pages/resource/resourceManage";
 import ProjectDonations from "./pages/resource/ProjectDonations";
+import NGOPartners from './pages/corporate/NGOPartners'; 
+import NgoProjectView from './pages/corporate/NgoProjectView';
+import ImpactReports from './pages/corporate/ImpactReports';
+import MyProposalsAndFunding from './pages/corporate/MyProposalsAndFunding';
+
 import "./App.css";
 
 // Protected Route Component
@@ -112,6 +117,49 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
+     
+     {/* Corporate NGO Projects Display */}
+      <Route
+        path="/corporate/ngo-partners"
+        element={
+          <ProtectedRoute allowedRoles={["corporate"]}>
+            <NGOPartners />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/corporate/ngo/:ngoId/projects"
+        element={
+          <ProtectedRoute allowedRoles={["corporate"]}>
+            <NgoProjectView />
+          </ProtectedRoute>
+        }
+      />
+
+          
+
+            <Route
+           path="/corporate/my-activities"
+          element={
+             <ProtectedRoute allowedRoles={["corporate"]}>
+               <MyProposalsAndFunding />
+           </ProtectedRoute>
+         }
+       />
+
+
+
+
+         <Route
+      path="/corporate/reports"
+      element={
+           <ProtectedRoute allowedRoles={["corporate"]}>
+          <ImpactReports />
+        </ProtectedRoute>
+       }
+    />
+
 
       {/* Resource Routes - Protected */}
       <Route
