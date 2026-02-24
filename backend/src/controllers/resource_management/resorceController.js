@@ -1,5 +1,7 @@
+const User = require("../../models/user.model");
 const Resource = require("../../models/resorce");
 const Project = require("../../models/project");
+const {sendDonationConfirmation, sendNgoNotification} = require("../../utils/emailService");
 
 // ✅ Corporate donates 
 exports.donateResource = async (req, res) => {
@@ -41,7 +43,7 @@ exports.donateResource = async (req, res) => {
         projectId,
         name: name.trim(),
         totalQuantity: projectResource.quantity, 
-        remainingQuantity: projectResource.quantity - quantity, // Subtract donation
+        remainingQuantity: projectResource.quantity - quantity,
         description: description || projectResource.description || "",
         donatedBy: [{
           corporateId,
@@ -57,7 +59,6 @@ exports.donateResource = async (req, res) => {
         });
       }
 
-      // Update remaining quantity
       resource.remainingQuantity -= quantity;
       resource.donatedBy.push({ 
         corporateId, 
@@ -73,11 +74,65 @@ exports.donateResource = async (req, res) => {
       await project.save();
     }
 
-    // Check if resource is now fully funded
     const isFullyFunded = resource.remainingQuantity === 0;
-    if (isFullyFunded) {
-      console.log("🎉 Resource is now FULLY FUNDED!");
+
+    // ===== EMAIL NOTIFICATIONS =====
+    try {
+      // Fetch corporate user details
+      const corporateUser = await User.findById(corporateId);
+      console.log("Corporate user found:", corporateUser ? "Yes" : "No");
+      
+      if (corporateUser && corporateUser.email) {
+        // Send confirmation to donor
+        await sendDonationConfirmation(
+          {
+            name: resource.name,
+            quantity: quantity,
+            totalQuantity: resource.totalQuantity,
+            remainingQuantity: resource.remainingQuantity
+          },
+          {
+            _id: project._id,
+            title: project.title,
+            organizationName: project.organizationName,
+            location: project.location
+          },
+          {
+            email: corporateUser.email,
+            companyName: corporateUser.companyName,
+            name: corporateUser.name
+          }
+        );
+        
+        // Fetch NGO user details
+        const ngoUser = await User.findById(project.ngoId);
+        console.log("NGO user found:", ngoUser ? "Yes" : "No");
+        
+        if (ngoUser && ngoUser.email) {
+          await sendNgoNotification(
+            {
+              name: resource.name,
+              quantity: quantity,
+              totalQuantity: resource.totalQuantity,
+              remainingQuantity: resource.remainingQuantity
+            },
+            {
+              _id: project._id,
+              title: project.title,
+              organizationName: project.organizationName,
+              ngoEmail: ngoUser.email
+            },
+            {
+              companyName: corporateUser.companyName,
+              name: corporateUser.name
+            }
+          );
+        }
+      }
+    } catch (emailError) {
+      console.error('Email notification error:', emailError);
     }
+    // ===== END EMAIL NOTIFICATIONS =====
 
     res.status(200).json({
       message: "Donation submitted successfully",
@@ -89,6 +144,7 @@ exports.donateResource = async (req, res) => {
     });
 
   } catch (err) {
+    console.error('Donation error:', err);
     res.status(500).json({ error: err.message });
   }
 };

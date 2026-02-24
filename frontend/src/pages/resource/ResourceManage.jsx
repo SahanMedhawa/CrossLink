@@ -3,10 +3,11 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
+import DonationCharts from '../../components/resources/DonationCharts';
 
 const ResourceManage = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, token } = useAuth();
   
   const [resources, setResources] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -22,6 +23,8 @@ const ResourceManage = () => {
     description: ''
   });
   const [sortConfig, setSortConfig] = useState({ key: 'createdAt', direction: 'desc' });
+  const [showCharts, setShowCharts] = useState(false);
+  const [showReport, setShowReport] = useState(false);
 
   // Format date helper
   const formatDate = (dateString) => {
@@ -36,17 +39,27 @@ const ResourceManage = () => {
     });
   };
 
+  // Set up axios interceptor
+  useEffect(() => {
+    const interceptor = axios.interceptors.request.use(
+      (config) => {
+        if (token) {
+          config.headers.Authorization = `Bearer ${token}`;
+        }
+        return config;
+      },
+      (error) => Promise.reject(error)
+    );
+
+    return () => axios.interceptors.request.eject(interceptor);
+  }, [token]);
+
   // Fetch all resources
   const fetchAllResources = async () => {
     try {
       setLoading(true);
       const response = await axios.get(
-        'http://localhost:5000/api/resources/all',
-        {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          }
-        }
+        'http://localhost:5000/api/resources/all'
       );
       
       // Handle different response formats
@@ -148,6 +161,32 @@ const ResourceManage = () => {
   const totalDonated = totalQuantity - totalRemaining;
   const fullyFundedCount = resources?.filter(res => res?.remainingQuantity === 0)?.length || 0;
 
+  // Prepare data for charts (extract all donations)
+  const getAllDonations = useMemo(() => {
+    const donations = [];
+    resources.forEach(resource => {
+      if (resource.donatedBy && Array.isArray(resource.donatedBy)) {
+        resource.donatedBy.forEach(donation => {
+          donations.push({
+            _id: `${resource._id}_${donation.donatedAt}`,
+            resourceName: resource.name,
+            resourceId: resource._id,
+            quantity: donation.quantity,
+            donatedAt: donation.donatedAt,
+            corporateId: donation.corporateId,
+            projectId: resource.projectId?._id,
+            projectName: resource.projectId?.title || 'Unknown Project',
+            organizationName: resource.projectId?.organizationName || '',
+            totalQuantity: resource.totalQuantity,
+            remainingQuantity: resource.remainingQuantity,
+            resourceDescription: resource.description
+          });
+        });
+      }
+    });
+    return donations;
+  }, [resources]);
+
   // Handle update button click
   const handleUpdateClick = (resource) => {
     if (resource.remainingQuantity === 0) {
@@ -176,24 +215,18 @@ const ResourceManage = () => {
   // Handle update submit
   const handleUpdateSubmit = async () => {
     try {
-      // Validate
       if (!updateForm.name || !updateForm.totalQuantity) {
         toast.error('Name and total quantity are required');
         return;
       }
 
-      const response = await axios.put(
+      await axios.put(
         `http://localhost:5000/api/resources/${selectedResource._id}`,
         {
           name: updateForm.name,
           totalQuantity: Number(updateForm.totalQuantity),
           remainingQuantity: Number(updateForm.remainingQuantity),
           description: updateForm.description
-        },
-        {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          }
         }
       );
 
@@ -220,12 +253,7 @@ const ResourceManage = () => {
   const handleDeleteConfirm = async () => {
     try {
       await axios.delete(
-        `http://localhost:5000/api/resources/${selectedResource._id}`,
-        {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          }
-        }
+        `http://localhost:5000/api/resources/${selectedResource._id}`
       );
 
       toast.success('Resource deleted successfully!');
@@ -234,6 +262,14 @@ const ResourceManage = () => {
     } catch (err) {
       console.error("Delete error:", err);
       toast.error(err.response?.data?.message || 'Failed to delete resource');
+    }
+  };
+
+  // Toggle charts visibility
+  const toggleCharts = () => {
+    setShowCharts(!showCharts);
+    if (!showCharts && getAllDonations.length === 0) {
+      toast.error('No donation data available for charts');
     }
   };
 
@@ -299,7 +335,15 @@ const ResourceManage = () => {
       justifyContent: 'space-between',
       alignItems: 'center',
       background: 'white',
-      borderBottom: '1px solid #e2e8f0'
+      borderBottom: '1px solid #e2e8f0',
+      flexWrap: 'wrap',
+      gap: '1rem'
+    },
+    leftControls: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: '1rem',
+      flexWrap: 'wrap'
     },
     searchBox: {
       padding: '0.75rem 1rem',
@@ -309,6 +353,26 @@ const ResourceManage = () => {
       fontSize: '0.95rem',
       transition: 'all 0.2s',
       outline: 'none'
+    },
+    featureButtons: {
+      display: 'flex',
+      gap: '0.75rem'
+    },
+    featureButton: {
+      padding: '0.75rem 1.5rem',
+      border: 'none',
+      borderRadius: '8px',
+      fontSize: '0.95rem',
+      fontWeight: '600',
+      cursor: 'pointer',
+      transition: 'all 0.2s',
+      display: 'flex',
+      alignItems: 'center',
+      gap: '0.5rem'
+    },
+    chartsButton: {
+      background: '#10b981',
+      color: 'white'
     },
     backButton: {
       padding: '0.75rem 1.5rem',
@@ -526,9 +590,9 @@ const ResourceManage = () => {
           </div>
         </div>
 
-        {/* Search and Back Button */}
+        {/* Search and Feature Buttons */}
         <div style={styles.controls}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <div style={styles.leftControls}>
             <input
               type="text"
               placeholder="🔍 Search by resource name, project, organization..."
@@ -552,6 +616,22 @@ const ResourceManage = () => {
               🔄 Refresh
             </button>
           </div>
+          
+          <div style={styles.featureButtons}>
+            <button 
+              onClick={toggleCharts}
+              style={{
+                ...styles.featureButton,
+                ...styles.chartsButton,
+                background: showCharts ? '#059669' : '#10b981'
+              }}
+              onMouseEnter={(e) => !showCharts && (e.target.style.background = '#059669')}
+              onMouseLeave={(e) => !showCharts && (e.target.style.background = '#10b981')}
+            >
+              <span>{showCharts ? '📊 Hide Charts' : '📊 Show Analytics'}</span>
+            </button>
+          </div>
+          
           <button 
             onClick={() => navigate('/')}
             style={styles.backButton}
@@ -567,6 +647,11 @@ const ResourceManage = () => {
             ← Back to Dashboard
           </button>
         </div>
+
+        {/* Charts Section */}
+        {showCharts && (
+          <DonationCharts donations={getAllDonations} />
+        )}
 
         {/* Resources Table */}
         <div style={styles.tableContainer}>
