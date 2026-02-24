@@ -60,6 +60,23 @@ const userSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
+    coordinates: {
+      type: {
+        type: String,
+        enum: ['Point'],
+      },
+      coordinates: {
+        type: [Number], // [longitude, latitude]
+      },
+    },
+    impactPoints: {
+      type: Number,
+      default: 0,
+    },
+    projectsJoinedCount: {
+      type: Number,
+      default: 0,
+    },
     // NGO-specific fields
     organizationName: {
       type: String,
@@ -108,6 +125,7 @@ const userSchema = new mongoose.Schema(
 userSchema.index({ userType: 1 });
 userSchema.index({ location: 1 });
 userSchema.index({ skills: 1 });
+userSchema.index({ coordinates: '2dsphere' });
 
 const User = mongoose.model('User', userSchema);
 

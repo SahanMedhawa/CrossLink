@@ -48,6 +48,23 @@ const projectSchema = new mongoose.Schema({
     type: String,
     default: ''
   },
+  coordinates: {
+    type: {
+      type: String,
+      enum: ['Point'],
+    },
+    coordinates: {
+      type: [Number], // [longitude, latitude]
+    },
+  },
+  volunteersNeeded: {
+    type: Number,
+    default: 5,
+  },
+  volunteersCount: {
+    type: Number,
+    default: 0,
+  },
   resources: [{
     name: {
       type: String,
@@ -71,5 +88,6 @@ const projectSchema = new mongoose.Schema({
 projectSchema.index({ ngoId: 1, status: 1 });
 projectSchema.index({ skills: 1 });
 projectSchema.index({ focusArea: 1 });
+projectSchema.index({ coordinates: '2dsphere' });
 
 module.exports = mongoose.model('Project', projectSchema);

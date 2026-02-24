@@ -4,6 +4,7 @@ import * as Yup from "yup";
 import { signup } from "../../services/api";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import { SKILL_OPTIONS, INTEREST_OPTIONS } from "../../constants/skillsAndInterests";
 
 /* ─── Validation per step ─── */
 const stepTwoSchema = Yup.object({
@@ -78,7 +79,8 @@ const Register = () => {
   const [formValues, setFormValues] = useState({
     name: "", email: "", password: "", confirmPassword: "",
     phone: "", location: "",
-    skills: "", interests: "",
+    skills: [], interests: [],
+    customSkillInput: "", customInterestInput: "",
     organizationName: "", focusAreas: "", website: "",
     companyName: "", industry: "", csrInterests: "",
   });
@@ -89,7 +91,9 @@ const Register = () => {
 
   /* ─── Submit to API ─── */
   const handleFinalSubmit = async (values) => {
-    const merged = { ...formValues, ...values };
+    // Merge Formik values into state, but preserve skills/interests
+    // from React state (tag toggles update formValues, not Formik)
+    const merged = { ...formValues, ...values, skills: formValues.skills, interests: formValues.interests };
     setFormValues(merged);
     setIsSubmitting(true);
     setSubmitStatus({ type: null, message: "" });
@@ -102,8 +106,8 @@ const Register = () => {
         location: merged.location || undefined,
       };
       if (userType === "volunteer") {
-        data.skills = merged.skills ? merged.skills.split(",").map((s) => s.trim()) : [];
-        data.interests = merged.interests ? merged.interests.split(",").map((s) => s.trim()) : [];
+        data.skills = merged.skills || [];
+        data.interests = merged.interests || [];
       } else if (userType === "ngo") {
         data.organizationName = merged.organizationName;
         data.focusAreas = merged.focusAreas ? merged.focusAreas.split(",").map((s) => s.trim()) : [];
@@ -330,13 +334,150 @@ const Register = () => {
                     {/* Volunteer */}
                     {userType === "volunteer" && (
                       <>
+                        {/* ── Skills tag selector ── */}
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1.5">Skills <span className="text-gray-400 text-xs">(comma-separated)</span></label>
-                          <Field name="skills" type="text" placeholder="e.g. React, Teaching, Design" className={inputCls(false)} />
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Skills <span className="text-gray-400 text-xs">(pick or type your own)</span>
+                          </label>
+                          <div className="flex flex-wrap gap-1.5 mb-2">
+                            {SKILL_OPTIONS.map((skill) => {
+                              const active = formValues.skills.includes(skill);
+                              return (
+                                <button
+                                  key={skill}
+                                  type="button"
+                                  onClick={() =>
+                                    setFormValues((prev) => ({
+                                      ...prev,
+                                      skills: active
+                                        ? prev.skills.filter((s) => s !== skill)
+                                        : [...prev.skills, skill],
+                                    }))
+                                  }
+                                  className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-all
+                                    ${active
+                                      ? "bg-blue-100 border-blue-400 text-blue-700"
+                                      : "bg-gray-50 border-gray-200 text-gray-600 hover:border-gray-300"}`}
+                                >
+                                  {active ? "✓ " : ""}{skill}
+                                </button>
+                              );
+                            })}
+                          </div>
+                          {/* Custom skill input */}
+                          <div className="flex gap-2">
+                            <input
+                              type="text"
+                              value={formValues.customSkillInput}
+                              onChange={(e) =>
+                                setFormValues((prev) => ({ ...prev, customSkillInput: e.target.value }))
+                              }
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                  e.preventDefault();
+                                  const trimmed = formValues.customSkillInput.trim();
+                                  if (trimmed && !formValues.skills.includes(trimmed)) {
+                                    setFormValues((prev) => ({
+                                      ...prev,
+                                      skills: [...prev.skills, trimmed],
+                                      customSkillInput: "",
+                                    }));
+                                  }
+                                }
+                              }}
+                              placeholder="Add custom skill…"
+                              className={inputCls(false) + " text-xs"}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const trimmed = formValues.customSkillInput.trim();
+                                if (trimmed && !formValues.skills.includes(trimmed)) {
+                                  setFormValues((prev) => ({
+                                    ...prev,
+                                    skills: [...prev.skills, trimmed],
+                                    customSkillInput: "",
+                                  }));
+                                }
+                              }}
+                              className="px-3 py-2 rounded-xl bg-blue-50 text-blue-600 text-xs font-medium border border-blue-200 hover:bg-blue-100 transition-colors whitespace-nowrap"
+                            >
+                              + Add
+                            </button>
+                          </div>
                         </div>
+
+                        {/* ── Interests tag selector ── */}
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1.5">Interests <span className="text-gray-400 text-xs">(comma-separated)</span></label>
-                          <Field name="interests" type="text" placeholder="e.g. Education, Environment" className={inputCls(false)} />
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Interests <span className="text-gray-400 text-xs">(pick or type your own)</span>
+                          </label>
+                          <div className="flex flex-wrap gap-1.5 mb-2">
+                            {INTEREST_OPTIONS.map((interest) => {
+                              const active = formValues.interests.includes(interest);
+                              return (
+                                <button
+                                  key={interest}
+                                  type="button"
+                                  onClick={() =>
+                                    setFormValues((prev) => ({
+                                      ...prev,
+                                      interests: active
+                                        ? prev.interests.filter((i) => i !== interest)
+                                        : [...prev.interests, interest],
+                                    }))
+                                  }
+                                  className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-all
+                                    ${active
+                                      ? "bg-emerald-100 border-emerald-400 text-emerald-700"
+                                      : "bg-gray-50 border-gray-200 text-gray-600 hover:border-gray-300"}`}
+                                >
+                                  {active ? "✓ " : ""}{interest}
+                                </button>
+                              );
+                            })}
+                          </div>
+                          {/* Custom interest input */}
+                          <div className="flex gap-2">
+                            <input
+                              type="text"
+                              value={formValues.customInterestInput}
+                              onChange={(e) =>
+                                setFormValues((prev) => ({ ...prev, customInterestInput: e.target.value }))
+                              }
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                  e.preventDefault();
+                                  const trimmed = formValues.customInterestInput.trim();
+                                  if (trimmed && !formValues.interests.includes(trimmed)) {
+                                    setFormValues((prev) => ({
+                                      ...prev,
+                                      interests: [...prev.interests, trimmed],
+                                      customInterestInput: "",
+                                    }));
+                                  }
+                                }
+                              }}
+                              placeholder="Add custom interest…"
+                              className={inputCls(false) + " text-xs"}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const trimmed = formValues.customInterestInput.trim();
+                                if (trimmed && !formValues.interests.includes(trimmed)) {
+                                  setFormValues((prev) => ({
+                                    ...prev,
+                                    interests: [...prev.interests, trimmed],
+                                    customInterestInput: "",
+                                  }));
+                                }
+                              }}
+                              className="px-3 py-2 rounded-xl bg-emerald-50 text-emerald-600 text-xs font-medium border border-emerald-200 hover:bg-emerald-100 transition-colors whitespace-nowrap"
+                            >
+                              + Add
+                            </button>
+                          </div>
                         </div>
                       </>
                     )}

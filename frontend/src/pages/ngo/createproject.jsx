@@ -1,5 +1,26 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
+import { SKILL_OPTIONS, FOCUS_AREA_OPTIONS } from '../../constants/skillsAndInterests';
+import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
+import L from 'leaflet';
+
+// Fix default Leaflet marker icon (webpack/vite strips the default)
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+});
+
+// ─── Click-to-place marker on map ───
+const LocationMarker = ({ position, setPosition }) => {
+  useMapEvents({
+    click(e) {
+      setPosition([e.latlng.lat, e.latlng.lng]);
+    },
+  });
+  return position ? <Marker position={position} /> : null;
+};
 
 const CreateProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
   // --- State Management (Aligned with Mongoose Schema) ---
@@ -12,6 +33,7 @@ const CreateProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
     startDate: '',
     endDate: '',
     status: 'active',
+    volunteersNeeded: 5,
     resources: []
   });
 
@@ -19,26 +41,17 @@ const CreateProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
   const [resourceInput, setResourceInput] = useState({ name: '', quantity: '', description: '' });
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
+  const [mapPosition, setMapPosition] = useState(null); // [lat, lng] or null
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
 
   // --- Ref for scrolling ---
   const bodyRef = useRef(null);
 
-  // --- Data Options ---
-  const commonSkills = [
-    'Teaching', 'Healthcare', 'Technology', 'Marketing', 'Design',
-    'Writing', 'Photography', 'Video Editing', 'Social Media',
-    'Event Planning', 'Fundraising', 'Project Management',
-    'Data Analysis', 'Web Development', 'Counseling',
-    'Communication', 'Leadership', 'Public Speaking'
-  ];
+  // --- Data Options (from shared constants) ---
+  const commonSkills = SKILL_OPTIONS;
 
-  const focusAreaOptions = [
-    'Education', 'Healthcare', 'Environment', 'Youth',
-    'Women Empowerment', 'Poverty Alleviation', 'Animal Welfare',
-    'Disaster Relief', 'Arts & Culture', 'Technology'
-  ];
+  const focusAreaOptions = FOCUS_AREA_OPTIONS;
 
   // --- Lock body scroll when modal is open ---
   useEffect(() => {
@@ -141,6 +154,14 @@ const CreateProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
         }
       });
 
+      // Append coordinates as GeoJSON if a map pin was placed
+      if (mapPosition) {
+        data.append('coordinates', JSON.stringify({
+          type: 'Point',
+          coordinates: [mapPosition[1], mapPosition[0]] // [lng, lat] for GeoJSON
+        }));
+      }
+
       if (imageFile) data.append('image', imageFile);
 
       await axios.post('http://localhost:5000/api/projects', data, {
@@ -162,12 +183,14 @@ const CreateProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
         startDate: '',
         endDate: '',
         status: 'active',
+        volunteersNeeded: 5,
         resources: []
       });
       setSkillInput('');
       setResourceInput({ name: '', quantity: '', description: '' });
       setImageFile(null);
       setImagePreview(null);
+      setMapPosition(null);
 
       // Close modal and trigger parent callback
       setTimeout(() => {
@@ -250,6 +273,60 @@ const CreateProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                 <label style={s.label}>Location *</label>
                 <input style={s.input} name="location" value={formData.location} onChange={handleInputChange} required placeholder="City, Country or Remote" />
               </div>
+            </div>
+
+            {/* Volunteers Needed */}
+            <div style={{ marginBottom: '1.5rem' }}>
+              <label style={s.label}>Volunteers Needed</label>
+              <input
+                style={{ ...s.input, maxWidth: '200px' }}
+                type="number"
+                name="volunteersNeeded"
+                min="1"
+                max="500"
+                value={formData.volunteersNeeded}
+                onChange={handleInputChange}
+                placeholder="e.g. 10"
+              />
+              <p style={{ fontSize: '12px', color: '#94a3b8', marginTop: '4px' }}>How many volunteers does this project need?</p>
+            </div>
+
+            {/* OpenStreetMap Location Picker (optional) */}
+            <div style={{ marginBottom: '1.5rem', padding: '1.25rem', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+              <label style={s.label}>
+                📍 Pin Project Location on Map
+                <span style={{ fontWeight: 400, color: '#94a3b8', fontSize: '12px', marginLeft: '6px' }}>(optional — helps volunteers find the project)</span>
+              </label>
+              <div style={{ borderRadius: '10px', overflow: 'hidden', border: '1px solid #e2e8f0', marginTop: '8px' }}>
+                <MapContainer
+                  center={[7.8731, 80.7718]}
+                  zoom={7}
+                  style={{ height: '280px', width: '100%' }}
+                  scrollWheelZoom={true}
+                >
+                  <TileLayer
+                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                  />
+                  <LocationMarker position={mapPosition} setPosition={setMapPosition} />
+                </MapContainer>
+              </div>
+              {mapPosition ? (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px' }}>
+                  <span style={{ fontSize: '12px', color: '#475569' }}>
+                    📌 Lat: {mapPosition[0].toFixed(5)}, Lng: {mapPosition[1].toFixed(5)}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setMapPosition(null)}
+                    style={{ fontSize: '11px', color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}
+                  >
+                    Clear pin
+                  </button>
+                </div>
+              ) : (
+                <p style={{ fontSize: '12px', color: '#94a3b8', marginTop: '6px' }}>Click on the map to place a pin at your project location.</p>
+              )}
             </div>
 
             <div style={{ marginBottom: '1.5rem' }}>
