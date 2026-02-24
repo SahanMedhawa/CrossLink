@@ -101,7 +101,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isMobile, userType }) => {
           },
           {
             name: "CSR Initiatives",
-            href: "/corporate/initiatives",
+            href: '/corporate/csr-initiatives',
             icon: <HeartIcon className="w-5 h-5" />,
           },
           {

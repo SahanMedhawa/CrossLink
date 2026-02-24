@@ -19,6 +19,7 @@ import NGOPartners from './pages/corporate/NGOPartners';
 import NgoProjectView from './pages/corporate/NgoProjectView';
 import ImpactReports from './pages/corporate/ImpactReports';
 import MyProposalsAndFunding from './pages/corporate/MyProposalsAndFunding';
+import CsrInitiatives from './pages/corporate/CsrInitiatives';
 
 import "./App.css";
 
@@ -147,7 +148,14 @@ function AppRoutes() {
            </ProtectedRoute>
          }
        />
-
+         <Route
+        path="/corporate/csr-initiatives"
+        element={
+           <ProtectedRoute allowedRoles={["corporate"]}>
+              <CsrInitiatives />
+         </ProtectedRoute>
+       }
+    />
 
 
 
