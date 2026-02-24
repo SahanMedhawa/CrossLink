@@ -13,7 +13,9 @@ exports.createProject = async (req, res) => {
       startDate,
       endDate,
       status,
-      resources
+      resources,
+      volunteersNeeded,
+      coordinates
     } = req.body;
 
     // Verify user is an NGO
@@ -50,6 +52,23 @@ exports.createProject = async (req, res) => {
       status: status || 'active',
       resources: parsedResources || []
     };
+
+    // Add volunteersNeeded if provided
+    if (volunteersNeeded) {
+      projectData.volunteersNeeded = parseInt(volunteersNeeded, 10);
+    }
+
+    // Add coordinates if provided (expects JSON string from FormData)
+    if (coordinates) {
+      try {
+        const parsedCoords = typeof coordinates === 'string' ? JSON.parse(coordinates) : coordinates;
+        if (parsedCoords && parsedCoords.type === 'Point' && Array.isArray(parsedCoords.coordinates) && parsedCoords.coordinates.length === 2) {
+          projectData.coordinates = parsedCoords;
+        }
+      } catch (e) {
+        // Ignore invalid coordinates — field is optional
+      }
+    }
 
     // Add image path if uploaded
     if (req.file) {
@@ -199,6 +218,27 @@ exports.updateProject = async (req, res) => {
       req.body.skills = typeof req.body.skills === 'string' 
         ? JSON.parse(req.body.skills) 
         : req.body.skills;
+    }
+
+    // Parse volunteersNeeded
+    if (req.body.volunteersNeeded) {
+      req.body.volunteersNeeded = parseInt(req.body.volunteersNeeded, 10);
+    }
+
+    // Parse coordinates if provided (GeoJSON from FormData)
+    if (req.body.coordinates) {
+      try {
+        const parsedCoords = typeof req.body.coordinates === 'string'
+          ? JSON.parse(req.body.coordinates)
+          : req.body.coordinates;
+        if (parsedCoords && parsedCoords.type === 'Point' && Array.isArray(parsedCoords.coordinates) && parsedCoords.coordinates.length === 2) {
+          req.body.coordinates = parsedCoords;
+        } else {
+          delete req.body.coordinates;
+        }
+      } catch (e) {
+        delete req.body.coordinates; // Ignore invalid coordinates
+      }
     }
 
     // Add new image path if uploaded
