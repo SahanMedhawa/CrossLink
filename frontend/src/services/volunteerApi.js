@@ -37,14 +37,32 @@ export const getMatchedProjects = async () => {
 // Participation Endpoints (Volunteer)
 // ═══════════════════════════════════════
 
-export const requestParticipation = async (projectId) => {
-  const response = await api.post('/participation/request', { projectId });
+export const requestParticipation = async (projectId, formData) => {
+  const response = await api.post('/participation/request', {
+    projectId,
+    ...formData,
+  });
   return response.data;
 };
 
 export const getMyApplications = async (status) => {
   const params = status ? { status } : {};
   const response = await api.get('/participation/my-applications', { params });
+  return response.data;
+};
+
+export const getParticipationById = async (id) => {
+  const response = await api.get(`/participation/${id}`);
+  return response.data;
+};
+
+export const updateParticipationRequest = async (id, data) => {
+  const response = await api.patch(`/participation/${id}`, data);
+  return response.data;
+};
+
+export const deleteParticipationRequest = async (id) => {
+  const response = await api.delete(`/participation/${id}`);
   return response.data;
 };
 

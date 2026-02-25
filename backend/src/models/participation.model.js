@@ -22,6 +22,35 @@ const participationSchema = new mongoose.Schema(
       enum: ['requested', 'approved', 'rejected', 'completed'],
       default: 'requested',
     },
+    message: {
+      type: String,
+      required: [true, 'Motivation message is required.'],
+      trim: true,
+      minlength: [10, 'Motivation message must be at least 10 characters.'],
+      maxlength: [1000, 'Motivation message cannot exceed 1000 characters.'],
+    },
+    experienceSummary: {
+      type: String,
+      required: [true, 'Relevant experience is required.'],
+      trim: true,
+      minlength: [10, 'Experience summary must be at least 10 characters.'],
+      maxlength: [1000, 'Experience summary cannot exceed 1000 characters.'],
+    },
+    availabilityConfirmed: {
+      type: Boolean,
+      required: [true, 'Availability confirmation is required.'],
+      default: false,
+    },
+    preferredRole: {
+      type: String,
+      trim: true,
+      maxlength: [100, 'Preferred role cannot exceed 100 characters.'],
+    },
+    expectedHours: {
+      type: Number,
+      min: [1, 'Expected hours must be at least 1.'],
+      max: [500, 'Expected hours cannot exceed 500.'],
+    },
     appliedAt: {
       type: Date,
       default: Date.now,

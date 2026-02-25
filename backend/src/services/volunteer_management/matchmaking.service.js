@@ -91,19 +91,28 @@ const getMatchedProjects = async (volunteerId) => {
     $expr: { $lt: ['$volunteersCount', '$volunteersNeeded'] },
   }).populate('ngoId', 'organizationName email location focusAreas photoURL');
 
-  // Get volunteer's existing participation records to mark already-applied projects
+  // Get volunteer's existing participation records to filter out already-applied/completed projects
   const existingParticipations = await Participation.find({
     volunteerId,
-    status: { $in: ['requested', 'approved'] },
-  }).select('projectId status');
+    status: { $in: ['requested', 'approved', 'completed', 'rejected'] },
+  }).select('projectId status _id');
 
   const participationMap = {};
   existingParticipations.forEach((p) => {
-    participationMap[p.projectId.toString()] = p.status;
+    participationMap[p.projectId.toString()] = {
+      status: p.status,
+      participationId: p._id,
+    };
   });
 
-  // Calculate match scores for each project
-  const matchedProjects = projects.map((project) => {
+  // Calculate match scores for each project — exclude completed & rejected
+  const matchedProjects = projects
+    .filter((project) => {
+      const entry = participationMap[project._id.toString()];
+      const participationStatus = entry?.status;
+      return participationStatus !== 'completed' && participationStatus !== 'rejected';
+    })
+    .map((project) => {
     const { score, matchedSkills, missingSkills } = calculateMatchScore(
       volunteerSkills,
       project.skills || []
@@ -137,7 +146,8 @@ const getMatchedProjects = async (volunteerId) => {
       matchedSkills,
       missingSkills,
       distance,
-      alreadyApplied: participationMap[project._id.toString()] || null,
+      alreadyApplied: participationMap[project._id.toString()]?.status || null,
+      participationId: participationMap[project._id.toString()]?.participationId || null,
     };
   });
 

@@ -1,13 +1,25 @@
 import React, { useState, useEffect } from "react";
 import DashboardLayout from "../../components/dashboard/DashboardLayout";
-import { getMatchedProjects, requestParticipation } from "../../services/volunteerApi";
+import {
+  getMatchedProjects,
+  requestParticipation,
+  updateParticipationRequest,
+  deleteParticipationRequest,
+  getParticipationById,
+} from "../../services/volunteerApi";
+import ParticipationFormModal from "../../components/volunteer/ParticipationFormModal";
 import toast from "react-hot-toast";
 
 const MatchedProjects = () => {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [applying, setApplying] = useState(null);
   const [filterScore, setFilterScore] = useState(0);
+  const [showForm, setShowForm] = useState(false);
+  const [selectedProjectId, setSelectedProjectId] = useState(null);
+  const [formLoading, setFormLoading] = useState(false);
+  const [editingParticipation, setEditingParticipation] = useState(null);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [withdrawingId, setWithdrawingId] = useState(null);
 
   useEffect(() => {
     fetchMatches();
@@ -27,25 +39,72 @@ const MatchedProjects = () => {
     }
   };
 
-  const handleApply = async (projectId) => {
+  const handleApply = (projectId) => {
+    setSelectedProjectId(projectId);
+    setIsEditMode(false);
+    setEditingParticipation(null);
+    setShowForm(true);
+  };
+
+  const handleEdit = async (participationId) => {
     try {
-      setApplying(projectId);
-      const result = await requestParticipation(projectId);
+      const result = await getParticipationById(participationId);
       if (result.success) {
-        toast.success("Participation request submitted!");
-        // Update local state to mark as applied
+        setEditingParticipation(result.data);
+        setIsEditMode(true);
+        setShowForm(true);
+      }
+    } catch (error) {
+      toast.error("Failed to load application details.");
+    }
+  };
+
+  const handleWithdraw = async (participationId, projectId) => {
+    if (!window.confirm("Are you sure you want to withdraw this request? This cannot be undone.")) return;
+    try {
+      setWithdrawingId(participationId);
+      const result = await deleteParticipationRequest(participationId);
+      if (result.success) {
+        toast.success("Request withdrawn successfully!");
         setProjects((prev) =>
           prev.map((p) =>
             p.project._id === projectId
-              ? { ...p, alreadyApplied: "requested" }
+              ? { ...p, alreadyApplied: null, participationId: null }
               : p
           )
         );
       }
     } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to withdraw request.");
+    } finally {
+      setWithdrawingId(null);
+    }
+  };
+
+  const handleFormSubmit = async (formData) => {
+    try {
+      setFormLoading(true);
+      if (isEditMode && editingParticipation) {
+        const result = await updateParticipationRequest(editingParticipation._id, formData);
+        if (result.success) {
+          toast.success("Application updated successfully!");
+          setShowForm(false);
+          setEditingParticipation(null);
+          setIsEditMode(false);
+        }
+      } else {
+        const result = await requestParticipation(selectedProjectId, formData);
+        if (result.success) {
+          toast.success("Participation request submitted!");
+          fetchMatches();
+          setShowForm(false);
+          setSelectedProjectId(null);
+        }
+      }
+    } catch (error) {
       toast.error(error.response?.data?.message || "Failed to submit request.");
     } finally {
-      setApplying(null);
+      setFormLoading(false);
     }
   };
 
@@ -113,7 +172,7 @@ const MatchedProjects = () => {
         {/* Project Cards */}
         {!loading && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {filteredProjects.map(({ project, matchScore, matchedSkills, missingSkills, alreadyApplied, distance }) => (
+            {filteredProjects.map(({ project, matchScore, matchedSkills, missingSkills, alreadyApplied, distance, participationId }) => (
               <div
                 key={project._id}
                 className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow"
@@ -197,23 +256,43 @@ const MatchedProjects = () => {
                   </div>
 
                   {/* Action */}
-                  {alreadyApplied ? (
-                    <span
-                      className={`inline-block px-4 py-2 rounded-lg text-sm font-medium ${
-                        alreadyApplied === "approved"
-                          ? "bg-green-100 text-green-700"
-                          : "bg-yellow-100 text-yellow-700"
-                      }`}
-                    >
-                      {alreadyApplied === "approved" ? "Approved" : "Request Pending"}
+                  {alreadyApplied === "requested" && participationId ? (
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <span className="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-semibold border border-yellow-200">
+                          Request Pending
+                        </span>
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleEdit(participationId)}
+                          className="flex-1 px-4 py-2 bg-blue-50 text-blue-700 rounded-lg text-sm font-medium hover:bg-blue-100 transition-colors"
+                        >
+                          Edit Request
+                        </button>
+                        <button
+                          onClick={() => handleWithdraw(participationId, project._id)}
+                          disabled={withdrawingId === participationId}
+                          className="flex-1 px-4 py-2 bg-red-50 text-red-700 rounded-lg text-sm font-medium hover:bg-red-100 transition-colors disabled:opacity-50"
+                        >
+                          {withdrawingId === participationId ? "Withdrawing..." : "Withdraw"}
+                        </button>
+                      </div>
+                    </div>
+                  ) : alreadyApplied === "approved" ? (
+                    <span className="inline-block px-4 py-2 bg-green-100 text-green-700 rounded-lg text-sm font-medium">
+                      Approved
+                    </span>
+                  ) : alreadyApplied ? (
+                    <span className="inline-block px-4 py-2 bg-gray-100 text-gray-600 rounded-lg text-sm font-medium">
+                      {alreadyApplied.charAt(0).toUpperCase() + alreadyApplied.slice(1)}
                     </span>
                   ) : (
                     <button
                       onClick={() => handleApply(project._id)}
-                      disabled={applying === project._id}
-                      className="w-full px-4 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50"
+                      className="w-full px-4 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors"
                     >
-                      {applying === project._id ? "Submitting..." : "Request Participation"}
+                      Request Participation
                     </button>
                   )}
                 </div>
@@ -221,6 +300,21 @@ const MatchedProjects = () => {
             ))}
           </div>
         )}
+
+        {/* Participation Request Form Modal */}
+        <ParticipationFormModal
+          isOpen={showForm}
+          onClose={() => {
+            setShowForm(false);
+            setSelectedProjectId(null);
+            setEditingParticipation(null);
+            setIsEditMode(false);
+          }}
+          onSubmit={handleFormSubmit}
+          loading={formLoading}
+          initialData={editingParticipation}
+          isEdit={isEditMode}
+        />
       </div>
     </DashboardLayout>
   );

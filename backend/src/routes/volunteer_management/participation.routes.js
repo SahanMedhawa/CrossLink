@@ -3,6 +3,9 @@ const router = express.Router();
 const {
   requestParticipation,
   updateStatus,
+  updateRequest,
+  deleteRequest,
+  getRequestById,
   getMyApplications,
   getProjectVolunteers,
   getStats,
@@ -17,6 +20,9 @@ const {
 router.post('/request', requireVolunteer, requestParticipation);
 router.get('/my-applications', requireVolunteer, getMyApplications);
 router.get('/stats', requireVolunteer, getStats);
+router.get('/:id', requireVolunteer, getRequestById);
+router.patch('/:id', requireVolunteer, updateRequest);
+router.delete('/:id', requireVolunteer, deleteRequest);
 
 // ── NGO endpoints ──
 router.patch('/:id/status', requireNGO, updateStatus);

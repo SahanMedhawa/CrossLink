@@ -14,6 +14,8 @@ const NgoVolunteerManagement = () => {
   const [volunteers, setVolunteers] = useState([]);
   const [volunteerLoading, setVolunteerLoading] = useState(false);
   const [updatingId, setUpdatingId] = useState(null);
+  const [expandedId, setExpandedId] = useState(null);
+  const [statusFilter, setStatusFilter] = useState("all");
 
   useEffect(() => {
     fetchProjects();
@@ -36,6 +38,8 @@ const NgoVolunteerManagement = () => {
   const handleSelectProject = async (project) => {
     setSelectedProject(project);
     setVolunteerLoading(true);
+    setStatusFilter("all");
+    setExpandedId(null);
     try {
       const result = await getProjectVolunteers(project._id);
       if (result.success) {
@@ -54,12 +58,10 @@ const NgoVolunteerManagement = () => {
       const result = await updateParticipationStatus(participationId, newStatus);
       if (result.success) {
         toast.success(`Volunteer ${newStatus} successfully!`);
-        // Refresh volunteers for this project
         if (selectedProject) {
           const res = await getProjectVolunteers(selectedProject._id);
           if (res.success) setVolunteers(res.data);
         }
-        // Refresh project counts
         fetchProjects();
       }
     } catch (error) {
@@ -71,12 +73,25 @@ const NgoVolunteerManagement = () => {
 
   const getStatusBadge = (status) => {
     const colors = {
-      requested: "bg-yellow-100 text-yellow-800",
-      approved: "bg-green-100 text-green-800",
-      rejected: "bg-red-100 text-red-800",
-      completed: "bg-blue-100 text-blue-800",
+      requested: "bg-yellow-100 text-yellow-800 border border-yellow-200",
+      approved: "bg-green-100 text-green-800 border border-green-200",
+      rejected: "bg-red-100 text-red-800 border border-red-200",
+      completed: "bg-blue-100 text-blue-800 border border-blue-200",
     };
     return colors[status] || "bg-gray-100 text-gray-800";
+  };
+
+  const filteredVolunteers =
+    statusFilter === "all"
+      ? volunteers
+      : volunteers.filter((v) => v.status === statusFilter);
+
+  const volunteerCounts = {
+    all: volunteers.length,
+    requested: volunteers.filter((v) => v.status === "requested").length,
+    approved: volunteers.filter((v) => v.status === "approved").length,
+    rejected: volunteers.filter((v) => v.status === "rejected").length,
+    completed: volunteers.filter((v) => v.status === "completed").length,
   };
 
   return (
@@ -113,12 +128,15 @@ const NgoVolunteerManagement = () => {
                       key={project._id}
                       onClick={() => handleSelectProject(project)}
                       className={`w-full text-left p-4 hover:bg-gray-50 transition-colors ${
-                        selectedProject?._id === project._id ? "bg-blue-50 border-l-4 border-blue-600" : ""
+                        selectedProject?._id === project._id ? "bg-emerald-50 border-l-4 border-emerald-600" : ""
                       }`}
                     >
                       <h4 className="font-medium text-gray-900 text-sm truncate">{project.title}</h4>
-                      <p className="text-xs text-gray-500 mt-1">{project.location}</p>
-                      <div className="flex gap-2 mt-2">
+                      <p className="text-xs text-gray-500 mt-1">
+                        {project.location} &middot;{" "}
+                        {(project.volunteerRequests?.approved || 0) + (project.volunteerRequests?.completed || 0)}/{project.volunteersNeeded || 5} active
+                      </p>
+                      <div className="flex flex-wrap gap-1.5 mt-2">
                         {project.volunteerRequests?.requested > 0 && (
                           <span className="px-2 py-0.5 bg-yellow-100 text-yellow-700 rounded-full text-[10px] font-semibold">
                             {project.volunteerRequests.requested} pending
@@ -133,6 +151,9 @@ const NgoVolunteerManagement = () => {
                           <span className="px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full text-[10px] font-semibold">
                             {project.volunteerRequests.completed} completed
                           </span>
+                        )}
+                        {(project.volunteerRequests?.total || 0) === 0 && (
+                          <span className="text-[10px] text-gray-400">No applications yet</span>
                         )}
                       </div>
                     </button>
@@ -152,98 +173,201 @@ const NgoVolunteerManagement = () => {
                 <p className="text-gray-500">Select a project to view volunteer requests</p>
               </div>
             ) : (
-              <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                <div className="p-4 border-b border-gray-100">
-                  <h3 className="font-semibold text-gray-900">{selectedProject.title}</h3>
-                  <p className="text-xs text-gray-500 mt-1">
-                    {selectedProject.volunteersCount || 0}/{selectedProject.volunteersNeeded || 5} volunteers
-                  </p>
-                </div>
-
-                {volunteerLoading ? (
-                  <div className="p-8 text-center">
-                    <div className="animate-spin w-8 h-8 border-4 border-emerald-600 border-t-transparent rounded-full mx-auto"></div>
+              <div className="space-y-4">
+                {/* Project Header with Counts */}
+                <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+                  <div className="flex items-start justify-between mb-3">
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900">{selectedProject.title}</h3>
+                      <p className="text-sm text-gray-500 mt-0.5">
+                        {(selectedProject.volunteerRequests?.approved || 0) + (selectedProject.volunteerRequests?.completed || 0)}/{selectedProject.volunteersNeeded || 5} volunteers active
+                      </p>
+                    </div>
+                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                      selectedProject.status === "active" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-600"
+                    }`}>
+                      {selectedProject.status}
+                    </span>
                   </div>
-                ) : volunteers.length === 0 ? (
-                  <div className="p-12 text-center text-gray-500 text-sm">
-                    No volunteer requests for this project yet.
-                  </div>
-                ) : (
-                  <div className="divide-y divide-gray-50">
-                    {volunteers.map((v) => (
-                      <div key={v._id} className="p-4">
-                        <div className="flex items-start gap-4">
-                          {/* Avatar */}
-                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center text-white font-bold text-lg shrink-0">
-                            {v.volunteerId?.name?.charAt(0)?.toUpperCase() || "?"}
-                          </div>
 
-                          {/* Info */}
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-1">
-                              <h4 className="font-semibold text-gray-900">{v.volunteerId?.name}</h4>
-                              <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${getStatusBadge(v.status)}`}>
-                                {v.status.charAt(0).toUpperCase() + v.status.slice(1)}
-                              </span>
-                            </div>
-                            <p className="text-xs text-gray-500">{v.volunteerId?.email}</p>
-                            <p className="text-xs text-gray-500">{v.volunteerId?.location || "No location"}</p>
-                            {v.volunteerId?.bio && (
-                              <p className="text-xs text-gray-600 mt-1 line-clamp-2">{v.volunteerId.bio}</p>
-                            )}
-
-                            {/* Skills */}
-                            <div className="flex flex-wrap gap-1 mt-2">
-                              {v.volunteerId?.skills?.map((skill) => (
-                                <span key={skill} className="px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full text-[10px]">
-                                  {skill}
-                                </span>
-                              ))}
-                            </div>
-
-                            {/* Stats */}
-                            <div className="flex gap-4 mt-2 text-xs text-gray-400">
-                              <span>{v.volunteerId?.projectsJoinedCount || 0} projects joined</span>
-                              <span>{v.volunteerId?.impactPoints || 0} impact points</span>
-                              <span>Applied {new Date(v.appliedAt).toLocaleDateString()}</span>
-                            </div>
-                          </div>
-
-                          {/* Actions */}
-                          <div className="flex flex-col gap-2 shrink-0">
-                            {v.status === "requested" && (
-                              <>
-                                <button
-                                  onClick={() => handleStatusUpdate(v._id, "approved")}
-                                  disabled={updatingId === v._id}
-                                  className="px-4 py-1.5 bg-green-600 text-white rounded-lg text-xs font-semibold hover:bg-green-700 disabled:opacity-50"
-                                >
-                                  Approve
-                                </button>
-                                <button
-                                  onClick={() => handleStatusUpdate(v._id, "rejected")}
-                                  disabled={updatingId === v._id}
-                                  className="px-4 py-1.5 bg-red-100 text-red-700 rounded-lg text-xs font-semibold hover:bg-red-200 disabled:opacity-50"
-                                >
-                                  Reject
-                                </button>
-                              </>
-                            )}
-                            {v.status === "approved" && (
-                              <button
-                                onClick={() => handleStatusUpdate(v._id, "completed")}
-                                disabled={updatingId === v._id}
-                                className="px-4 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-semibold hover:bg-blue-700 disabled:opacity-50"
-                              >
-                                Mark Complete
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                      </div>
+                  {/* Status Filter Tabs */}
+                  <div className="flex flex-wrap gap-2">
+                    {["all", "requested", "approved", "completed", "rejected"].map((f) => (
+                      <button
+                        key={f}
+                        onClick={() => setStatusFilter(f)}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                          statusFilter === f
+                            ? "bg-emerald-600 text-white"
+                            : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                        }`}
+                      >
+                        {f.charAt(0).toUpperCase() + f.slice(1)} ({volunteerCounts[f]})
+                      </button>
                     ))}
                   </div>
-                )}
+                </div>
+
+                {/* Volunteer List */}
+                <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                  {volunteerLoading ? (
+                    <div className="p-8 text-center">
+                      <div className="animate-spin w-8 h-8 border-4 border-emerald-600 border-t-transparent rounded-full mx-auto"></div>
+                    </div>
+                  ) : filteredVolunteers.length === 0 ? (
+                    <div className="p-12 text-center text-gray-500 text-sm">
+                      {statusFilter === "all"
+                        ? "No volunteer requests for this project yet."
+                        : `No ${statusFilter} volunteers.`}
+                    </div>
+                  ) : (
+                    <div className="divide-y divide-gray-100">
+                      {filteredVolunteers.map((v) => {
+                        const isExpanded = expandedId === v._id;
+                        return (
+                          <div key={v._id} className="hover:bg-gray-50/50 transition-colors">
+                            {/* Compact Row */}
+                            <div
+                              className="p-4 cursor-pointer"
+                              onClick={() => setExpandedId(isExpanded ? null : v._id)}
+                            >
+                              <div className="flex items-center gap-4">
+                                {/* Avatar */}
+                                <div className="w-11 h-11 rounded-full bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center text-white font-bold text-base shrink-0">
+                                  {v.volunteerId?.name?.charAt(0)?.toUpperCase() || "?"}
+                                </div>
+
+                                {/* Name + Meta */}
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-2">
+                                    <h4 className="font-semibold text-gray-900 text-sm">{v.volunteerId?.name}</h4>
+                                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${getStatusBadge(v.status)}`}>
+                                      {v.status.charAt(0).toUpperCase() + v.status.slice(1)}
+                                    </span>
+                                  </div>
+                                  <p className="text-xs text-gray-500 mt-0.5">
+                                    {v.volunteerId?.email} &middot; {v.volunteerId?.location || "No location"} &middot; Applied {new Date(v.appliedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                                  </p>
+                                  {/* Skills inline */}
+                                  <div className="flex flex-wrap gap-1 mt-1.5">
+                                    {v.volunteerId?.skills?.slice(0, 5).map((skill) => (
+                                      <span key={skill} className="px-2 py-0.5 bg-blue-50 text-blue-700 rounded-full text-[10px]">
+                                        {skill}
+                                      </span>
+                                    ))}
+                                    {(v.volunteerId?.skills?.length || 0) > 5 && (
+                                      <span className="px-2 py-0.5 text-gray-400 text-[10px]">
+                                        +{v.volunteerId.skills.length - 5} more
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+
+                                {/* Actions + Expand Toggle */}
+                                <div className="flex items-center gap-3 shrink-0">
+                                  {v.status === "requested" && (
+                                    <div className="flex gap-2">
+                                      <button
+                                        onClick={(e) => { e.stopPropagation(); handleStatusUpdate(v._id, "approved"); }}
+                                        disabled={updatingId === v._id}
+                                        className="px-3.5 py-1.5 bg-green-600 text-white rounded-lg text-xs font-semibold hover:bg-green-700 disabled:opacity-50"
+                                      >
+                                        Approve
+                                      </button>
+                                      <button
+                                        onClick={(e) => { e.stopPropagation(); handleStatusUpdate(v._id, "rejected"); }}
+                                        disabled={updatingId === v._id}
+                                        className="px-3.5 py-1.5 bg-red-50 text-red-700 rounded-lg text-xs font-semibold hover:bg-red-100 disabled:opacity-50"
+                                      >
+                                        Reject
+                                      </button>
+                                    </div>
+                                  )}
+                                  {v.status === "approved" && (
+                                    <button
+                                      onClick={(e) => { e.stopPropagation(); handleStatusUpdate(v._id, "completed"); }}
+                                      disabled={updatingId === v._id}
+                                      className="px-3.5 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-semibold hover:bg-blue-700 disabled:opacity-50"
+                                    >
+                                      Mark Complete
+                                    </button>
+                                  )}
+                                  <svg
+                                    className={`w-5 h-5 text-gray-400 transition-transform ${isExpanded ? "rotate-180" : ""}`}
+                                    fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                                  >
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                  </svg>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Expanded Application Details */}
+                            {isExpanded && (
+                              <div className="px-4 pb-4 pt-0 ml-15">
+                                <div className="bg-gray-50 rounded-xl p-5 ml-15 space-y-4">
+                                  {/* Motivation Message */}
+                                  <div>
+                                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Motivation Message</p>
+                                    <p className="text-sm text-gray-800 leading-relaxed bg-white rounded-lg p-3 border border-gray-100">
+                                      {v.message || <span className="text-gray-400 italic">No message provided</span>}
+                                    </p>
+                                  </div>
+
+                                  {/* Relevant Experience */}
+                                  <div>
+                                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Relevant Experience</p>
+                                    <p className="text-sm text-gray-800 leading-relaxed bg-white rounded-lg p-3 border border-gray-100">
+                                      {v.experienceSummary || <span className="text-gray-400 italic">No experience provided</span>}
+                                    </p>
+                                  </div>
+
+                                  {/* Preferred Role + Expected Hours */}
+                                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                    <div className="bg-white rounded-lg p-3 border border-gray-100">
+                                      <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Preferred Role</p>
+                                      <p className="text-sm font-medium text-gray-800 mt-0.5">{v.preferredRole || "Not specified"}</p>
+                                    </div>
+                                    <div className="bg-white rounded-lg p-3 border border-gray-100">
+                                      <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Expected Hours</p>
+                                      <p className="text-sm font-medium text-gray-800 mt-0.5">{v.expectedHours ? `${v.expectedHours} hours` : "Not specified"}</p>
+                                    </div>
+                                    <div className="bg-white rounded-lg p-3 border border-gray-100">
+                                      <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Availability</p>
+                                      <p className="text-sm font-medium text-gray-800 mt-0.5">{v.availabilityConfirmed ? "Confirmed" : "Not confirmed"}</p>
+                                    </div>
+                                  </div>
+
+                                  {/* Volunteer Bio */}
+                                  {v.volunteerId?.bio && (
+                                    <div>
+                                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Volunteer Bio</p>
+                                      <p className="text-sm text-gray-700 leading-relaxed">{v.volunteerId.bio}</p>
+                                    </div>
+                                  )}
+
+                                  {/* Stats */}
+                                  <div className="flex gap-6 pt-1 text-xs text-gray-500">
+                                    <span><strong className="text-gray-700">{v.volunteerId?.projectsJoinedCount || 0}</strong> projects joined</span>
+                                    <span><strong className="text-gray-700">{v.volunteerId?.impactPoints || 0}</strong> impact points</span>
+                                    <span>Phone: <strong className="text-gray-700">{v.volunteerId?.phone || "N/A"}</strong></span>
+                                  </div>
+
+                                  {/* Timestamps */}
+                                  <div className="flex gap-4 text-[10px] text-gray-400 pt-1">
+                                    <span>Applied: {new Date(v.appliedAt).toLocaleString()}</span>
+                                    {v.approvedAt && <span>Approved: {new Date(v.approvedAt).toLocaleString()}</span>}
+                                    {v.completedAt && <span>Completed: {new Date(v.completedAt).toLocaleString()}</span>}
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </div>

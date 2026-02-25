@@ -3,11 +3,11 @@ const participationService = require('../../services/volunteer_management/partic
 /**
  * POST /api/participation/request
  * Volunteer requests participation in a project
- * Body: { projectId }
+ * Body: { projectId, message, experienceSummary, availabilityConfirmed, preferredRole?, expectedHours? }
  */
 const requestParticipation = async (req, res) => {
   try {
-    const { projectId } = req.body;
+    const { projectId, message, experienceSummary, availabilityConfirmed, preferredRole, expectedHours } = req.body;
 
     if (!projectId) {
       return res.status(400).json({
@@ -18,7 +18,8 @@ const requestParticipation = async (req, res) => {
 
     const participation = await participationService.requestParticipation(
       req.user.id,
-      projectId
+      projectId,
+      { message, experienceSummary, availabilityConfirmed, preferredRole, expectedHours }
     );
 
     res.status(201).json({
@@ -166,9 +167,87 @@ const getNgoProjectsWithVolunteers = async (req, res) => {
   }
 };
 
+/**
+ * PATCH /api/participation/:id
+ * Volunteer updates their participation request (only if status === 'requested')
+ * Allowed body fields: message, experienceSummary, expectedHours, preferredRole
+ */
+const updateRequest = async (req, res) => {
+  try {
+    const participation = await participationService.updateParticipationRequest(
+      req.params.id,
+      req.user.id,
+      req.body
+    );
+
+    res.status(200).json({
+      success: true,
+      message: 'Participation request updated successfully.',
+      data: participation,
+    });
+  } catch (error) {
+    const status = error.status || 500;
+    res.status(status).json({
+      success: false,
+      message: error.message || 'Error updating participation request.',
+    });
+  }
+};
+
+/**
+ * DELETE /api/participation/:id
+ * Volunteer withdraws their participation request (only if status === 'requested')
+ */
+const deleteRequest = async (req, res) => {
+  try {
+    const result = await participationService.deleteParticipationRequest(
+      req.params.id,
+      req.user.id
+    );
+
+    res.status(200).json({
+      success: true,
+      message: result.message,
+    });
+  } catch (error) {
+    const status = error.status || 500;
+    res.status(status).json({
+      success: false,
+      message: error.message || 'Error deleting participation request.',
+    });
+  }
+};
+
+/**
+ * GET /api/participation/:id
+ * Volunteer views a single participation request (for editing)
+ */
+const getRequestById = async (req, res) => {
+  try {
+    const participation = await participationService.getParticipationById(
+      req.params.id,
+      req.user.id
+    );
+
+    res.status(200).json({
+      success: true,
+      data: participation,
+    });
+  } catch (error) {
+    const status = error.status || 500;
+    res.status(status).json({
+      success: false,
+      message: error.message || 'Error fetching participation request.',
+    });
+  }
+};
+
 module.exports = {
   requestParticipation,
   updateStatus,
+  updateRequest,
+  deleteRequest,
+  getRequestById,
   getMyApplications,
   getProjectVolunteers,
   getStats,

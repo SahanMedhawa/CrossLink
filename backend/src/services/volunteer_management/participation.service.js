@@ -5,7 +5,7 @@ const User = require('../../models/user.model');
 /**
  * Request participation in a project (volunteer action)
  */
-const requestParticipation = async (volunteerId, projectId) => {
+const requestParticipation = async (volunteerId, projectId, formData) => {
   // Verify project exists and is active
   const project = await Project.findById(projectId);
   if (!project) {
@@ -32,12 +32,28 @@ const requestParticipation = async (volunteerId, projectId) => {
     };
   }
 
-  // Create participation record
+  // Validate required fields
+  if (!formData.message || formData.message.trim().length < 10) {
+    throw { status: 400, message: 'Motivation message must be at least 10 characters.' };
+  }
+  if (!formData.experienceSummary || formData.experienceSummary.trim().length < 10) {
+    throw { status: 400, message: 'Experience summary must be at least 10 characters.' };
+  }
+  if (formData.availabilityConfirmed !== true) {
+    throw { status: 400, message: 'You must confirm your availability.' };
+  }
+
+  // Create participation record with form data
   const participation = await Participation.create({
     volunteerId,
     projectId,
     ngoId: project.ngoId,
     status: 'requested',
+    message: formData.message.trim(),
+    experienceSummary: formData.experienceSummary.trim(),
+    availabilityConfirmed: formData.availabilityConfirmed,
+    preferredRole: formData.preferredRole?.trim() || undefined,
+    expectedHours: formData.expectedHours || undefined,
     appliedAt: new Date(),
   });
 
@@ -104,6 +120,104 @@ const updateParticipationStatus = async (participationId, ngoId, newStatus) => {
   }
 
   await participation.save();
+  return participation;
+};
+
+/**
+ * Update a participation request (volunteer action — only when status is 'requested')
+ * Allowed fields: message, experienceSummary, expectedHours, preferredRole
+ */
+const updateParticipationRequest = async (participationId, volunteerId, updates) => {
+  const participation = await Participation.findById(participationId);
+  if (!participation) {
+    throw { status: 404, message: 'Participation record not found.' };
+  }
+
+  // Verify the volunteer owns this request
+  if (participation.volunteerId.toString() !== volunteerId) {
+    throw { status: 403, message: 'Not authorized. This is not your participation request.' };
+  }
+
+  // Business rule: can only edit if status is 'requested'
+  if (participation.status !== 'requested') {
+    throw {
+      status: 403,
+      message: `Cannot edit a participation request that has been ${participation.status}. Only pending requests can be modified.`,
+    };
+  }
+
+  // Whitelist allowed update fields
+  const allowedFields = ['message', 'experienceSummary', 'expectedHours', 'preferredRole'];
+  const sanitizedUpdates = {};
+  for (const key of allowedFields) {
+    if (updates[key] !== undefined) {
+      sanitizedUpdates[key] = updates[key];
+    }
+  }
+
+  // Validate message length if provided
+  if (sanitizedUpdates.message && sanitizedUpdates.message.trim().length < 10) {
+    throw { status: 400, message: 'Motivation message must be at least 10 characters.' };
+  }
+  // Validate experience summary length if provided
+  if (sanitizedUpdates.experienceSummary && sanitizedUpdates.experienceSummary.trim().length < 10) {
+    throw { status: 400, message: 'Experience summary must be at least 10 characters.' };
+  }
+
+  Object.assign(participation, sanitizedUpdates);
+  await participation.save();
+  return participation;
+};
+
+/**
+ * Delete a participation request (volunteer action — only when status is 'requested')
+ */
+const deleteParticipationRequest = async (participationId, volunteerId) => {
+  const participation = await Participation.findById(participationId);
+  if (!participation) {
+    throw { status: 404, message: 'Participation record not found.' };
+  }
+
+  // Verify the volunteer owns this request
+  if (participation.volunteerId.toString() !== volunteerId) {
+    throw { status: 403, message: 'Not authorized. This is not your participation request.' };
+  }
+
+  // Business rule: can only delete if status is 'requested'
+  if (participation.status !== 'requested') {
+    throw {
+      status: 403,
+      message: `Cannot delete a participation request that has been ${participation.status}. Only pending requests can be withdrawn.`,
+    };
+  }
+
+  await Participation.findByIdAndDelete(participationId);
+  return { message: 'Participation request withdrawn successfully.' };
+};
+
+/**
+ * Get a single participation record by ID (for edit form)
+ */
+const getParticipationById = async (participationId, volunteerId) => {
+  const participation = await Participation.findById(participationId)
+    .populate({
+      path: 'projectId',
+      select: 'title description skills focusArea location startDate endDate status image',
+    })
+    .populate({
+      path: 'ngoId',
+      select: 'organizationName location photoURL',
+    });
+
+  if (!participation) {
+    throw { status: 404, message: 'Participation record not found.' };
+  }
+
+  // Verify the volunteer owns this request
+  if (participation.volunteerId.toString() !== volunteerId) {
+    throw { status: 403, message: 'Not authorized to view this participation.' };
+  }
+
   return participation;
 };
 
@@ -218,7 +332,10 @@ const getNgoProjectsWithVolunteerCounts = async (ngoId) => {
 module.exports = {
   requestParticipation,
   updateParticipationStatus,
+  updateParticipationRequest,
+  deleteParticipationRequest,
   getVolunteerApplications,
+  getParticipationById,
   getProjectVolunteers,
   getVolunteerStats,
   getNgoProjectsWithVolunteerCounts,
