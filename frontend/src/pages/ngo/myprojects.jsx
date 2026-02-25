@@ -89,7 +89,31 @@ const MyProjects = () => {
     }
   };
 
-  const handleStatusChange = async (projectId, newStatus) => {
+  const handleStatusChange = async (projectId, newStatus, currentStatus) => {
+    // Check if trying to go back from active to draft
+    if (currentStatus === 'active' && newStatus === 'draft') {
+      alert('Cannot change an active project back to draft');
+      return;
+    }
+    
+    // Check if trying to go back from completed to active
+    if (currentStatus === 'completed' && newStatus === 'active') {
+      alert('Cannot change a completed project back to active');
+      return;
+    }
+
+    // Check if trying to go back from completed to draft
+    if (currentStatus === 'completed' && newStatus === 'draft') {
+      alert('Cannot change a completed project back to draft');
+      return;
+    }
+
+    // Check if trying to go from cancelled to any other state
+    if (currentStatus === 'cancelled' && (newStatus === 'draft' || newStatus === 'active' || newStatus === 'completed')) {
+      alert('Cannot reactivate a cancelled project. Please create a new project instead.');
+      return;
+    }
+
     try {
       const token = localStorage.getItem('crosslink_token');
       await axios.put(
@@ -125,6 +149,27 @@ const MyProjects = () => {
       case 'completed': return { bg: '#E8F5E9', text: '#2E7D32', border: '#4CAF50' };
       case 'cancelled': return { bg: '#FFEBEE', text: '#C62828', border: '#EF5350' };
       default: return { bg: '#F8F9FA', text: '#495057', border: '#CED4DA' };
+    }
+  };
+
+  // Helper function to check if delete is allowed
+  const canDeleteProject = (status) => {
+    return status === 'draft' || status === 'cancelled';
+  };
+
+  // Helper function to get available status options based on current status
+  const getAvailableStatusOptions = (currentStatus) => {
+    switch (currentStatus) {
+      case 'draft':
+        return ['draft', 'active', 'cancelled'];
+      case 'active':
+        return ['active', 'completed', 'cancelled'];
+      case 'completed':
+        return ['completed']; // Only completed status is available
+      case 'cancelled':
+        return ['cancelled']; // Only cancelled status is available
+      default:
+        return ['draft', 'active', 'completed', 'cancelled'];
     }
   };
 
@@ -500,6 +545,11 @@ const MyProjects = () => {
       backgroundSize: '1rem',
       transition: 'all 0.2s'
     },
+    statusSelectDisabled: {
+      opacity: 0.6,
+      cursor: 'not-allowed',
+      background: '#F8F9FA'
+    },
     actionButtons: {
       display: 'grid',
       gridTemplateColumns: '1fr 1fr',
@@ -517,6 +567,12 @@ const MyProjects = () => {
       transition: 'all 0.2s',
       boxShadow: '0 2px 4px rgba(0, 82, 204, 0.2)'
     },
+    editButtonDisabled: {
+      background: '#E1E8ED',
+      color: '#5E6C84',
+      cursor: 'not-allowed',
+      boxShadow: 'none'
+    },
     deleteButton: {
       padding: '0.5rem 1rem',
       background: 'white',
@@ -527,6 +583,13 @@ const MyProjects = () => {
       fontSize: '0.8rem',
       cursor: 'pointer',
       transition: 'all 0.2s'
+    },
+    deleteButtonDisabled: {
+      background: '#F8F9FA',
+      color: '#ADB5BD',
+      borderColor: '#E1E8ED',
+      cursor: 'not-allowed',
+      pointerEvents: 'none'
     },
     paginationContainer: {
       display: 'flex',
@@ -565,6 +628,12 @@ const MyProjects = () => {
       margin: '0 1rem',
       color: '#5E6C84',
       fontSize: '0.875rem'
+    },
+    lockedMessage: {
+      fontSize: '0.7rem',
+      color: '#5E6C84',
+      marginLeft: '0.5rem',
+      fontStyle: 'italic'
     }
   };
 
@@ -743,6 +812,9 @@ const MyProjects = () => {
                 <div style={styles.projectsList}>
                   {currentProjects.map(project => {
                     const statusColors = getStatusColor(project.status);
+                    const canDelete = canDeleteProject(project.status);
+                    const availableStatuses = getAvailableStatusOptions(project.status);
+                    
                     return (
                       <div 
                         key={project._id} 
@@ -841,36 +913,68 @@ const MyProjects = () => {
                               <label style={styles.statusLabel}>Status:</label>
                               <select
                                 value={project.status}
-                                onChange={(e) => handleStatusChange(project._id, e.target.value)}
-                                style={styles.statusSelect}
+                                onChange={(e) => handleStatusChange(project._id, e.target.value, project.status)}
+                                style={{
+                                  ...styles.statusSelect,
+                                  ...(availableStatuses.length === 1 ? styles.statusSelectDisabled : {})
+                                }}
+                                disabled={availableStatuses.length === 1}
                               >
-                                <option value="draft">Draft</option>
-                                <option value="active">Active</option>
-                                <option value="completed">Completed</option>
-                                <option value="cancelled">Cancelled</option>
+                                {availableStatuses.map(status => (
+                                  <option key={status} value={status}>
+                                    {status.charAt(0).toUpperCase() + status.slice(1)}
+                                    {availableStatuses.length === 1 && ' (locked)'}
+                                  </option>
+                                ))}
                               </select>
+                              {availableStatuses.length === 1 && project.status === 'completed' && (
+                                <span style={styles.lockedMessage}>Completed projects cannot be changed</span>
+                              )}
+                              {availableStatuses.length === 1 && project.status === 'cancelled' && (
+                                <span style={styles.lockedMessage}>Cancelled projects cannot be changed</span>
+                              )}
                             </div>
 
                             <div style={styles.actionButtons}>
                               <button 
-                                style={styles.editButton}
+                                style={{
+                                  ...styles.editButton,
+                                  ...((project.status === 'completed' || project.status === 'cancelled') ? styles.editButtonDisabled : {})
+                                }}
                                 onClick={() => setEditingProject(project)}
-                                onMouseOver={(e) => e.target.style.background = '#0747A6'}
-                                onMouseOut={(e) => e.target.style.background = '#0052CC'}
-                              >
-                                Edit
-                              </button>
-                              <button 
-                                style={styles.deleteButton}
-                                onClick={() => handleDelete(project._id)}
                                 onMouseOver={(e) => {
-                                  e.target.style.background = '#FFEBEE';
-                                  e.target.style.borderColor = '#C62828';
+                                  if (project.status !== 'completed' && project.status !== 'cancelled') {
+                                    e.target.style.background = '#0747A6';
+                                  }
                                 }}
                                 onMouseOut={(e) => {
-                                  e.target.style.background = 'white';
-                                  e.target.style.borderColor = '#FFCDD2';
+                                  if (project.status !== 'completed' && project.status !== 'cancelled') {
+                                    e.target.style.background = '#0052CC';
+                                  }
                                 }}
+                                disabled={project.status === 'completed' || project.status === 'cancelled'}
+                              >
+                                {project.status === 'completed' || project.status === 'cancelled' ? 'View Only' : 'Edit'}
+                              </button>
+                              <button 
+                                style={{
+                                  ...styles.deleteButton,
+                                  ...(!canDelete ? styles.deleteButtonDisabled : {})
+                                }}
+                                onClick={() => canDelete && handleDelete(project._id)}
+                                onMouseOver={(e) => {
+                                  if (canDelete) {
+                                    e.target.style.background = '#FFEBEE';
+                                    e.target.style.borderColor = '#C62828';
+                                  }
+                                }}
+                                onMouseOut={(e) => {
+                                  if (canDelete) {
+                                    e.target.style.background = 'white';
+                                    e.target.style.borderColor = '#FFCDD2';
+                                  }
+                                }}
+                                disabled={!canDelete}
                               >
                                 Delete
                               </button>

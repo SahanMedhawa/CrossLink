@@ -8,6 +8,7 @@ const NGOList = () => {
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [totalNGOs, setTotalNGOs] = useState(0);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -21,6 +22,7 @@ const NGOList = () => {
         if (data.success) {
           setNgos(data.data);
           setTotalPages(data.totalPages);
+          setTotalNGOs(data.total || data.data.length);
         }
       } catch (error) {
         console.error('Error fetching NGOs:', error);
@@ -32,52 +34,249 @@ const NGOList = () => {
     loadNGOs();
   }, [page]);
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-100 via-white to-slate-200">
+  const styles = {
+    container: {
+      minHeight: '100vh',
+      background: '#F8FAFD',
+    },
+    pageHeader: {
+      background: 'linear-gradient(135deg, #0052CC 0%, #0747A6 100%)',
+      padding: '2.5rem 2rem',
+      boxShadow: '0 2px 8px rgba(0, 82, 204, 0.15)',
+    },
+    headerContent: {
+      maxWidth: '1600px',
+      margin: '0 auto',
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      flexWrap: 'wrap',
+      gap: '1.5rem',
+    },
+    titleSection: {
+      flex: 1,
+    },
+    h1: {
+      color: '#FFFFFF',
+      fontSize: '2.25rem',
+      fontWeight: '600',
+      margin: '0 0 0.5rem 0',
+      letterSpacing: '-0.02em',
+    },
+    subtitle: {
+      color: 'rgba(255, 255, 255, 0.9)',
+      fontSize: '1rem',
+      margin: 0,
+      fontWeight: '400',
+    },
+    backButton: {
+      padding: '0.75rem 1.75rem',
+      background: 'rgba(255, 255, 255, 0.15)',
+      color: '#FFFFFF',
+      border: '1px solid rgba(255, 255, 255, 0.2)',
+      borderRadius: '8px',
+      fontWeight: '600',
+      fontSize: '0.9rem',
+      cursor: 'pointer',
+      backdropFilter: 'blur(10px)',
+      display: 'flex',
+      alignItems: 'center',
+      gap: '0.5rem',
+    },
+    mainContent: {
+      maxWidth: '1600px',
+      margin: '0 auto',
+      padding: '2rem 1.5rem',
+    },
+    loadingContainer: {
+      textAlign: 'center',
+      padding: '4rem 2rem',
+      background: 'white',
+      borderRadius: '12px',
+      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
+      border: '1px solid #E1E8ED',
+    },
+    loadingText: {
+      color: '#172B4D',
+      fontSize: '1rem',
+      fontWeight: '500',
+    },
+    noNGOsContainer: {
+      textAlign: 'center',
+      padding: '4rem 2rem',
+      background: 'white',
+      borderRadius: '12px',
+      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
+      border: '1px solid #E1E8ED',
+    },
+    noNGOsTitle: {
+      fontSize: '1.5rem',
+      fontWeight: '600',
+      color: '#172B4D',
+      marginBottom: '0.75rem',
+    },
+    noNGOsText: {
+      color: '#5E6C84',
+      fontSize: '1rem',
+      margin: '0.5rem 0',
+    },
+    statsBar: {
+      background: 'white',
+      padding: '1rem 1.5rem',
+      borderRadius: '8px',
+      marginBottom: '2rem',
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      boxShadow: '0 1px 4px rgba(0, 0, 0, 0.08)',
+      border: '1px solid #E1E8ED',
+    },
+    projectCount: {
+      color: '#172B4D',
+      fontSize: '0.9rem',
+      fontWeight: '600',
+      margin: 0,
+    },
+    gridContainer: {
+      display: 'grid',
+      gridTemplateColumns: 'repeat(auto-fill, minmax(380px, 1fr))',
+      gap: '1.5rem',
+      marginBottom: '2rem',
+    },
+    card: {
+      background: 'white',
+      border: '1px solid #E1E8ED',
+      borderRadius: '12px',
+      overflow: 'hidden',
+      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
+      height: '100%',
+      minHeight: '280px',
+      display: 'flex',
+      flexDirection: 'column',
+    },
+    paginationContainer: {
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      gap: '0.5rem',
+      marginTop: '3rem',
+      padding: '1rem',
+    },
+    paginationButton: {
+      padding: '0.625rem 1rem',
+      border: '1px solid #E1E8ED',
+      background: 'white',
+      color: '#172B4D',
+      borderRadius: '8px',
+      cursor: 'pointer',
+      fontSize: '0.875rem',
+      fontWeight: '500',
+      minWidth: '40px',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    paginationButtonActive: {
+      background: '#0052CC',
+      color: 'white',
+      borderColor: '#0052CC',
+    },
+    paginationButtonDisabled: {
+      opacity: 0.5,
+      cursor: 'not-allowed',
+      pointerEvents: 'none',
+    },
+    nextButton: {
+      padding: '0.625rem 1rem',
+      background: '#0052CC',
+      color: 'white',
+      border: 'none',
+      borderRadius: '8px',
+      cursor: 'pointer',
+      fontSize: '0.875rem',
+      fontWeight: '600',
+      boxShadow: '0 2px 4px rgba(0, 82, 204, 0.2)',
+    },
+    previousButton: {
+      padding: '0.625rem 1rem',
+      border: '1px solid #E1E8ED',
+      background: 'white',
+      color: '#172B4D',
+      borderRadius: '8px',
+      cursor: 'pointer',
+      fontSize: '0.875rem',
+      fontWeight: '500',
+    },
+    filterSection: {
+      display: 'flex',
+      gap: '1rem',
+      marginBottom: '2rem',
+      flexWrap: 'wrap',
+    },
+    filterSelect: {
+      padding: '0.625rem 2rem 0.625rem 1rem',
+      border: '1px solid #E1E8ED',
+      borderRadius: '6px',
+      fontSize: '0.9rem',
+      background: 'white',
+      color: '#172B4D',
+      minWidth: '200px',
+    },
+  };
 
+  return (
+    <div style={styles.container}>
       {/* Hero Section */}
-      <div className="bg-blue-700 text-white py-12 shadow-lg">
-        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center">
-          <div>
-            <h1 className="text-4xl font-bold tracking-wide">
-              Registered NGOs
-            </h1>
-            <p className="mt-2 text-blue-100">
-              Verified organizations driving social impact.
+      <div style={styles.pageHeader}>
+        <div style={styles.headerContent}>
+          <div style={styles.titleSection}>
+            <h1 style={styles.h1}>Registered NGOs</h1>
+            <p style={styles.subtitle}>
+              Verified organizations driving social impact • {totalNGOs} organizations
             </p>
           </div>
 
           {/* Back Button */}
           <button
             onClick={() => navigate('/')}
-            className="mt-6 md:mt-0 px-6 py-3 bg-white text-blue-700 font-semibold rounded-lg shadow hover:bg-slate-100 transition duration-300"
+            style={styles.backButton}
           >
-            ← Return to Home
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M15.8333 10H4.16667M4.16667 10L10 15.8333M4.16667 10L10 4.16667" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            Return to Home
           </button>
         </div>
       </div>
 
       {/* Content Section */}
-      <div className="max-w-7xl mx-auto px-6 py-14">
-
+      <div style={styles.mainContent}>
         {loading ? (
-          <div className="flex justify-center items-center py-20">
-            <div className="w-12 h-12 border-4 border-blue-700 border-t-transparent rounded-full animate-spin"></div>
+          <div style={styles.loadingContainer}>
+            <div style={styles.loadingText}>Loading organizations...</div>
           </div>
         ) : ngos.length === 0 ? (
-          <div className="text-center py-20">
-            <p className="text-slate-700 text-xl">
-              No NGOs available at the moment.
-            </p>
+          <div style={styles.noNGOsContainer}>
+            <div style={styles.noNGOsTitle}>No NGOs found</div>
+            <p style={styles.noNGOsText}>There are no registered NGOs at the moment.</p>
+            <p style={styles.noNGOsText}>Please check back later.</p>
           </div>
         ) : (
           <>
-            <div className="grid gap-10 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+            <div style={styles.statsBar}>
+              <p style={styles.projectCount}>
+                Showing {(page - 1) * 9 + 1}-{Math.min(page * 9, ngos.length)} of {totalNGOs} organizations
+              </p>
+              <div>
+                <span style={{ color: '#5E6C84', fontSize: '0.8rem' }}>
+                  {ngos.filter(ngo => ngo.isVerified).length} verified
+                </span>
+              </div>
+            </div>
+
+            <div style={styles.gridContainer}>
               {ngos.map((ngo) => (
-                <div
-                  key={ngo._id}
-                  className="bg-white rounded-2xl shadow-lg hover:shadow-2xl transform hover:-translate-y-2 transition duration-300"
-                >
+                <div key={ngo._id} style={styles.card}>
                   <NGOCard ngo={ngo} />
                 </div>
               ))}
@@ -85,23 +284,53 @@ const NGOList = () => {
 
             {/* Pagination */}
             {totalPages > 1 && (
-              <div className="flex justify-center items-center gap-6 mt-16">
+              <div style={styles.paginationContainer}>
                 <button
                   disabled={page === 1}
                   onClick={() => setPage((prev) => prev - 1)}
-                  className="px-6 py-2 rounded-lg border border-slate-400 text-slate-700 hover:bg-slate-200 disabled:opacity-40 transition"
+                  style={{
+                    ...styles.previousButton,
+                    ...(page === 1 ? styles.paginationButtonDisabled : {}),
+                  }}
                 >
                   Previous
                 </button>
 
-                <span className="text-slate-800 font-semibold text-lg">
-                  {page} / {totalPages}
-                </span>
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                  {Array.from({ length: Math.min(5, totalPages) }, (_, index) => {
+                    let pageNumber;
+                    if (totalPages <= 5) {
+                      pageNumber = index + 1;
+                    } else if (page <= 3) {
+                      pageNumber = index + 1;
+                    } else if (page >= totalPages - 2) {
+                      pageNumber = totalPages - 4 + index;
+                    } else {
+                      pageNumber = page - 2 + index;
+                    }
+
+                    return (
+                      <button
+                        key={pageNumber}
+                        onClick={() => setPage(pageNumber)}
+                        style={{
+                          ...styles.paginationButton,
+                          ...(page === pageNumber ? styles.paginationButtonActive : {}),
+                        }}
+                      >
+                        {pageNumber}
+                      </button>
+                    );
+                  })}
+                </div>
 
                 <button
                   disabled={page === totalPages}
                   onClick={() => setPage((prev) => prev + 1)}
-                  className="px-6 py-2 rounded-lg bg-blue-700 text-white hover:bg-blue-800 disabled:opacity-40 transition"
+                  style={{
+                    ...styles.nextButton,
+                    ...(page === totalPages ? styles.paginationButtonDisabled : {}),
+                  }}
                 >
                   Next
                 </button>
@@ -110,7 +339,7 @@ const NGOList = () => {
           </>
         )}
       </div>
-      <Footer/>
+      <Footer />
     </div>
   );
 };
