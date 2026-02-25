@@ -221,8 +221,15 @@ exports.updateProject = async (req, res) => {
     }
 
     // Parse volunteersNeeded
-    if (req.body.volunteersNeeded) {
-      req.body.volunteersNeeded = parseInt(req.body.volunteersNeeded, 10);
+    if (req.body.volunteersNeeded !== undefined) {
+      const parsedVolunteersNeeded = parseInt(req.body.volunteersNeeded, 10);
+      if (!Number.isFinite(parsedVolunteersNeeded) || !Number.isInteger(parsedVolunteersNeeded) || parsedVolunteersNeeded < 1) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid volunteersNeeded value. It must be an integer greater than or equal to 1.'
+        });
+      }
+      req.body.volunteersNeeded = parsedVolunteersNeeded;
     }
 
     // Parse coordinates if provided (GeoJSON from FormData)
