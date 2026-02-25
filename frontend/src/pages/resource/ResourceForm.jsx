@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { useAuth } from "../../context/AuthContext";
+import toast from 'react-hot-toast';
 
 const ResourceForm = ({ project, onClose }) => {
   const { user } = useAuth();
@@ -29,35 +30,23 @@ const ResourceForm = ({ project, onClose }) => {
       
       console.log("Resource status response:", response.data);
       
-      // Handle the response data
-      const statusObject = {};
+      // Handle the response data - create a map by resource name
+      const statusMap = {};
       
       if (Array.isArray(response.data)) {
         response.data.forEach(item => {
-          statusObject[item.name] = {
+          statusMap[item.name] = {
             name: item.name,
             originalNeed: item.originalNeed || item.needed || 0,
-            totalDonated: item.totalDonated || item.donated || 0,
-            remainingNeeded: item.remainingNeeded || item.remaining || item.originalNeed || 0,
-            isFullyFunded: item.isFullyFunded || (item.remaining === 0),
-            donations: item.donations || []
-          };
-        });
-      } else {
-        Object.keys(response.data).forEach(key => {
-          const item = response.data[key];
-          statusObject[key] = {
-            name: item.name || key,
-            originalNeed: item.originalNeed || item.needed || 0,
-            totalDonated: item.totalDonated || item.donated || 0,
-            remainingNeeded: item.remainingNeeded || item.remaining || item.originalNeed || 0,
-            isFullyFunded: item.isFullyFunded || (item.remaining === 0),
+            totalDonated: item.totalDonated || 0,
+            remainingNeeded: item.remainingNeeded || item.remaining || 0,
+            isFullyFunded: item.isFullyFunded || item.remainingNeeded === 0 || item.remaining === 0,
             donations: item.donations || []
           };
         });
       }
       
-      setResourceStatus(statusObject);
+      setResourceStatus(statusMap);
     } catch (error) {
       console.log("Error fetching status, using project data as fallback");
       // Create status object from project data
@@ -86,7 +75,7 @@ const ResourceForm = ({ project, onClose }) => {
         originalNeed: status.originalNeed,
         totalDonated: status.totalDonated,
         remaining: status.remainingNeeded,
-        isFullyFunded: status.isFullyFunded,
+        isFullyFunded: status.isFullyFunded || status.remainingNeeded === 0,
         donations: status.donations || []
       };
     }
@@ -115,7 +104,7 @@ const ResourceForm = ({ project, onClose }) => {
   const handleSubmit = async () => {
     // Check if user is corporate
     if (!user || user.userType !== 'corporate') {
-      alert('Only corporate users can donate resources. Please login as a corporate partner.');
+      toast.error('Only corporate users can donate resources. Please login as a corporate partner.');
       return;
     }
 
@@ -137,7 +126,7 @@ const ResourceForm = ({ project, onClose }) => {
         .filter(item => item.donationQuantity > 0);
 
       if (donationsToSubmit.length === 0) {
-        alert("Please enter at least one quantity to donate");
+        toast.error("Please enter at least one quantity to donate");
         setLoading(false);
         return;
       }
@@ -145,7 +134,7 @@ const ResourceForm = ({ project, onClose }) => {
       // Validate quantities
       for (let item of donationsToSubmit) {
         if (item.donationQuantity > item.remainingQuantity) {
-          alert(`Cannot donate more than available quantity for ${item.name}. Available: ${item.remainingQuantity}`);
+          toast.error(`Cannot donate more than available quantity for ${item.name}. Available: ${item.remainingQuantity}`);
           setLoading(false);
           return;
         }
@@ -171,26 +160,37 @@ const ResourceForm = ({ project, onClose }) => {
         );
       });
 
-      await Promise.all(donationPromises);
+      const results = await Promise.all(donationPromises);
       
       // Refresh resource status to get updated donations
       await fetchResourceStatus();
       
-      alert("🎉 Donation submitted successfully! Thank you for your support.");
+      // Show success toast with donation summary
+      const totalDonated = donationsToSubmit.reduce((sum, item) => sum + item.donationQuantity, 0);
+      toast.success(
+        <div>
+          <strong>🎉 Donation Successful!</strong>
+          <div style={{ marginTop: '5px', fontSize: '0.9rem' }}>
+            Total donated: {totalDonated} units
+          </div>
+          <div style={{ fontSize: '0.9rem' }}>
+            Resources: {donationsToSubmit.map(d => d.name).join(', ')}
+          </div>
+        </div>,
+        { duration: 5000 }
+      );
       
       // Clear form inputs
       setFormValues({});
       
       // Close the modal after successful submission
-      if (onClose) {
-        setTimeout(() => {
-          onClose();
-        }, 1500);
-      }
+      setTimeout(() => {
+        onClose();
+      }, 2000);
       
     } catch (error) {
       console.error("Donation failed", error);
-      alert(error.response?.data?.message || "Failed to submit donation. Please try again.");
+      toast.error(error.response?.data?.message || "Failed to submit donation. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -215,7 +215,13 @@ const ResourceForm = ({ project, onClose }) => {
     });
   };
 
-  // Modal styles
+  // Check if a specific resource is fully funded
+  const isResourceFullyFunded = (resourceName) => {
+    const status = getResourceStatus(resourceName);
+    return status.isFullyFunded || status.remaining === 0;
+  };
+
+  // Modal styles (keeping your existing styles)
   const modalStyles = {
     overlay: {
       position: 'fixed',
@@ -382,7 +388,9 @@ const ResourceForm = ({ project, onClose }) => {
       display: 'flex',
       justifyContent: 'space-between',
       alignItems: 'center',
-      marginBottom: '15px'
+      marginBottom: '15px',
+      flexWrap: 'wrap',
+      gap: '10px'
     },
     resourceName: {
       fontSize: '1.2rem',
@@ -391,7 +399,7 @@ const ResourceForm = ({ project, onClose }) => {
     },
     resourceStats: {
       display: 'flex',
-      gap: '20px',
+      gap: '15px',
       fontSize: '0.95rem',
       flexWrap: 'wrap'
     },
@@ -443,6 +451,11 @@ const ResourceForm = ({ project, onClose }) => {
       fontSize: '0.95rem',
       transition: 'all 0.2s',
       outline: 'none'
+    },
+    disabledInput: {
+      backgroundColor: '#f1f5f9',
+      cursor: 'not-allowed',
+      opacity: 0.6
     },
     remainingBadge: {
       display: 'inline-block',
@@ -522,7 +535,8 @@ const ResourceForm = ({ project, onClose }) => {
     disabledButton: {
       backgroundColor: '#ccc',
       cursor: 'not-allowed',
-      opacity: 0.6
+      opacity: 0.6,
+      background: '#94a3b8'
     }
   };
 
@@ -641,7 +655,7 @@ const ResourceForm = ({ project, onClose }) => {
               {resources.map((res, index) => {
                 const status = getResourceStatus(res.name);
                 const progress = ((status.originalNeed - status.remaining) / status.originalNeed) * 100;
-                const fullyFunded = status.remaining === 0;
+                const fullyFunded = status.isFullyFunded || status.remaining === 0;
 
                 return (
                   <div
@@ -667,10 +681,10 @@ const ResourceForm = ({ project, onClose }) => {
                         <span>
                           💝 Remaining: 
                           <strong style={{ 
-                            color: status.remaining > 0 ? '#10b981' : '#ef4444',
+                            color: !fullyFunded ? '#10b981' : '#ef4444',
                             marginLeft: '5px'
                           }}>
-                            {status.remaining}
+                            {fullyFunded ? 0 : status.remaining}
                           </strong>
                         </span>
                       </div>
@@ -695,7 +709,6 @@ const ResourceForm = ({ project, onClose }) => {
                             <span>Donation {idx + 1}:</span>
                             <span>
                               <strong>{donation.quantity}</strong> units 
-                              {donation.corporateName && ` by ${donation.corporateName}`}
                             </span>
                           </div>
                         ))}
@@ -773,8 +786,6 @@ const ResourceForm = ({ project, onClose }) => {
                       style={{
                         ...modalStyles.submitButton,
                         ...(loading || user?.userType !== 'corporate' || currentDonationTotal === 0 ? modalStyles.disabledButton : {}),
-                        opacity: loading || user?.userType !== 'corporate' || currentDonationTotal === 0 ? 0.6 : 1,
-                        cursor: loading || user?.userType !== 'corporate' || currentDonationTotal === 0 ? 'not-allowed' : 'pointer'
                       }}
                     >
                       {loading ? (

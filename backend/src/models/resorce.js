@@ -4,6 +4,7 @@ const resourceSchema = new mongoose.Schema(
   {
     projectId: {
       type: mongoose.Schema.Types.ObjectId,
+      ref: 'Project',
       required: true,
       index: true
     },
@@ -22,7 +23,10 @@ const resourceSchema = new mongoose.Schema(
     description: String,
     donatedBy: [
       {
-        corporateId: mongoose.Schema.Types.ObjectId,
+        corporateId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'User'
+        },
         quantity: Number,
         donatedAt: { type: Date, default: Date.now }
       }

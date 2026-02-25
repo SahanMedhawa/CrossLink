@@ -1,6 +1,7 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
+import { Toaster } from 'react-hot-toast';
 import HomePage from "./components/Home";
 import Register from "./pages/user/Register";
 import Login from "./pages/user/Login";
@@ -8,10 +9,23 @@ import Projects from "./pages/ngo/allprojects";
 import NGOs from "./pages/ngo/NGOList";
 import NGODashboard from "./pages/ngo/NGODashboard";
 import VolunteerDashboard from "./pages/volunteer/VolunteerDashboard";
+import VolunteerProfile from "./pages/volunteer/VolunteerProfile";
+import MatchedProjects from "./pages/volunteer/MatchedProjects";
+import MyApplications from "./pages/volunteer/MyApplications";
+import VolunteerActivity from "./pages/volunteer/VolunteerActivity";
 import CreateProject from "./pages/ngo/createproject";
 import CorporateDashboard from "./pages/corporate/CorporateDashboard";
 import NGOProjects from "./pages/ngo/myprojects";
 import ResourceForm from "./pages/resource/ResourceForm";
+import ResourceManage from "./pages/resource/resourceManage";
+import ProjectDonations from "./pages/resource/ProjectDonations";
+import NGOPartners from './pages/corporate/NGOPartners'; 
+import NgoProjectView from './pages/corporate/NgoProjectView';
+import ImpactReports from './pages/corporate/ImpactReports';
+import MyProposalsAndFunding from './pages/corporate/MyProposalsAndFunding';
+import CsrInitiatives from './pages/corporate/CsrInitiatives';
+import NgoVolunteerManagement from './pages/ngo/NgoVolunteerManagement';
+
 import "./App.css";
 
 // Protected Route Component
@@ -81,12 +95,62 @@ function AppRoutes() {
       }
     />
 
+    <Route
+        path="/ngo/ProjectDonations"
+        element={
+          <ProtectedRoute allowedRoles={["ngo"]}>
+            <ProjectDonations />
+          </ProtectedRoute>
+      }
+    />
+
+      <Route
+        path="/ngo/volunteers"
+        element={
+          <ProtectedRoute allowedRoles={["ngo"]}>
+            <NgoVolunteerManagement />
+          </ProtectedRoute>
+        }
+      />
+
       {/* Volunteer Routes - Protected */}
       <Route
         path="/volunteer/dashboard"
         element={
           <ProtectedRoute allowedRoles={["volunteer"]}>
             <VolunteerDashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/volunteer/profile"
+        element={
+          <ProtectedRoute allowedRoles={["volunteer"]}>
+            <VolunteerProfile />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/volunteer/projects"
+        element={
+          <ProtectedRoute allowedRoles={["volunteer"]}>
+            <MatchedProjects />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/volunteer/applications"
+        element={
+          <ProtectedRoute allowedRoles={["volunteer"]}>
+            <MyApplications />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/volunteer/activity"
+        element={
+          <ProtectedRoute allowedRoles={["volunteer"]}>
+            <VolunteerActivity />
           </ProtectedRoute>
         }
       />
@@ -100,7 +164,58 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
+     
+     {/* Corporate NGO Projects Display */}
+      <Route
+        path="/corporate/ngo-partners"
+        element={
+          <ProtectedRoute allowedRoles={["corporate"]}>
+            <NGOPartners />
+          </ProtectedRoute>
+        }
+      />
 
+      <Route
+        path="/corporate/ngo/:ngoId/projects"
+        element={
+          <ProtectedRoute allowedRoles={["corporate"]}>
+            <NgoProjectView />
+          </ProtectedRoute>
+        }
+      />
+
+          
+
+            <Route
+           path="/corporate/my-activities"
+          element={
+             <ProtectedRoute allowedRoles={["corporate"]}>
+               <MyProposalsAndFunding />
+           </ProtectedRoute>
+         }
+       />
+         <Route
+        path="/corporate/csr-initiatives"
+        element={
+           <ProtectedRoute allowedRoles={["corporate"]}>
+              <CsrInitiatives />
+         </ProtectedRoute>
+       }
+    />
+
+
+
+         <Route
+      path="/corporate/reports"
+      element={
+           <ProtectedRoute allowedRoles={["corporate"]}>
+          <ImpactReports />
+        </ProtectedRoute>
+       }
+    />
+
+
+      {/* Resource Routes - Protected */}
       <Route
         path="/corporate/projects/:projectId/resources"
         element={
@@ -110,6 +225,15 @@ function AppRoutes() {
         }
       />
 
+      {/* Resource Routes - Protected */}
+      <Route
+        path="/corporate/resourcehManage"
+        element={
+          <ProtectedRoute allowedRoles={["corporate"]}>
+            < ResourceManage/>
+          </ProtectedRoute>
+        }
+      />
 
       {/* Catch all - redirect to home */}
       <Route path="*" element={<Navigate to="/" replace />} />
@@ -121,6 +245,39 @@ function App() {
   return (
     <AuthProvider>
       <Router>
+        <Toaster 
+          position="top-right"
+          toastOptions={{
+            duration: 4000,
+            style: {
+              background: '#363636',
+              color: '#fff',
+              padding: '16px',
+              borderRadius: '8px',
+              fontSize: '14px',
+            },
+            success: {
+              duration: 5000,
+              icon: '🎉',
+              style: {
+                background: '#10b981',
+              },
+            },
+            error: {
+              duration: 4000,
+              icon: '❌',
+              style: {
+                background: '#ef4444',
+              },
+            },
+            loading: {
+              icon: '⏳',
+              style: {
+                background: '#3b82f6',
+              },
+            },
+          }}
+        />
         <AppRoutes />
       </Router>
     </AuthProvider>

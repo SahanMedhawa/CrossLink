@@ -2,6 +2,27 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Sidebar from '../../components/dashboard/Sidebar'; // Import the sidebar
 import Header from '../../components/dashboard/Header';
+import { SKILL_OPTIONS, FOCUS_AREA_OPTIONS } from '../../constants/skillsAndInterests';
+import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
+import L from 'leaflet';
+
+// Fix default Leaflet marker icon
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+});
+
+// Click-to-place marker on map
+const LocationMarker = ({ position, setPosition }) => {
+  useMapEvents({
+    click(e) {
+      setPosition([e.latlng.lat, e.latlng.lng]);
+    },
+  });
+  return position ? <Marker position={position} /> : null;
+};
 
 const MyProjects = () => {
   const [projects, setProjects] = useState([]);
@@ -17,14 +38,8 @@ const MyProjects = () => {
   const [projectsPerPage] = useState(6);
   const [totalPages, setTotalPages] = useState(1);
 
-  // Common skills array - defined here so it can be passed to the modal
-  const commonSkills = [
-    'Teaching', 'Healthcare', 'Technology', 'Marketing', 'Design',
-    'Writing', 'Photography', 'Video Editing', 'Social Media',
-    'Event Planning', 'Fundraising', 'Project Management',
-    'Data Analysis', 'Web Development', 'Counseling',
-    'Communication', 'Leadership', 'Public Speaking'
-  ];
+  // Common skills array - from shared constants file
+  const commonSkills = SKILL_OPTIONS;
 
   useEffect(() => {
     const handleResize = () => {
@@ -1057,6 +1072,11 @@ const MyProjects = () => {
 
 // Edit Modal Component
 const EditProjectModal = ({ project, onClose, onUpdate, commonSkills }) => {
+  // Derive initial map position from existing project coordinates
+  const initialMapPos = project.coordinates?.coordinates
+    ? [project.coordinates.coordinates[1], project.coordinates.coordinates[0]] // [lat, lng] from GeoJSON [lng, lat]
+    : null;
+
   const [formData, setFormData] = useState({
     title: project.title,
     description: project.description,
@@ -1065,18 +1085,16 @@ const EditProjectModal = ({ project, onClose, onUpdate, commonSkills }) => {
     location: project.location,
     startDate: project.startDate.split('T')[0],
     endDate: project.endDate.split('T')[0],
+    volunteersNeeded: project.volunteersNeeded || 5,
     resources: project.resources || []
   });
   const [skillInput, setSkillInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [imageFile, setImageFile] = useState(null);
   const [resourceInput, setResourceInput] = useState({ name: '', quantity: '', description: '' });
+  const [mapPosition, setMapPosition] = useState(initialMapPos);
 
-  const focusAreaOptions = [
-    'Education', 'Healthcare', 'Environment', 'Youth',
-    'Women Empowerment', 'Poverty Alleviation', 'Animal Welfare',
-    'Disaster Relief', 'Arts & Culture', 'Technology'
-  ];
+  const focusAreaOptions = FOCUS_AREA_OPTIONS;
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -1136,6 +1154,14 @@ const EditProjectModal = ({ project, onClose, onUpdate, commonSkills }) => {
           formDataToSend.append(key, formData[key]);
         }
       });
+
+      // Append coordinates as GeoJSON if a map pin is placed
+      if (mapPosition) {
+        formDataToSend.append('coordinates', JSON.stringify({
+          type: 'Point',
+          coordinates: [mapPosition[1], mapPosition[0]] // [lng, lat] for GeoJSON
+        }));
+      }
 
       if (imageFile) {
         formDataToSend.append('image', imageFile);
@@ -1490,6 +1516,61 @@ const EditProjectModal = ({ project, onClose, onUpdate, commonSkills }) => {
               onFocus={(e) => e.target.style.borderColor = '#0052CC'}
               onBlur={(e) => e.target.style.borderColor = '#DFE1E6'}
             />
+          </div>
+
+          {/* Volunteers Needed */}
+          <div style={modalStyles.formGroup}>
+            <label style={modalStyles.label}>Volunteers Needed</label>
+            <input
+              type="number"
+              name="volunteersNeeded"
+              min="1"
+              max="500"
+              value={formData.volunteersNeeded}
+              onChange={handleInputChange}
+              style={{ ...modalStyles.input, maxWidth: '200px' }}
+              onFocus={(e) => e.target.style.borderColor = '#0052CC'}
+              onBlur={(e) => e.target.style.borderColor = '#DFE1E6'}
+            />
+            <span style={{ fontSize: '0.75rem', color: '#5E6C84' }}>How many volunteers does this project need?</span>
+          </div>
+
+          {/* Map Picker */}
+          <div style={{ ...modalStyles.formGroup, padding: '1.25rem', background: '#F4F5F7', borderRadius: '8px', border: '1px solid #DFE1E6' }}>
+            <label style={modalStyles.label}>
+              📍 Pin Project Location on Map
+              <span style={{ fontWeight: 400, color: '#5E6C84', fontSize: '0.75rem', marginLeft: '6px' }}>(optional — helps volunteers find the project)</span>
+            </label>
+            <div style={{ borderRadius: '8px', overflow: 'hidden', border: '1px solid #DFE1E6', marginTop: '8px' }}>
+              <MapContainer
+                center={mapPosition || [7.8731, 80.7718]}
+                zoom={mapPosition ? 13 : 7}
+                style={{ height: '260px', width: '100%' }}
+                scrollWheelZoom={true}
+              >
+                <TileLayer
+                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                />
+                <LocationMarker position={mapPosition} setPosition={setMapPosition} />
+              </MapContainer>
+            </div>
+            {mapPosition ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px' }}>
+                <span style={{ fontSize: '0.75rem', color: '#172B4D' }}>
+                  📌 Lat: {mapPosition[0].toFixed(5)}, Lng: {mapPosition[1].toFixed(5)}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setMapPosition(null)}
+                  style={{ fontSize: '0.7rem', color: '#DE350B', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}
+                >
+                  Clear pin
+                </button>
+              </div>
+            ) : (
+              <p style={{ fontSize: '0.75rem', color: '#5E6C84', marginTop: '6px' }}>Click on the map to place a pin at your project location.</p>
+            )}
           </div>
 
           <div style={modalStyles.formGroup}>

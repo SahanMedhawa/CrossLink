@@ -13,6 +13,8 @@ const AllProjects = () => {
     skills: '' 
   });
   const [showResourceForm, setShowResourceForm] = useState(false);
+  const [projectFundingStatus, setProjectFundingStatus] = useState(null);
+  const [checkingFunding, setCheckingFunding] = useState(false);
 
   const styles = {
     container: {
@@ -350,21 +352,92 @@ const AllProjects = () => {
     },
     tertiaryButton: {
       width: '100%',
-      padding: '1rem',
-      background: '#E8F5E9',
-      color: '#2E7D32',
-      border: 'none',
-      borderRadius: '8px',
-      fontWeight: '600',
-      fontSize: '1rem',
-      cursor: 'pointer',
-      transition: 'all 0.2s'
+  padding: '12px 20px',
+  border: 'none',
+  borderRadius: '14px',
+  fontWeight: '600',
+  fontSize: '0.95rem',
+  cursor: 'pointer',
+  transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+  boxShadow: '0 2px 4px rgba(0, 0, 0, 0.05)',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  minHeight: '52px',
+  position: 'relative',
+  overflow: 'hidden'
     }
   };
 
   useEffect(() => { 
     fetchProjects(); 
   }, []);
+
+  // Function to check project funding status
+const checkProjectFunding = async (projectId) => {
+  if (!projectId) return;
+  
+  try {
+    setCheckingFunding(true);
+    const response = await axios.get(
+      `http://localhost:5000/api/resources/project/${projectId}/status`
+    );
+    
+    console.log("Funding status response:", response.data);
+    
+    // Calculate if all resources are fully funded
+    const allFullyFunded = response.data.every(
+      resource => resource.isFullyFunded || resource.remaining === 0 || resource.remainingNeeded === 0
+    );
+    
+    // Calculate total remaining amount
+    const totalRemaining = response.data.reduce(
+      (sum, resource) => {
+        const remaining = resource.remainingNeeded || resource.remaining || 0;
+        return sum + remaining;
+      }, 
+      0
+    );
+    
+    console.log("Total remaining:", totalRemaining);
+    
+    setProjectFundingStatus({
+      isFullyFunded: allFullyFunded,
+      totalRemaining,
+      resources: response.data
+    });
+    
+  } catch (error) {
+    console.error("Error checking funding status:", error);
+    // Fallback to project data
+    if (selectedProject?.resources) {
+      const totalNeeded = selectedProject.resources.reduce((sum, r) => sum + r.quantity, 0);
+      setProjectFundingStatus({
+        isFullyFunded: false,
+        totalRemaining: totalNeeded,
+        resources: []
+      });
+    }
+  } finally {
+    setCheckingFunding(false);
+  }
+};
+
+// Check funding when selected project changes
+useEffect(() => {
+  if (selectedProject?._id) {
+    checkProjectFunding(selectedProject._id);
+  }
+}, [selectedProject]);
+
+// Also check funding when modal closes (after donation)
+const handleResourceFormClose = async () => {
+  setShowResourceForm(false);
+  // Refresh funding status
+  if (selectedProject?._id) {
+    await checkProjectFunding(selectedProject._id);
+  }
+};
 
   const fetchProjects = async () => {
     try {
@@ -731,27 +804,107 @@ const AllProjects = () => {
                     </button>
                     
                     {selectedProject.resources && selectedProject.resources.length > 0 && (
-                      <button 
-                        style={styles.tertiaryButton}
-                        onClick={() => setShowResourceForm(true)}
-                        onMouseOver={(e) => {
-                          e.target.style.background = '#2E7D32';
-                          e.target.style.color = 'white';
-                        }}
-                        onMouseOut={(e) => {
-                          e.target.style.background = '#E8F5E9';
-                          e.target.style.color = '#2E7D32';
-                        }}
-                      >
-                        Provide Resources
-                      </button>
+                      <div style={{ width: '100%', marginTop: '10px' }}>
+                        {checkingFunding ? (
+                          <div style={{
+                            display: 'flex',alignItems: 'center',justifyContent: 'center',gap: '10px',padding: '12px',background: '#F3F4F6',borderRadius: '12px',color: '#6B7280'
+                          }}>
+                            <span style={{
+                              width: '16px',height: '16px',border: '2px solid #E5E7EB',borderTopColor: '#2E7D32',borderRadius: '50%',animation: 'spin 1s linear infinite'
+                            }}></span>
+                            Checking availability...
+                          </div>
+                        ) : (
+                          <button 
+                            style={{
+                              width: '100%',padding: '12px 20px', border: 'none',borderRadius: '14px', fontWeight: '600',fontSize: '0.95rem',
+                              cursor: projectFundingStatus?.isFullyFunded ? 'not-allowed' : 'pointer',
+                              transition: 'all 0.2s ease',boxShadow: '0 2px 4px rgba(0, 0, 0, 0.05)',display: 'flex',
+                              alignItems: 'center',justifyContent: 'space-between',minHeight: '52px',
+                              background: projectFundingStatus?.isFullyFunded ? '#F3F4F6' : '#E8F5E9',
+                              color: projectFundingStatus?.isFullyFunded ? '#9CA3AF' : '#2E7D32',
+                              opacity: projectFundingStatus?.isFullyFunded ? 0.8 : 1
+                            }}
+                            onClick={() => {
+                              if (!projectFundingStatus?.isFullyFunded) {
+                                setShowResourceForm(true);
+                              }
+                            }}
+                            disabled={projectFundingStatus?.isFullyFunded}
+                            onMouseEnter={(e) => {
+                              if (!projectFundingStatus?.isFullyFunded) {
+                                e.currentTarget.style.background = '#2E7D32';
+                                e.currentTarget.style.color = 'white';
+                                e.currentTarget.style.transform = 'translateY(-2px)';
+                                e.currentTarget.style.boxShadow = '0 8px 20px rgba(46, 125, 50, 0.3)';
+                                
+                                const badge = e.currentTarget.querySelector('.remaining-badge');
+                                if (badge) {
+                                  badge.style.background = 'rgba(255, 255, 255, 0.25)';
+                                  badge.style.color = 'white';
+                                  badge.style.borderColor = 'rgba(255, 255, 255, 0.3)';
+                                }
+                              }
+                            }}
+                            onMouseLeave={(e) => {
+                              if (!projectFundingStatus?.isFullyFunded) {
+                                e.currentTarget.style.background = '#E8F5E9';
+                                e.currentTarget.style.color = '#2E7D32';
+                                e.currentTarget.style.transform = 'translateY(0)';
+                                e.currentTarget.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.05)';
+                                
+                                const badge = e.currentTarget.querySelector('.remaining-badge');
+                                if (badge) {
+                                  badge.style.background = 'rgba(46, 125, 50, 0.15)';
+                                  badge.style.color = '#2E7D32';
+                                  badge.style.borderColor = 'rgba(46, 125, 50, 0.2)';
+                                }
+                              }
+                            }}
+                          >
+                            <span style={{ 
+                              display: 'flex', 
+                              alignItems: 'center', 
+                              gap: '10px'
+                            }}>
+                              <span style={{ fontSize: '1.3rem' }}>🤝</span>
+                              <span style={{ fontWeight: '600' }}>Provide Resources</span>
+                            </span>
+                            
+                            {projectFundingStatus && !projectFundingStatus.isFullyFunded && (
+                              <span 
+                                className="remaining-badge"
+                                style={{
+                                  background: 'rgba(46, 125, 50, 0.15)', padding: '6px 14px',borderRadius: '30px', fontSize: '0.85rem',fontWeight: '600',
+                                  transition: 'all 0.2s ease', display: 'flex',alignItems: 'center',gap: '6px', border: '1px solid rgba(46, 125, 50, 0.2)'
+                                }}
+                              >
+                                <span style={{ fontSize: '0.9rem' }}>📦</span>
+                                <span>{projectFundingStatus.totalRemaining} {projectFundingStatus.totalRemaining === 1 ? 'unit' : 'units'} needed</span>
+                              </span>
+                            )}
+                            
+                            {projectFundingStatus?.isFullyFunded && (
+                              <span 
+                                style={{
+                                  background: 'rgba(156, 163, 175, 0.15)', padding: '6px 14px', borderRadius: '30px',fontSize: '0.85rem',fontWeight: '600',display: 'flex',
+                                  alignItems: 'center', gap: '6px',border: '1px solid rgba(156, 163, 175, 0.2)', color: '#6B7280'
+                                }}
+                              >
+                                <span style={{ fontSize: '0.9rem' }}>✅</span>
+                                <span>Fully Funded</span>
+                              </span>
+                            )}
+                          </button>
+                        )}
+                      </div>
                     )}
 
-                    {/* Render the form when showResourceForm is true */}
+                    {/* Resource Form Modal */}
                     {showResourceForm && (
                       <ResourceForm 
                         project={selectedProject} 
-                        onClose={() => setShowResourceForm(false)}
+                        onClose={handleResourceFormClose}
                       />
                     )}
                   </div>
