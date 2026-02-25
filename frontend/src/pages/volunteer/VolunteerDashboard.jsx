@@ -1,18 +1,46 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import DashboardLayout from "../../components/dashboard/DashboardLayout";
+import { getVolunteerStats, getMatchedProjects } from "../../services/volunteerApi";
 
 const VolunteerDashboard = () => {
   const { user } = useAuth();
+  const [stats, setStats] = useState(null);
+  const [topMatches, setTopMatches] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [statsRes, matchRes] = await Promise.all([
+          getVolunteerStats(),
+          getMatchedProjects(),
+        ]);
+        if (statsRes.success) setStats(statsRes.data);
+        if (matchRes.success) setTopMatches(matchRes.data.slice(0, 3));
+      } catch (error) {
+        console.error("Dashboard data fetch error:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
+  const getScoreBarColor = (score) => {
+    if (score >= 80) return "bg-green-500";
+    if (score >= 50) return "bg-yellow-500";
+    return "bg-red-400";
+  };
 
   return (
     <DashboardLayout userType="volunteer">
       <div className="space-y-6">
         {/* Welcome Section */}
-        <div className="bg-gradient-to-r from-blue-600 to-blue-600 rounded-2xl p-8 text-white mb-8">
+        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl p-8 text-white mb-8">
           <h2 className="text-2xl font-bold mb-2">
-            Welcome back, {user?.name}! 🙌
+            Welcome back, {user?.name}! 
           </h2>
           <p className="text-blue-100">
             Find meaningful projects, contribute your skills, and make a difference.
@@ -22,7 +50,10 @@ const VolunteerDashboard = () => {
         {/* Skills & Interests */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Your Skills</h3>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">Your Skills</h3>
+              <Link to="/volunteer/profile" className="text-xs text-blue-600 hover:underline">Edit</Link>
+            </div>
             <div className="flex flex-wrap gap-2">
               {user?.skills && user.skills.length > 0 ? (
                 user.skills.map((skill, index) => (
@@ -34,25 +65,28 @@ const VolunteerDashboard = () => {
                   </span>
                 ))
               ) : (
-                <p className="text-gray-500 text-sm">No skills added yet. Update your profile!</p>
+                <p className="text-gray-500 text-sm">No skills added yet. <Link to="/volunteer/profile" className="text-blue-600 hover:underline">Update your profile!</Link></p>
               )}
             </div>
           </div>
 
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Your Interests</h3>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">Your Interests</h3>
+              <Link to="/volunteer/profile" className="text-xs text-blue-600 hover:underline">Edit</Link>
+            </div>
             <div className="flex flex-wrap gap-2">
               {user?.interests && user.interests.length > 0 ? (
                 user.interests.map((interest, index) => (
                   <span
                     key={index}
-                    className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium"
+                    className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm font-medium"
                   >
                     {interest}
                   </span>
                 ))
               ) : (
-                <p className="text-gray-500 text-sm">No interests added yet. Update your profile!</p>
+                <p className="text-gray-500 text-sm">No interests added yet. <Link to="/volunteer/profile" className="text-blue-600 hover:underline">Update your profile!</Link></p>
               )}
             </div>
           </div>
@@ -64,7 +98,7 @@ const VolunteerDashboard = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-500">Projects Joined</p>
-                <p className="text-2xl font-bold text-gray-900">0</p>
+                <p className="text-2xl font-bold text-gray-900">{loading ? "..." : stats?.projectsJoined || 0}</p>
               </div>
               <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
                 <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -77,11 +111,11 @@ const VolunteerDashboard = () => {
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500">Hours Contributed</p>
-                <p className="text-2xl font-bold text-gray-900">0</p>
+                <p className="text-sm text-gray-500">Pending Requests</p>
+                <p className="text-2xl font-bold text-gray-900">{loading ? "..." : stats?.pending || 0}</p>
               </div>
-              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
+                <svg className="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
@@ -92,10 +126,10 @@ const VolunteerDashboard = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-500">NGOs Helped</p>
-                <p className="text-2xl font-bold text-gray-900">0</p>
+                <p className="text-2xl font-bold text-gray-900">{loading ? "..." : stats?.ngosHelped || 0}</p>
               </div>
-              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                 </svg>
               </div>
@@ -106,7 +140,7 @@ const VolunteerDashboard = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-500">Impact Points</p>
-                <p className="text-2xl font-bold text-gray-900">0</p>
+                <p className="text-2xl font-bold text-gray-900">{loading ? "..." : stats?.impactPoints || 0}</p>
               </div>
               <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
                 <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -117,9 +151,40 @@ const VolunteerDashboard = () => {
           </div>
         </div>
 
+        {/* Top Matched Projects Preview */}
+        {topMatches.length > 0 && (
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">Top Matched Projects</h3>
+              <Link to="/volunteer/projects" className="text-sm text-blue-600 hover:underline">View All</Link>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {topMatches.map(({ project, matchScore, matchedSkills }) => (
+                <div key={project._id} className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+                  <div className="flex items-start justify-between mb-3">
+                    <h4 className="font-semibold text-gray-900 text-sm line-clamp-1">{project.title}</h4>
+                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${matchScore >= 80 ? "bg-green-100 text-green-700" : matchScore >= 50 ? "bg-yellow-100 text-yellow-700" : "bg-red-100 text-red-700"}`}>
+                      {matchScore}%
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-500 mb-2">{project.ngo?.organizationName} &middot; {project.location}</p>
+                  <div className="w-full bg-gray-100 rounded-full h-1.5 mb-3">
+                    <div className={`h-1.5 rounded-full ${getScoreBarColor(matchScore)}`} style={{ width: `${matchScore}%` }} />
+                  </div>
+                  <div className="flex flex-wrap gap-1">
+                    {matchedSkills?.slice(0, 3).map((s) => (
+                      <span key={s} className="px-2 py-0.5 bg-green-50 text-green-600 rounded text-[10px]">{s}</span>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow cursor-pointer">
+          <Link to="/volunteer/projects" className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
             <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
               <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -127,19 +192,19 @@ const VolunteerDashboard = () => {
             </div>
             <h4 className="font-semibold text-gray-900 mb-2">Find Projects</h4>
             <p className="text-sm text-gray-500">Discover projects matching your skills</p>
-          </div>
+          </Link>
 
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow cursor-pointer">
-            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
-              <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+          <Link to="/volunteer/applications" className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
+              <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
             </div>
-            <h4 className="font-semibold text-gray-900 mb-2">Browse NGOs</h4>
-            <p className="text-sm text-gray-500">Explore organizations to support</p>
-          </div>
+            <h4 className="font-semibold text-gray-900 mb-2">My Applications</h4>
+            <p className="text-sm text-gray-500">Track your participation requests</p>
+          </Link>
 
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow cursor-pointer">
+          <Link to="/volunteer/profile" className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
             <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
               <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -147,7 +212,7 @@ const VolunteerDashboard = () => {
             </div>
             <h4 className="font-semibold text-gray-900 mb-2">Update Profile</h4>
             <p className="text-sm text-gray-500">Add skills and interests</p>
-          </div>
+          </Link>
         </div>
 
         {/* Back to Home */}
@@ -156,7 +221,7 @@ const VolunteerDashboard = () => {
             to="/"
             className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
           >
-            ← Back to Home
+            &larr; Back to Home
           </Link>
         </div>
       </div>

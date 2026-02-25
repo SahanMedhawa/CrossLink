@@ -9,6 +9,10 @@ import Projects from "./pages/ngo/allprojects";
 import NGOs from "./pages/ngo/NGOList";
 import NGODashboard from "./pages/ngo/NGODashboard";
 import VolunteerDashboard from "./pages/volunteer/VolunteerDashboard";
+import VolunteerProfile from "./pages/volunteer/VolunteerProfile";
+import MatchedProjects from "./pages/volunteer/MatchedProjects";
+import MyApplications from "./pages/volunteer/MyApplications";
+import VolunteerActivity from "./pages/volunteer/VolunteerActivity";
 import CreateProject from "./pages/ngo/createproject";
 import CorporateDashboard from "./pages/corporate/CorporateDashboard";
 import NGOProjects from "./pages/ngo/myprojects";
@@ -20,6 +24,7 @@ import NgoProjectView from './pages/corporate/NgoProjectView';
 import ImpactReports from './pages/corporate/ImpactReports';
 import MyProposalsAndFunding from './pages/corporate/MyProposalsAndFunding';
 import CsrInitiatives from './pages/corporate/CsrInitiatives';
+import NgoVolunteerManagement from './pages/ngo/NgoVolunteerManagement';
 
 import "./App.css";
 
@@ -99,12 +104,53 @@ function AppRoutes() {
       }
     />
 
+      <Route
+        path="/ngo/volunteers"
+        element={
+          <ProtectedRoute allowedRoles={["ngo"]}>
+            <NgoVolunteerManagement />
+          </ProtectedRoute>
+        }
+      />
+
       {/* Volunteer Routes - Protected */}
       <Route
         path="/volunteer/dashboard"
         element={
           <ProtectedRoute allowedRoles={["volunteer"]}>
             <VolunteerDashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/volunteer/profile"
+        element={
+          <ProtectedRoute allowedRoles={["volunteer"]}>
+            <VolunteerProfile />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/volunteer/projects"
+        element={
+          <ProtectedRoute allowedRoles={["volunteer"]}>
+            <MatchedProjects />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/volunteer/applications"
+        element={
+          <ProtectedRoute allowedRoles={["volunteer"]}>
+            <MyApplications />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/volunteer/activity"
+        element={
+          <ProtectedRoute allowedRoles={["volunteer"]}>
+            <VolunteerActivity />
           </ProtectedRoute>
         }
       />
