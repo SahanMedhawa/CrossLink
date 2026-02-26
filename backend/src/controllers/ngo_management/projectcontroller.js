@@ -54,8 +54,15 @@ exports.createProject = async (req, res) => {
     };
 
     // Add volunteersNeeded if provided
-    if (volunteersNeeded) {
-      projectData.volunteersNeeded = parseInt(volunteersNeeded, 10);
+    if (volunteersNeeded !== undefined && volunteersNeeded !== null && volunteersNeeded !== '') {
+      const parsedVolunteersNeeded = parseInt(volunteersNeeded, 10);
+      if (!Number.isFinite(parsedVolunteersNeeded) || parsedVolunteersNeeded < 1) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid volunteersNeeded value. It must be an integer greater than or equal to 1.'
+        });
+      }
+      projectData.volunteersNeeded = parsedVolunteersNeeded;
     }
 
     // Add coordinates if provided (expects JSON string from FormData)
@@ -221,8 +228,15 @@ exports.updateProject = async (req, res) => {
     }
 
     // Parse volunteersNeeded
-    if (req.body.volunteersNeeded) {
-      req.body.volunteersNeeded = parseInt(req.body.volunteersNeeded, 10);
+    if (req.body.volunteersNeeded !== undefined) {
+      const parsedVolunteersNeeded = parseInt(req.body.volunteersNeeded, 10);
+      if (!Number.isFinite(parsedVolunteersNeeded) || !Number.isInteger(parsedVolunteersNeeded) || parsedVolunteersNeeded < 1) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid volunteersNeeded value. It must be an integer greater than or equal to 1.'
+        });
+      }
+      req.body.volunteersNeeded = parsedVolunteersNeeded;
     }
 
     // Parse coordinates if provided (GeoJSON from FormData)
