@@ -3,7 +3,7 @@ const Resource = require("../../models/resorce");
 const Project = require("../../models/project");
 const {sendDonationConfirmation, sendNgoNotification} = require("../../utils/emailService");
 
-// ✅ Corporate donates 
+// Corporate donates 
 exports.donateResource = async (req, res) => {
   try {
     const {
@@ -38,7 +38,7 @@ exports.donateResource = async (req, res) => {
     });
     
     if (!resource) {
-      // First time donation for this resource - CREATE IT
+      // First time donation for this resource 
       resource = new Resource({
         projectId,
         name: name.trim(),
@@ -76,7 +76,6 @@ exports.donateResource = async (req, res) => {
 
     const isFullyFunded = resource.remainingQuantity === 0;
 
-    // ===== EMAIL NOTIFICATIONS =====
     try {
       // Fetch corporate user details
       const corporateUser = await User.findById(corporateId);
@@ -132,7 +131,6 @@ exports.donateResource = async (req, res) => {
     } catch (emailError) {
       console.error('Email notification error:', emailError);
     }
-    // ===== END EMAIL NOTIFICATIONS =====
 
     res.status(200).json({
       message: "Donation submitted successfully",
@@ -149,7 +147,7 @@ exports.donateResource = async (req, res) => {
   }
 };
 
-// ✅ GET project resource status
+// GET project resource status
 exports.getProjectResourceStatus = async (req, res) => {
   try {
     const projectId = req.params.projectId;
@@ -174,7 +172,7 @@ exports.getProjectResourceStatus = async (req, res) => {
         // Resource exists in Resource collection
         status.push({
           name: projRes.name,
-          originalNeed: projRes.quantity, // From project (never changes)
+          originalNeed: projRes.quantity, 
           totalDonated: resourceDoc.totalQuantity - resourceDoc.remainingQuantity,
           remainingNeeded: resourceDoc.remainingQuantity,
           isFullyFunded: resourceDoc.remainingQuantity === 0,
@@ -205,7 +203,7 @@ exports.getProjectResourceStatus = async (req, res) => {
   }
 };
 
-// Get ALL resources (with pagination and filtering)
+// Get ALL resources 
 exports.getAllResources = async (req, res) => {
   try {
     const { page = 1, limit = 50, search = '' } = req.query;
@@ -226,12 +224,12 @@ exports.getAllResources = async (req, res) => {
       .populate({
         path: 'projectId',
         model: 'Project',
-        select: 'title organizationName location focusArea'
+        select: 'title organizationName location focusArea ngoId'
       })
       .populate({
         path: 'donatedBy.corporateId',
         model: 'User',
-        select: 'name companyName email' // Get corporate name/company name
+        select: 'name companyName email' 
       })
       .sort({ createdAt: -1 })
       .limit(limit * 1)
@@ -314,19 +312,26 @@ exports.deleteResource = async (req, res) => {
       return res.status(404).json({ message: "Resource not found" });
     }
     
+    // Store project ID and resource name for logging
+    const projectId = resource.projectId;
+    const resourceName = resource.name;
+    
     // Remove from Resource collection
     await Resource.findByIdAndDelete(req.params.resourceId);
     
-    // Also remove from Project's embedded resources
-    await Project.updateOne(
-      { _id: resource.projectId },
-      { $pull: { resources: { name: resource.name } } }
-    );
+    // Verify project was NOT changed
+    const project = await Project.findById(projectId);
+    const stillExists = project.resources.some(r => r.name === resourceName);
+    
+    console.log(`Resource "${resourceName}" still in project:`, stillExists);
     
     res.json({ 
+      success: true,
       message: "Resource deleted successfully",
-      resourceId: req.params.resourceId 
+      resourceId: req.params.resourceId,
+      projectResourcePreserved: stillExists
     });
+    
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -340,7 +345,7 @@ exports.getResourcesByProject = async (req, res) => {
     const resources = await Resource.find({ projectId })
       .populate({
         path: 'projectId',
-        select: 'title organizationName location focusArea'
+        select: 'title organizationName location focusArea ngoId'
       })
       .populate({
         path: 'donatedBy.corporateId',

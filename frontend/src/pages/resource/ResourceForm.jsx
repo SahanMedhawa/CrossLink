@@ -1,4 +1,3 @@
-// ResourceForm.jsx
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { useAuth } from "../../context/AuthContext";
@@ -14,6 +13,30 @@ const ResourceForm = ({ project, onClose }) => {
   // Use resources directly from the project prop
   const resources = project?.resources || [];
 
+  // Add axios interceptor to include token in all requests
+  useEffect(() => {
+    // Get token from localStorage (check for both possible keys)
+    const token = localStorage.getItem('crosslink_token') || localStorage.getItem('token');
+    
+    // Add request interceptor
+    const requestInterceptor = axios.interceptors.request.use(
+      (config) => {
+        if (token) {
+          config.headers.Authorization = `Bearer ${token}`;
+        }
+        return config;
+      },
+      (error) => {
+        return Promise.reject(error);
+      }
+    );
+
+    // Clean up interceptor on unmount
+    return () => {
+      axios.interceptors.request.eject(requestInterceptor);
+    };
+  }, []);
+
   // Fetch current resource status from backend
   useEffect(() => {
     if (project?._id) {
@@ -24,8 +47,17 @@ const ResourceForm = ({ project, onClose }) => {
   const fetchResourceStatus = async () => {
     try {
       setLoadingStatus(true);
+      
+      // Get token
+      const token = localStorage.getItem('crosslink_token') || localStorage.getItem('token');
+      
       const response = await axios.get(
-        `http://localhost:5000/api/resources/project/${project._id}/status`
+        `http://localhost:5000/api/resources/project/${project._id}/status`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}` // Explicitly add token
+          }
+        }
       );
       
       console.log("Resource status response:", response.data);
@@ -108,6 +140,14 @@ const ResourceForm = ({ project, onClose }) => {
       return;
     }
 
+    // Get token
+    const token = localStorage.getItem('crosslink_token') || localStorage.getItem('token');
+    
+    if (!token) {
+      toast.error('Please login again. Session token not found.');
+      return;
+    }
+
     try {
       setLoading(true);
       
@@ -140,7 +180,7 @@ const ResourceForm = ({ project, onClose }) => {
         }
       }
 
-      // Submit each donation
+      // Submit each donation with token in headers
       const donationPromises = donationsToSubmit.map(item => {
         const requestBody = {
           name: item.name.trim(),
@@ -155,6 +195,7 @@ const ResourceForm = ({ project, onClose }) => {
           {
             headers: {
               'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}` // ADD TOKEN HERE
             }
           }
         );
@@ -190,7 +231,13 @@ const ResourceForm = ({ project, onClose }) => {
       
     } catch (error) {
       console.error("Donation failed", error);
-      toast.error(error.response?.data?.message || "Failed to submit donation. Please try again.");
+      
+      // Better error handling for 401
+      if (error.response?.status === 401) {
+        toast.error("Your session has expired. Please login again.");
+      } else {
+        toast.error(error.response?.data?.message || "Failed to submit donation. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
@@ -213,12 +260,6 @@ const ResourceForm = ({ project, onClose }) => {
       const status = getResourceStatus(res.name);
       return status.isFullyFunded || status.remaining === 0;
     });
-  };
-
-  // Check if a specific resource is fully funded
-  const isResourceFullyFunded = (resourceName) => {
-    const status = getResourceStatus(resourceName);
-    return status.isFullyFunded || status.remaining === 0;
   };
 
   // Modal styles (keeping your existing styles)
