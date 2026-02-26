@@ -141,8 +141,8 @@ const MyApplications = () => {
               key={filter}
               onClick={() => setActiveFilter(filter)}
               className={`flex items-center gap-2 px-5 py-3 rounded-[1.25rem] text-sm font-bold transition-all duration-300 whitespace-nowrap ${activeFilter === filter
-                  ? "bg-emerald-600 text-white shadow-lg shadow-emerald-600/30 transform scale-105"
-                  : "bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-900"
+                ? "bg-emerald-600 text-white shadow-lg shadow-emerald-600/30 transform scale-105"
+                : "bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-900"
                 }`}
             >
               {filter.charAt(0).toUpperCase() + filter.slice(1)}
@@ -186,8 +186,8 @@ const MyApplications = () => {
               >
                 {/* Decorative Side Bar indicating status */}
                 <div className={`absolute left-0 top-0 bottom-0 w-2 ${app.status === 'approved' ? 'bg-emerald-500' :
-                    app.status === 'requested' ? 'bg-amber-500' :
-                      app.status === 'rejected' ? 'bg-rose-500' : 'bg-blue-500'
+                  app.status === 'requested' ? 'bg-amber-500' :
+                    app.status === 'rejected' ? 'bg-rose-500' : 'bg-blue-500'
                   }`}></div>
 
                 <div className="p-6 sm:p-8 pl-8 sm:pl-10">
@@ -291,6 +291,21 @@ const MyApplications = () => {
                       >
                         {deletingId === app._id ? "Withdrawing..." : "Withdraw Application"}
                       </button>
+                    </div>
+                  )}
+
+                  {/* Navigation strip for Approved Projects */}
+                  {app.status === "approved" && app.projectId?.coordinates?.coordinates && (
+                    <div className="mt-6 flex flex-wrap gap-3">
+                      <a
+                        href={`https://www.google.com/maps/dir/?api=1&destination=${app.projectId.coordinates.coordinates[1]},${app.projectId.coordinates.coordinates[0]}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-emerald-600 text-white rounded-xl text-sm font-bold hover:bg-emerald-700 hover:shadow-lg hover:shadow-emerald-600/30 transition-all duration-300"
+                      >
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                        Navigate to Location
+                      </a>
                     </div>
                   )}
                 </div>

@@ -326,9 +326,22 @@ const MatchedProjects = () => {
                         </div>
                       </div>
                     ) : alreadyApplied === "approved" ? (
-                      <div className="w-full flex items-center justify-center gap-2 p-4 bg-emerald-50 text-emerald-700 rounded-2xl border border-emerald-200 shadow-sm font-bold border-dashed">
-                        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                        Officially Approved
+                      <div className="space-y-4">
+                        <div className="w-full flex items-center justify-center gap-2 p-4 bg-emerald-50 text-emerald-700 rounded-2xl border border-emerald-200 shadow-sm font-bold border-dashed">
+                          <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                          Officially Approved
+                        </div>
+                        {project.coordinates?.coordinates && (
+                          <a
+                            href={`https://www.google.com/maps/dir/?api=1&destination=${project.coordinates.coordinates[1]},${project.coordinates.coordinates[0]}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-emerald-600 text-white rounded-xl text-sm font-bold hover:bg-emerald-700 hover:shadow-lg hover:shadow-emerald-600/30 transition-all duration-300"
+                          >
+                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                            Navigate to Location
+                          </a>
+                        )}
                       </div>
                     ) : alreadyApplied ? (
                       <div className="w-full text-center p-4 bg-gray-50 text-gray-600 rounded-2xl font-bold uppercase tracking-wide text-xs">
