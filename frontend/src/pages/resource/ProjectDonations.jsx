@@ -35,12 +35,10 @@ const ProjectDonations = () => {
   const getDonorName = (corporateId) => {
     if (!corporateId) return 'Unknown Donor';
     
-    // If corporateId is populated with user data
     if (typeof corporateId === 'object') {
       return corporateId.companyName || corporateId.name || 'Unknown Donor';
     }
     
-    // If it's just an ID (not populated), show last 6 chars
     return `ID: ${corporateId.toString().slice(-6)}`;
   };
 
@@ -51,83 +49,103 @@ const ProjectDonations = () => {
   };
 
   // Fetch only this NGO's projects from resources
-  const fetchNgoProjects = async () => {
-    try {
-      setLoading(true);
-      
-      if (!token || !user?._id) {
-        toast.error('Please login again');
-        navigate('/login');
-        return;
-      }
+const fetchNgoProjects = async () => {
+  try {
+    setLoading(true);
+    
+    if (!token || !user?._id) {
+      toast.error('Please login again');
+      navigate('/login');
+      return;
+    }
 
-      console.log('Fetching resources for NGO:', user._id);
-      
-      // Get all resources
-      const response = await axios.get(
-        'http://localhost:5000/api/resources/all',
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
+    console.log('Fetching resources for NGO:', user._id);
+    
+    // Get all resources
+    const response = await axios.get(
+      'http://localhost:5000/api/resources/all',
+      {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
         }
-      );
-      
-      console.log("All Resources Response:", response.data);
-      
-      let resources = [];
-      if (Array.isArray(response.data)) {
-        resources = response.data;
-      } else if (response.data.resources && Array.isArray(response.data.resources)) {
-        resources = response.data.resources;
       }
-      
-      // Extract unique projects from resources
-      const projectMap = new Map();
-      
-      resources.forEach(resource => {
-        if (resource.projectId && resource.projectId._id) {
-          const project = resource.projectId;
+    );
+    
+    console.log("All Resources Response:", response.data);
+    
+    let resources = [];
+    if (Array.isArray(response.data)) {
+      resources = response.data;
+    } else if (response.data.resources && Array.isArray(response.data.resources)) {
+      resources = response.data.resources;
+    }
+    
+    // Extract unique projects from resources and filter by NGO ID
+    const projectMap = new Map();
+    
+    resources.forEach(resource => {
+      if (resource.projectId && resource.projectId._id) {
+        const project = resource.projectId;
+        
+        // Log to see what's available
+        console.log('Project data:', {
+          id: project._id,
+          title: project.title,
+          ngoId: project.ngoId,
+          userNgoId: user._id
+        });
+        
+        // Check if this project belongs to the logged-in NGO by comparing ngoId
+        if (project.ngoId && project.ngoId.toString() === user._id.toString()) {
           if (!projectMap.has(project._id.toString())) {
             projectMap.set(project._id.toString(), {
               _id: project._id,
               title: project.title,
               organizationName: project.organizationName,
               focusArea: project.focusArea,
-              location: project.location
+              location: project.location,
+              ngoId: project.ngoId
             });
           }
         }
+      }
+    });
+    
+    const projectsList = Array.from(projectMap.values());
+    console.log("NGO Projects from resources:", projectsList);
+    
+    setProjects(projectsList);
+    
+    // Auto-select first project if available
+    if (projectsList.length > 0 && !selectedProject) {
+      setSelectedProject(projectsList[0]);
+      fetchProjectDonations(projectsList[0]._id);
+    } else if (projectsList.length === 0) {
+      toast('No projects found for your organization', {
+        icon: 'ℹ️',
+        style: {
+          background: '#e6f7ff',
+          color: '#0066cc'
+        }
       });
-      
-      const projectsList = Array.from(projectMap.values());
-      console.log("All Projects from resources:", projectsList);
-      
-      setProjects(projectsList);
-      
-      // Auto-select first project if available
-      if (projectsList.length > 0 && !selectedProject) {
-        setSelectedProject(projectsList[0]);
-        fetchProjectDonations(projectsList[0]._id);
-      }
-      
-    } catch (err) {
-      console.error("Error fetching projects:", err);
-      
-      if (err.response?.status === 401) {
-        toast.error('Session expired. Please login again.');
-        logout();
-        navigate('/login');
-      } else {
-        setError("Failed to fetch projects");
-        toast.error("Failed to load projects");
-      }
-    } finally {
-      setLoading(false);
     }
-  };
-
+    
+  } catch (err) {
+    console.error("Error fetching projects:", err);
+    
+    if (err.response?.status === 401) {
+      toast.error('Session expired. Please login again.');
+      logout();
+      navigate('/login');
+    } else {
+      setError("Failed to fetch projects");
+      toast.error("Failed to load projects");
+    }
+  } finally {
+    setLoading(false);
+  }
+};
   // Fetch donations for selected project
   const fetchProjectDonations = async (projectId) => {
     if (!projectId) return;
@@ -168,7 +186,7 @@ const ProjectDonations = () => {
               resourceId: resource._id,
               quantity: donation.quantity,
               donatedAt: donation.donatedAt,
-              corporateId: donation.corporateId, // This will be populated with user data
+              corporateId: donation.corporateId,
               projectId: projectId,
               projectName: resource.projectId?.title || selectedProject?.title || 'Unknown Project',
               organizationName: resource.projectId?.organizationName || selectedProject?.organizationName || '',
@@ -474,7 +492,7 @@ const ProjectDonations = () => {
       <div style={styles.content}>
         {/* Header */}
         <div style={styles.header}>
-          <h1 style={styles.headerTitle}>Project Donations</h1>
+          <h1 style={styles.headerTitle}>My Organization's Donations</h1>
           <p style={styles.headerSubtitle}>
             View all donations received for your projects
           </p>
@@ -485,7 +503,10 @@ const ProjectDonations = () => {
           <h3 style={{ margin: '0 0 1rem 0', color: '#1e293b' }}>Select a Project</h3>
           {projects.length === 0 ? (
             <div style={styles.emptyState}>
-              <p>No projects found with donations.</p>
+              <p>No projects found for your organization.</p>
+              <p style={{ fontSize: '0.9rem', color: '#94a3b8', marginTop: '0.5rem' }}>
+                Only projects created by {user?.organizationName || user?.name || 'your organization'} will appear here.
+              </p>
             </div>
           ) : (
             <div style={styles.projectGrid}>
