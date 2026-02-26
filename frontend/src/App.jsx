@@ -29,6 +29,7 @@ import CsrInitiatives from './pages/corporate/CsrInitiatives';
 import NgoVolunteerManagement from './pages/ngo/NgoVolunteerManagement';
 import NGOProfile from "./pages/ngo/ngoprofile";
 import NGOSPECIFICPROJECTS from "./pages/ngo/ngoprojects";
+import SDGDashboard from "./pages/ngo/sdggoals";
 import "./App.css";
 
 
@@ -89,6 +90,16 @@ function AppRoutes() {
           </ProtectedRoute>
       }
     />
+
+     <Route
+        path="ngo/sdggoals"
+        element={
+          <ProtectedRoute allowedRoles={["ngo"]}>
+            <SDGDashboard />
+          </ProtectedRoute>
+      }
+    />
+
 
      <Route
         path="/ngo/:ngoId/projects"

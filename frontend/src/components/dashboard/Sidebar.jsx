@@ -16,7 +16,8 @@ import {
   DocumentTextIcon,
   Cog6ToothIcon,
   WrenchScrewdriverIcon,
-  HeartIcon as HeartSolidIcon
+  HeartIcon as HeartSolidIcon,
+  GlobeAltIcon,
 } from "@heroicons/react/24/outline";
 
 const Sidebar = ({ sidebarOpen, setSidebarOpen, isMobile, userType }) => {
@@ -85,6 +86,11 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isMobile, userType }) => {
             name: "Project Donations",
             href: "/ngo/ProjectDonations",
             icon: <HeartSolidIcon className="w-5 h-5" />,
+          },
+          { 
+            name: "SDG Goals", 
+            href: "/ngo/sdggoals", 
+            icon: <GlobeAltIcon className="w-5 h-5" /> 
           },
           {
             name: "NGO Profile",
