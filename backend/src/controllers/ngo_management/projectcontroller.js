@@ -13,7 +13,9 @@ exports.createProject = async (req, res) => {
       startDate,
       endDate,
       status,
-      resources
+      resources,
+      volunteersNeeded,    // Added this
+      coordinates          // Added this
     } = req.body;
 
     // Verify user is an NGO
@@ -50,6 +52,30 @@ exports.createProject = async (req, res) => {
       status: status || 'active',
       resources: parsedResources || []
     };
+
+    // Add volunteersNeeded if provided
+    if (volunteersNeeded !== undefined && volunteersNeeded !== null && volunteersNeeded !== '') {
+      const parsedVolunteersNeeded = parseInt(volunteersNeeded, 10);
+      if (!Number.isFinite(parsedVolunteersNeeded) || parsedVolunteersNeeded < 1) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid volunteersNeeded value. It must be an integer greater than or equal to 1.'
+        });
+      }
+      projectData.volunteersNeeded = parsedVolunteersNeeded;  // Added this
+    }
+
+    // Add coordinates if provided (expects JSON string from FormData)
+    if (coordinates) {
+      try {
+        const parsedCoords = typeof coordinates === 'string' ? JSON.parse(coordinates) : coordinates;
+        if (parsedCoords && parsedCoords.type === 'Point' && Array.isArray(parsedCoords.coordinates) && parsedCoords.coordinates.length === 2) {
+          projectData.coordinates = parsedCoords;  // Added this
+        }
+      } catch (e) {
+        // Ignore invalid coordinates — field is optional
+      }
+    }
 
     // Add image path if uploaded
     if (req.file) {
@@ -201,6 +227,34 @@ exports.updateProject = async (req, res) => {
         : req.body.skills;
     }
 
+    // Parse volunteersNeeded
+    if (req.body.volunteersNeeded !== undefined) {
+      const parsedVolunteersNeeded = parseInt(req.body.volunteersNeeded, 10);
+      if (!Number.isFinite(parsedVolunteersNeeded) || !Number.isInteger(parsedVolunteersNeeded) || parsedVolunteersNeeded < 1) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid volunteersNeeded value. It must be an integer greater than or equal to 1.'
+        });
+      }
+      req.body.volunteersNeeded = parsedVolunteersNeeded;  // Added this
+    }
+
+    // Parse coordinates if provided (GeoJSON from FormData)
+    if (req.body.coordinates) {
+      try {
+        const parsedCoords = typeof req.body.coordinates === 'string'
+          ? JSON.parse(req.body.coordinates)
+          : req.body.coordinates;
+        if (parsedCoords && parsedCoords.type === 'Point' && Array.isArray(parsedCoords.coordinates) && parsedCoords.coordinates.length === 2) {
+          req.body.coordinates = parsedCoords;  // Added this
+        } else {
+          delete req.body.coordinates;
+        }
+      } catch (e) {
+        delete req.body.coordinates; // Ignore invalid coordinates
+      }
+    }
+
     // Add new image path if uploaded
     if (req.file) {
       req.body.image = `/uploads/projects/${req.file.filename}`;
@@ -269,6 +323,25 @@ exports.updateProjectStatus = async (req, res) => {
       message: 'Error updating project status',
       error: error.message
     });
+  }
+};
+exports.getProjectsByNGO = async (req, res) => {
+  try {
+    const { ngoId } = req.params;
+    const { focusArea, location, skills } = req.query;
+
+    const filter = { ngoId: ngoId };
+
+    if (focusArea) filter.focusArea = focusArea;
+    if (location) filter.location = { $regex: location, $options: 'i' };
+    if (skills) filter.skills = { $in: skills.split(',') };
+
+    const projects = await Project.find(filter).sort({ createdAt: -1 });
+
+    res.status(200).json({ projects });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Failed to fetch NGO projects' });
   }
 };
 

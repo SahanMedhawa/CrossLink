@@ -16,7 +16,7 @@ import {
   DocumentTextIcon,
   Cog6ToothIcon,
   WrenchScrewdriverIcon,
-  HeartIcon as HeartSolidIcon  
+  HeartIcon as HeartSolidIcon
 } from "@heroicons/react/24/outline";
 
 const Sidebar = ({ sidebarOpen, setSidebarOpen, isMobile, userType }) => {
@@ -84,11 +84,11 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isMobile, userType }) => {
           {
             name: "Project Donations",
             href: "/ngo/ProjectDonations",
-            icon: <HeartSolidIcon  className="w-5 h-5" />,
+            icon: <HeartSolidIcon className="w-5 h-5" />,
           },
           {
-            name: "Settings",
-            href: "/ngo/settings",
+            name: "NGO Profile",
+            href: "/ngo/profile",
             icon: <Cog6ToothIcon className="w-5 h-5" />,
           },
         ];
@@ -101,7 +101,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isMobile, userType }) => {
           },
           {
             name: "CSR Initiatives",
-            href: "/corporate/initiatives",
+            href: '/corporate/csr-initiatives',
             icon: <HeartIcon className="w-5 h-5" />,
           },
           {
@@ -111,9 +111,9 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isMobile, userType }) => {
           },
 
           {
-           name: "My Proposals & Funding", // Updated 
-           href: "/corporate/my-activities", 
-           icon: <ChartBarIcon className="w-5 h-5" />, 
+            name: "My Proposals & Funding", // Updated 
+            href: "/corporate/my-activities",
+            icon: <ChartBarIcon className="w-5 h-5" />,
           },
 
           {
@@ -169,7 +169,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isMobile, userType }) => {
     }
   };
 
- const sidebarClasses = `
+  const sidebarClasses = `
   ${isMobile ? "fixed inset-y-0 left-0 z-40 h-screen" : "relative h-screen"}
   ${isMobile ? (sidebarOpen ? "translate-x-0" : "-translate-x-full") : "translate-x-0"}
   ${isMobile ? "w-64" : isOpen ? "w-64" : "w-20"}
@@ -194,9 +194,8 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isMobile, userType }) => {
               {getRoleIcon()}
             </div>
             <span
-              className={`ml-3 font-semibold text-gray-800 ${
-                !isOpen && !isMobile ? "hidden" : "block"
-              }`}
+              className={`ml-3 font-semibold text-gray-800 ${!isOpen && !isMobile ? "hidden" : "block"
+                }`}
             >
               {getRoleLabel()}
             </span>
@@ -209,9 +208,8 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isMobile, userType }) => {
                 aria-label="Collapse sidebar"
               >
                 <ChevronDoubleLeftIcon
-                  className={`w-5 h-5 transition-transform ${
-                    isOpen ? "rotate-0" : "rotate-180"
-                  }`}
+                  className={`w-5 h-5 transition-transform ${isOpen ? "rotate-0" : "rotate-180"
+                    }`}
                 />
               </button>
             )}
@@ -236,25 +234,22 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isMobile, userType }) => {
                 key={item.name}
                 to={item.href}
                 onClick={() => isMobile && setSidebarOpen(false)}
-                className={`group flex items-center w-full text-left px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 ${
-                  isActive
+                className={`group flex items-center w-full text-left px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 ${isActive
                     ? "bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-700 ring-1 ring-blue-200"
                     : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
-                }`}
+                  }`}
               >
                 <span
-                  className={`inline-flex items-center justify-center w-8 h-8 rounded-lg mr-3 ${
-                    isActive
+                  className={`inline-flex items-center justify-center w-8 h-8 rounded-lg mr-3 ${isActive
                       ? "bg-white text-blue-600 shadow-sm"
                       : "bg-gray-100 text-gray-600 group-hover:bg-white group-hover:shadow-sm"
-                  }`}
+                    }`}
                 >
                   {item.icon}
                 </span>
                 <span
-                  className={`text-left ${
-                    !isOpen && !isMobile ? "hidden" : "block"
-                  }`}
+                  className={`text-left ${!isOpen && !isMobile ? "hidden" : "block"
+                    }`}
                 >
                   {item.name}
                 </span>
@@ -266,23 +261,20 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isMobile, userType }) => {
         {/* Footer */}
         <div className="px-3 py-4 border-t border-gray-200">
           <div
-            className={`flex items-center ${
-              !isOpen && !isMobile ? "justify-center" : "justify-between"
-            }`}
+            className={`flex items-center ${!isOpen && !isMobile ? "justify-center" : "justify-between"
+              }`}
           >
             <span
-              className={`text-xs text-gray-500 ${
-                !isOpen && !isMobile ? "hidden" : "block"
-              }`}
+              className={`text-xs text-gray-500 ${!isOpen && !isMobile ? "hidden" : "block"
+                }`}
             >
               CrossLink v1.0
             </span>
             <div className="flex items-center">
               <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
               <span
-                className={`ml-1 text-xs text-gray-500 ${
-                  !isOpen && !isMobile ? "hidden" : "block"
-                }`}
+                className={`ml-1 text-xs text-gray-500 ${!isOpen && !isMobile ? "hidden" : "block"
+                  }`}
               >
                 Online
               </span>
