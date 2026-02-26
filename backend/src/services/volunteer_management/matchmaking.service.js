@@ -61,9 +61,9 @@ const calculateDistance = (coord1, coord2) => {
   const a =
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
     Math.cos((lat1 * Math.PI) / 180) *
-      Math.cos((lat2 * Math.PI) / 180) *
-      Math.sin(dLng / 2) *
-      Math.sin(dLng / 2);
+    Math.cos((lat2 * Math.PI) / 180) *
+    Math.sin(dLng / 2) *
+    Math.sin(dLng / 2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
   return Math.round(R * c);
@@ -113,43 +113,44 @@ const getMatchedProjects = async (volunteerId) => {
       return participationStatus !== 'completed' && participationStatus !== 'rejected';
     })
     .map((project) => {
-    const { score, matchedSkills, missingSkills } = calculateMatchScore(
-      volunteerSkills,
-      project.skills || []
-    );
+      const { score, matchedSkills, missingSkills } = calculateMatchScore(
+        volunteerSkills,
+        project.skills || []
+      );
 
-    // Calculate distance if both have coordinates
-    const projectCoords =
-      project.coordinates && project.coordinates.coordinates
-        ? project.coordinates.coordinates
-        : null;
-    const distance = calculateDistance(volunteerCoords, projectCoords);
+      // Calculate distance if both have coordinates
+      const projectCoords =
+        project.coordinates && project.coordinates.coordinates
+          ? project.coordinates.coordinates
+          : null;
+      const distance = calculateDistance(volunteerCoords, projectCoords);
 
-    return {
-      project: {
-        _id: project._id,
-        title: project.title,
-        description: project.description,
-        skills: project.skills,
-        focusArea: project.focusArea,
-        location: project.location,
-        startDate: project.startDate,
-        endDate: project.endDate,
-        status: project.status,
-        image: project.image,
-        volunteersNeeded: project.volunteersNeeded,
-        volunteersCount: project.volunteersCount,
-        ngo: project.ngoId,
-        createdAt: project.createdAt,
-      },
-      matchScore: score,
-      matchedSkills,
-      missingSkills,
-      distance,
-      alreadyApplied: participationMap[project._id.toString()]?.status || null,
-      participationId: participationMap[project._id.toString()]?.participationId || null,
-    };
-  });
+      return {
+        project: {
+          _id: project._id,
+          title: project.title,
+          description: project.description,
+          skills: project.skills,
+          focusArea: project.focusArea,
+          location: project.location,
+          startDate: project.startDate,
+          endDate: project.endDate,
+          status: project.status,
+          image: project.image,
+          volunteersNeeded: project.volunteersNeeded,
+          volunteersCount: project.volunteersCount,
+          ngo: project.ngoId,
+          createdAt: project.createdAt,
+          coordinates: project.coordinates,
+        },
+        matchScore: score,
+        matchedSkills,
+        missingSkills,
+        distance,
+        alreadyApplied: participationMap[project._id.toString()]?.status || null,
+        participationId: participationMap[project._id.toString()]?.participationId || null,
+      };
+    });
 
   // Sort by match score descending, then by distance ascending (if available)
   matchedProjects.sort((a, b) => {

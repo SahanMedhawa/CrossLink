@@ -233,7 +233,7 @@ const getVolunteerApplications = async (volunteerId, statusFilter) => {
   const applications = await Participation.find(query)
     .populate({
       path: 'projectId',
-      select: 'title description skills focusArea location startDate endDate status image volunteersNeeded volunteersCount',
+      select: 'title description skills focusArea location startDate endDate status image volunteersNeeded volunteersCount coordinates',
     })
     .populate({
       path: 'ngoId',
