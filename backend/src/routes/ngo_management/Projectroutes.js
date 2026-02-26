@@ -7,7 +7,8 @@ const {
   getProjectById,
   updateProject,
   updateProjectStatus,
-  deleteProject
+  deleteProject,
+  getProjectsByNGO
 } = require('../../controllers/ngo_management/projectcontroller');
 const { requireAuth }  = require('../../middleware/auth.middleware');
 const upload = require('../../middleware/upload');
@@ -15,6 +16,7 @@ const upload = require('../../middleware/upload');
 // Public routes - Users can view all projects
 router.get('/all', getAllProjects);
 router.get('/:id', getProjectById);
+router.get('/ngoprojects/:ngoId', getProjectsByNGO);
 
 // Protected routes - NGO authentication required
 router.use(requireAuth);

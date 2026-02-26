@@ -1,7 +1,9 @@
+const User = require("../../models/user.model");
 const Resource = require("../../models/resorce");
 const Project = require("../../models/project");
+const {sendDonationConfirmation, sendNgoNotification} = require("../../utils/emailService");
 
-// ✅ Corporate donates 
+// Corporate donates 
 exports.donateResource = async (req, res) => {
   try {
     const {
@@ -36,12 +38,12 @@ exports.donateResource = async (req, res) => {
     });
     
     if (!resource) {
-      // First time donation for this resource - CREATE IT
+      // First time donation for this resource 
       resource = new Resource({
         projectId,
         name: name.trim(),
         totalQuantity: projectResource.quantity, 
-        remainingQuantity: projectResource.quantity - quantity, // Subtract donation
+        remainingQuantity: projectResource.quantity - quantity,
         description: description || projectResource.description || "",
         donatedBy: [{
           corporateId,
@@ -57,7 +59,6 @@ exports.donateResource = async (req, res) => {
         });
       }
 
-      // Update remaining quantity
       resource.remainingQuantity -= quantity;
       resource.donatedBy.push({ 
         corporateId, 
@@ -73,10 +74,62 @@ exports.donateResource = async (req, res) => {
       await project.save();
     }
 
-    // Check if resource is now fully funded
     const isFullyFunded = resource.remainingQuantity === 0;
-    if (isFullyFunded) {
-      console.log("🎉 Resource is now FULLY FUNDED!");
+
+    try {
+      // Fetch corporate user details
+      const corporateUser = await User.findById(corporateId);
+      console.log("Corporate user found:", corporateUser ? "Yes" : "No");
+      
+      if (corporateUser && corporateUser.email) {
+        // Send confirmation to donor
+        await sendDonationConfirmation(
+          {
+            name: resource.name,
+            quantity: quantity,
+            totalQuantity: resource.totalQuantity,
+            remainingQuantity: resource.remainingQuantity
+          },
+          {
+            _id: project._id,
+            title: project.title,
+            organizationName: project.organizationName,
+            location: project.location
+          },
+          {
+            email: corporateUser.email,
+            companyName: corporateUser.companyName,
+            name: corporateUser.name
+          }
+        );
+        
+        // Fetch NGO user details
+        const ngoUser = await User.findById(project.ngoId);
+        console.log("NGO user found:", ngoUser ? "Yes" : "No");
+        
+        if (ngoUser && ngoUser.email) {
+          await sendNgoNotification(
+            {
+              name: resource.name,
+              quantity: quantity,
+              totalQuantity: resource.totalQuantity,
+              remainingQuantity: resource.remainingQuantity
+            },
+            {
+              _id: project._id,
+              title: project.title,
+              organizationName: project.organizationName,
+              ngoEmail: ngoUser.email
+            },
+            {
+              companyName: corporateUser.companyName,
+              name: corporateUser.name
+            }
+          );
+        }
+      }
+    } catch (emailError) {
+      console.error('Email notification error:', emailError);
     }
 
     res.status(200).json({
@@ -89,11 +142,12 @@ exports.donateResource = async (req, res) => {
     });
 
   } catch (err) {
+    console.error('Donation error:', err);
     res.status(500).json({ error: err.message });
   }
 };
 
-// ✅ GET project resource status
+// GET project resource status
 exports.getProjectResourceStatus = async (req, res) => {
   try {
     const projectId = req.params.projectId;
@@ -118,7 +172,7 @@ exports.getProjectResourceStatus = async (req, res) => {
         // Resource exists in Resource collection
         status.push({
           name: projRes.name,
-          originalNeed: projRes.quantity, // From project (never changes)
+          originalNeed: projRes.quantity, 
           totalDonated: resourceDoc.totalQuantity - resourceDoc.remainingQuantity,
           remainingNeeded: resourceDoc.remainingQuantity,
           isFullyFunded: resourceDoc.remainingQuantity === 0,
@@ -149,7 +203,7 @@ exports.getProjectResourceStatus = async (req, res) => {
   }
 };
 
-// Get ALL resources (with pagination and filtering)
+// Get ALL resources 
 exports.getAllResources = async (req, res) => {
   try {
     const { page = 1, limit = 50, search = '' } = req.query;
@@ -170,12 +224,12 @@ exports.getAllResources = async (req, res) => {
       .populate({
         path: 'projectId',
         model: 'Project',
-        select: 'title organizationName location focusArea'
+        select: 'title organizationName location focusArea ngoId'
       })
       .populate({
         path: 'donatedBy.corporateId',
         model: 'User',
-        select: 'name companyName email' // Get corporate name/company name
+        select: 'name companyName email' 
       })
       .sort({ createdAt: -1 })
       .limit(limit * 1)
@@ -258,19 +312,26 @@ exports.deleteResource = async (req, res) => {
       return res.status(404).json({ message: "Resource not found" });
     }
     
+    // Store project ID and resource name for logging
+    const projectId = resource.projectId;
+    const resourceName = resource.name;
+    
     // Remove from Resource collection
     await Resource.findByIdAndDelete(req.params.resourceId);
     
-    // Also remove from Project's embedded resources
-    await Project.updateOne(
-      { _id: resource.projectId },
-      { $pull: { resources: { name: resource.name } } }
-    );
+    // Verify project was NOT changed
+    const project = await Project.findById(projectId);
+    const stillExists = project.resources.some(r => r.name === resourceName);
+    
+    console.log(`Resource "${resourceName}" still in project:`, stillExists);
     
     res.json({ 
+      success: true,
       message: "Resource deleted successfully",
-      resourceId: req.params.resourceId 
+      resourceId: req.params.resourceId,
+      projectResourcePreserved: stillExists
     });
+    
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -284,7 +345,7 @@ exports.getResourcesByProject = async (req, res) => {
     const resources = await Resource.find({ projectId })
       .populate({
         path: 'projectId',
-        select: 'title organizationName location focusArea'
+        select: 'title organizationName location focusArea ngoId'
       })
       .populate({
         path: 'donatedBy.corporateId',

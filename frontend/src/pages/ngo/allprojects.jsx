@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import Header from '../../components/user/Navbar'
+import Header from '../../components/user/Navbar';
 import ResourceForm from '../resource/ResourceForm';
+
 const AllProjects = () => {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -15,6 +16,23 @@ const AllProjects = () => {
   const [showResourceForm, setShowResourceForm] = useState(false);
   const [projectFundingStatus, setProjectFundingStatus] = useState(null);
   const [checkingFunding, setCheckingFunding] = useState(false);
+
+  // Volunteer application state
+  const [showVolunteerForm, setShowVolunteerForm] = useState(false);
+  const [volunteerApplication, setVolunteerApplication] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    skills: [],
+    availability: '',
+    message: ''
+  });
+  const [applyingVolunteer, setApplyingVolunteer] = useState(false);
+  const [volunteerError, setVolunteerError] = useState('');
+  const [volunteerSuccess, setVolunteerSuccess] = useState('');
+
+  // Map view state
+  const [showMap, setShowMap] = useState(false);
 
   const styles = {
     container: {
@@ -79,6 +97,17 @@ const AllProjects = () => {
       color: '#172B4D',
       transition: 'all 0.2s'
     },
+    textarea: {
+      padding: '0.75rem 1rem',
+      border: '1px solid #DFE1E6',
+      borderRadius: '8px',
+      background: 'white',
+      fontSize: '0.95rem',
+      color: '#172B4D',
+      transition: 'all 0.2s',
+      minHeight: '100px',
+      resize: 'vertical'
+    },
     applyButton: {
       background: '#0052CC',
       color: 'white',
@@ -137,6 +166,18 @@ const AllProjects = () => {
       textTransform: 'uppercase',
       letterSpacing: '0.05em',
       boxShadow: '0 2px 4px rgba(0, 0, 0, 0.08)'
+    },
+    volunteerBadge: {
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: '0.5rem',
+      padding: '0.35rem 0.75rem',
+      background: '#EBF5FF',
+      color: '#0052CC',
+      borderRadius: '4px',
+      fontSize: '0.85rem',
+      fontWeight: '600',
+      border: '1px solid #B3D4FF'
     },
     focusArea: {
       display: 'inline-block',
@@ -350,22 +391,120 @@ const AllProjects = () => {
       cursor: 'pointer',
       transition: 'all 0.2s'
     },
-    tertiaryButton: {
+    volunteerButton: {
       width: '100%',
-  padding: '12px 20px',
-  border: 'none',
-  borderRadius: '14px',
-  fontWeight: '600',
-  fontSize: '0.95rem',
-  cursor: 'pointer',
-  transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-  boxShadow: '0 2px 4px rgba(0, 0, 0, 0.05)',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  minHeight: '52px',
-  position: 'relative',
-  overflow: 'hidden'
+      padding: '1rem',
+      background: '#E8F5E9',
+      color: '#2E7D32',
+      border: 'none',
+      borderRadius: '8px',
+      fontWeight: '600',
+      fontSize: '1rem',
+      cursor: 'pointer',
+      transition: 'all 0.2s',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between'
+    },
+    mapButton: {
+      width: '100%',
+      padding: '0.75rem',
+      background: '#F8F9FA',
+      color: '#172B4D',
+      border: '1px solid #E1E8ED',
+      borderRadius: '8px',
+      fontWeight: '500',
+      fontSize: '0.9rem',
+      cursor: 'pointer',
+      transition: 'all 0.2s',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: '0.5rem',
+      marginTop: '0.5rem'
+    },
+    mapContainer: {
+      marginTop: '1rem',
+      padding: '1rem',
+      background: 'white',
+      borderRadius: '8px',
+      border: '1px solid #E1E8ED'
+    },
+    mapPlaceholder: {
+      background: '#F8F9FA',
+      height: '200px',
+      borderRadius: '8px',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      color: '#5E6C84',
+      border: '2px dashed #E1E8ED'
+    },
+    coordinates: {
+      fontSize: '0.85rem',
+      color: '#5E6C84',
+      marginTop: '0.5rem',
+      fontFamily: 'monospace'
+    },
+    // Volunteer Form Styles
+    volunteerForm: {
+      marginTop: '1rem',
+      padding: '1rem',
+      background: 'white',
+      borderRadius: '8px',
+      border: '1px solid #E1E8ED'
+    },
+    formGroup: {
+      marginBottom: '1rem'
+    },
+    formLabel: {
+      display: 'block',
+      fontWeight: '600',
+      color: '#172B4D',
+      fontSize: '0.875rem',
+      marginBottom: '0.5rem'
+    },
+    formInput: {
+      width: '100%',
+      padding: '0.75rem 1rem',
+      border: '1px solid #DFE1E6',
+      borderRadius: '8px',
+      fontSize: '0.95rem',
+      transition: 'all 0.2s'
+    },
+    skillChip: {
+      display: 'inline-block',
+      padding: '0.35rem 0.75rem',
+      background: '#F8F9FA',
+      border: '1px solid #E1E8ED',
+      borderRadius: '4px',
+      fontSize: '0.85rem',
+      margin: '0.25rem',
+      cursor: 'pointer',
+      transition: 'all 0.2s'
+    },
+    skillChipSelected: {
+      background: '#0052CC',
+      color: 'white',
+      borderColor: '#0052CC'
+    },
+    successMessage: {
+      padding: '1rem',
+      background: '#E8F5E9',
+      color: '#2E7D32',
+      borderRadius: '8px',
+      marginBottom: '1rem',
+      fontSize: '0.95rem',
+      fontWeight: '500'
+    },
+    errorMessage: {
+      padding: '1rem',
+      background: '#FFEBEE',
+      color: '#C62828',
+      borderRadius: '8px',
+      marginBottom: '1rem',
+      fontSize: '0.95rem',
+      fontWeight: '500'
     }
   };
 
@@ -374,70 +513,70 @@ const AllProjects = () => {
   }, []);
 
   // Function to check project funding status
-const checkProjectFunding = async (projectId) => {
-  if (!projectId) return;
-  
-  try {
-    setCheckingFunding(true);
-    const response = await axios.get(
-      `http://localhost:5000/api/resources/project/${projectId}/status`
-    );
+  const checkProjectFunding = async (projectId) => {
+    if (!projectId) return;
     
-    console.log("Funding status response:", response.data);
-    
-    // Calculate if all resources are fully funded
-    const allFullyFunded = response.data.every(
-      resource => resource.isFullyFunded || resource.remaining === 0 || resource.remainingNeeded === 0
-    );
-    
-    // Calculate total remaining amount
-    const totalRemaining = response.data.reduce(
-      (sum, resource) => {
-        const remaining = resource.remainingNeeded || resource.remaining || 0;
-        return sum + remaining;
-      }, 
-      0
-    );
-    
-    console.log("Total remaining:", totalRemaining);
-    
-    setProjectFundingStatus({
-      isFullyFunded: allFullyFunded,
-      totalRemaining,
-      resources: response.data
-    });
-    
-  } catch (error) {
-    console.error("Error checking funding status:", error);
-    // Fallback to project data
-    if (selectedProject?.resources) {
-      const totalNeeded = selectedProject.resources.reduce((sum, r) => sum + r.quantity, 0);
+    try {
+      setCheckingFunding(true);
+      const response = await axios.get(
+        `http://localhost:5000/api/resources/project/${projectId}/status`
+      );
+      
+      console.log("Funding status response:", response.data);
+      
+      // Calculate if all resources are fully funded
+      const allFullyFunded = response.data.every(
+        resource => resource.isFullyFunded || resource.remaining === 0 || resource.remainingNeeded === 0
+      );
+      
+      // Calculate total remaining amount
+      const totalRemaining = response.data.reduce(
+        (sum, resource) => {
+          const remaining = resource.remainingNeeded || resource.remaining || 0;
+          return sum + remaining;
+        }, 
+        0
+      );
+      
+      console.log("Total remaining:", totalRemaining);
+      
       setProjectFundingStatus({
-        isFullyFunded: false,
-        totalRemaining: totalNeeded,
-        resources: []
+        isFullyFunded: allFullyFunded,
+        totalRemaining,
+        resources: response.data
       });
+      
+    } catch (error) {
+      console.error("Error checking funding status:", error);
+      // Fallback to project data
+      if (selectedProject?.resources) {
+        const totalNeeded = selectedProject.resources.reduce((sum, r) => sum + r.quantity, 0);
+        setProjectFundingStatus({
+          isFullyFunded: false,
+          totalRemaining: totalNeeded,
+          resources: []
+        });
+      }
+    } finally {
+      setCheckingFunding(false);
     }
-  } finally {
-    setCheckingFunding(false);
-  }
-};
+  };
 
-// Check funding when selected project changes
-useEffect(() => {
-  if (selectedProject?._id) {
-    checkProjectFunding(selectedProject._id);
-  }
-}, [selectedProject]);
+  // Check funding when selected project changes
+  useEffect(() => {
+    if (selectedProject?._id) {
+      checkProjectFunding(selectedProject._id);
+    }
+  }, [selectedProject]);
 
-// Also check funding when modal closes (after donation)
-const handleResourceFormClose = async () => {
-  setShowResourceForm(false);
-  // Refresh funding status
-  if (selectedProject?._id) {
-    await checkProjectFunding(selectedProject._id);
-  }
-};
+  // Also check funding when modal closes (after donation)
+  const handleResourceFormClose = async () => {
+    setShowResourceForm(false);
+    // Refresh funding status
+    if (selectedProject?._id) {
+      await checkProjectFunding(selectedProject._id);
+    }
+  };
 
   const fetchProjects = async () => {
     try {
@@ -475,23 +614,69 @@ const handleResourceFormClose = async () => {
     }
   };
 
-  // Action handlers
-  const handleSubmitProposal = (project) => {
-    console.log('Submit proposal for project:', project);
-    // Add your proposal submission logic here
-    alert(`Submit proposal for: ${project.title}`);
+  // Handle volunteer application
+  const handleVolunteerSubmit = async (e) => {
+    e.preventDefault();
+    setApplyingVolunteer(true);
+    setVolunteerError('');
+    setVolunteerSuccess('');
+
+    try {
+      const response = await axios.post(
+        `http://localhost:5000/api/projects/${selectedProject._id}/volunteer`,
+        {
+          ...volunteerApplication,
+          projectId: selectedProject._id,
+          projectTitle: selectedProject.title
+        }
+      );
+
+      setVolunteerSuccess('Application submitted successfully! The NGO will contact you soon.');
+      setVolunteerApplication({
+        name: '',
+        email: '',
+        phone: '',
+        skills: [],
+        availability: '',
+        message: ''
+      });
+      
+      // Close form after 3 seconds
+      setTimeout(() => {
+        setShowVolunteerForm(false);
+        setVolunteerSuccess('');
+      }, 3000);
+
+    } catch (error) {
+      setVolunteerError(error.response?.data?.message || 'Failed to submit application. Please try again.');
+    } finally {
+      setApplyingVolunteer(false);
+    }
   };
 
-  const handleFundProject = (project) => {
-    console.log('Fund project:', project);
-    // Add your funding logic here
-    alert(`Fund project: ${project.title}`);
+  const handleVolunteerInputChange = (e) => {
+    setVolunteerApplication({
+      ...volunteerApplication,
+      [e.target.name]: e.target.value
+    });
   };
 
-  const handleProvideResources = (project) => {
-    console.log('Provide resources for project:', project);
-    // Add your resource provision logic here
-    alert(`Provide resources for: ${project.title}`);
+  const toggleSkill = (skill) => {
+    setVolunteerApplication(prev => ({
+      ...prev,
+      skills: prev.skills.includes(skill)
+        ? prev.skills.filter(s => s !== skill)
+        : [...prev.skills, skill]
+    }));
+  };
+
+  // Get coordinates display
+  const getCoordinatesDisplay = (project) => {
+    if (project.coordinates && project.coordinates.coordinates) {
+      const [lng, lat] = project.coordinates.coordinates;
+      return `📍 ${lat.toFixed(4)}° N, ${lng.toFixed(4)}° E`;
+    }
+    return null;
   };
 
   if (loading) {
@@ -529,14 +714,17 @@ const handleResourceFormClose = async () => {
               onFocus={(e) => e.target.style.borderColor = '#0052CC'}
               onBlur={(e) => e.target.style.borderColor = '#DFE1E6'}
             >
-              <option value="">All Focus Areas</option>
-              <option value="Education">Education</option>
-              <option value="Healthcare">Healthcare</option>
-              <option value="Environment">Environment</option>
-              <option value="Technology">Technology</option>
-              <option value="Youth">Youth</option>
-              <option value="Women Empowerment">Women Empowerment</option>
-              <option value="Animal Welfare">Animal Welfare</option>
+            <option value="">All Focus Areas</option>
+            <option value="Education">Education</option>
+            <option value="Healthcare">Healthcare</option>
+            <option value="Environment">Environment</option>
+            <option value="Youth">Youth</option>
+            <option value="Women Empowerment">Women Empowerment</option>
+            <option value="Poverty Alleviation">Poverty Alleviation</option>
+            <option value="Animal Welfare">Animal Welfare</option>
+            <option value="Disaster Relief">Disaster Relief</option>
+            <option value="Arts & Culture">Arts & Culture</option>
+            <option value="Technology">Technology</option>
             </select>
           </div>
           
@@ -585,6 +773,8 @@ const handleResourceFormClose = async () => {
           <div style={styles.projectGrid}>
             {projects.map(project => {
               const statusColors = getStatusColor(project.status);
+              const coordinates = getCoordinatesDisplay(project);
+              
               return (
                 <div 
                   key={project._id} 
@@ -622,31 +812,48 @@ const handleResourceFormClose = async () => {
                     
                     <div style={styles.metaInfo}>
                       <div style={styles.metaItem}>
-                        <span>+</span>
+                        <span>🏢</span>
                         <span>{project.organizationName}</span>
                       </div>
                       <div style={styles.metaItem}>
-                        <span>+</span>
+                        <span>📍</span>
                         <span>{project.location}</span>
                       </div>
                       <div style={styles.metaItem}>
-                        <span>+</span>
+                        <span>📅</span>
                         <span>Start: {formatDate(project.startDate)}</span>
                       </div>
                       <div style={styles.metaItem}>
-                        <span>+</span>
-                        <span>{project.skills.length} skills needed</span>
+                        <span>🛠️</span>
+                        <span>{project.skills?.length || 0} skills needed</span>
                       </div>
                     </div>
+
+                    {/* Volunteers Needed Section */}
+                    {project.volunteersNeeded && (
+                      <div style={{ marginBottom: '1rem' }}>
+                        <div style={styles.volunteerBadge}>
+                          <span>👥</span>
+                          <span>{project.volunteersNeeded} {project.volunteersNeeded === 1 ? 'Volunteer' : 'Volunteers'} Needed</span>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Coordinates Display */}
+                    {coordinates && (
+                      <div style={{ fontSize: '0.8rem', color: '#5E6C84', marginBottom: '0.5rem' }}>
+                        {coordinates}
+                      </div>
+                    )}
 
                     {project.resources && project.resources.length > 0 && (
                       <div style={{ marginBottom: '1.5rem' }}>
                         <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#172B4D', marginBottom: '0.5rem' }}>
-                          RESOURCES:
+                          RESOURCES NEEDED:
                         </div>
                         {project.resources.slice(0, 2).map((res, i) => (
                           <span key={i} style={styles.resourcePill}>
-                             {res.name} ({res.quantity})
+                            📦 {res.name} ({res.quantity})
                           </span>
                         ))}
                         {project.resources.length > 2 && (
@@ -681,13 +888,23 @@ const handleResourceFormClose = async () => {
 
       {/* Project Details Modal */}
       {selectedProject && (
-        <div style={styles.modalOverlay} onClick={() => setSelectedProject(null)}>
+        <div style={styles.modalOverlay} onClick={() => {
+          setSelectedProject(null);
+          setShowVolunteerForm(false);
+          setVolunteerSuccess('');
+          setVolunteerError('');
+        }}>
           <div style={styles.modalContent} onClick={(e) => e.stopPropagation()}>
             <div style={styles.modalHeader}>
               <h2 style={styles.modalHeaderTitle}>Project Details</h2>
               <button 
                 style={styles.modalCloseButton}
-                onClick={() => setSelectedProject(null)}
+                onClick={() => {
+                  setSelectedProject(null);
+                  setShowVolunteerForm(false);
+                  setVolunteerSuccess('');
+                  setVolunteerError('');
+                }}
                 onMouseOver={(e) => e.target.style.background = '#DFE1E6'}
                 onMouseOut={(e) => e.target.style.background = '#F4F5F7'}
               >
@@ -710,13 +927,39 @@ const handleResourceFormClose = async () => {
                   <div style={styles.modalSection}>
                     <h3 style={styles.modalSectionTitle}>Required Skills</h3>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-                      {selectedProject.skills.map(skill => (
+                      {selectedProject.skills?.map(skill => (
                         <span key={skill} style={{ ...styles.resourcePill, background: '#DEEBFF', color: '#0052CC', border: '1px solid #B3D4FF' }}>
-                          {skill}
+                          🛠️ {skill}
                         </span>
                       ))}
                     </div>
                   </div>
+
+                  {/* Volunteers Needed Detail */}
+                  {selectedProject.volunteersNeeded && (
+                    <div style={styles.modalSection}>
+                      <h3 style={styles.modalSectionTitle}>Volunteers Needed</h3>
+                      <div style={{
+                        background: '#EBF5FF',
+                        padding: '1rem',
+                        borderRadius: '8px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '1rem',
+                        border: '1px solid #B3D4FF'
+                      }}>
+                        <span style={{ fontSize: '2rem' }}>👥</span>
+                        <div>
+                          <div style={{ fontSize: '1.5rem', fontWeight: '700', color: '#0052CC' }}>
+                            {selectedProject.volunteersNeeded}
+                          </div>
+                          <div style={{ color: '#5E6C84', fontSize: '0.9rem' }}>
+                            {selectedProject.volunteersNeeded === 1 ? 'Volunteer position available' : 'Volunteer positions available'}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
                   <div style={styles.modalSection}>
                     <h3 style={styles.modalSectionTitle}>Material Needs</h3>
@@ -724,7 +967,7 @@ const handleResourceFormClose = async () => {
                       selectedProject.resources.map((res, i) => (
                         <div key={i} style={styles.resourceItem}>
                           <div>
-                            <div style={styles.resourceName}>{res.name}</div>
+                            <div style={styles.resourceName}>📦 {res.name}</div>
                             {res.description && (
                               <div style={{ fontSize: '0.85rem', color: '#5E6C84' }}>{res.description}</div>
                             )}
@@ -736,6 +979,36 @@ const handleResourceFormClose = async () => {
                       <p style={{ color: '#5E6C84' }}>No resources specified</p>
                     )}
                   </div>
+
+                  {/* Map View */}
+                  {selectedProject.coordinates && (
+                    <div style={styles.modalSection}>
+                      <h3 style={styles.modalSectionTitle}>Project Location</h3>
+                      <button 
+                        style={styles.mapButton}
+                        onClick={() => setShowMap(!showMap)}
+                        onMouseOver={(e) => e.target.style.background = '#F1F3F5'}
+                        onMouseOut={(e) => e.target.style.background = '#F8F9FA'}
+                      >
+                        <span>🗺️</span>
+                        <span>{showMap ? 'Hide Map' : 'Show Map'}</span>
+                      </button>
+                      
+                      {showMap && (
+                        <div style={styles.mapContainer}>
+                          <div style={styles.mapPlaceholder}>
+                            <div style={{ textAlign: 'center' }}>
+                              <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🗺️</div>
+                              <div>Map Integration Here</div>
+                              <div style={styles.coordinates}>
+                                {getCoordinatesDisplay(selectedProject)}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 {/* Sidebar */}
@@ -745,19 +1018,24 @@ const handleResourceFormClose = async () => {
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                     <div>
                       <div style={{ fontWeight: 600, color: '#172B4D', marginBottom: '0.25rem' }}>Organization</div>
-                      <div style={{ color: '#5E6C84' }}>{selectedProject.organizationName}</div>
+                      <div style={{ color: '#5E6C84' }}>🏢 {selectedProject.organizationName}</div>
                     </div>
                     
                     <div>
                       <div style={{ fontWeight: 600, color: '#172B4D', marginBottom: '0.25rem' }}>Timeline</div>
                       <div style={{ color: '#5E6C84' }}>
-                        {formatDate(selectedProject.startDate)} - {formatDate(selectedProject.endDate)}
+                        📅 {formatDate(selectedProject.startDate)} - {formatDate(selectedProject.endDate)}
                       </div>
                     </div>
                     
                     <div>
                       <div style={{ fontWeight: 600, color: '#172B4D', marginBottom: '0.25rem' }}>Location</div>
-                      <div style={{ color: '#5E6C84' }}>{selectedProject.location}</div>
+                      <div style={{ color: '#5E6C84' }}>📍 {selectedProject.location}</div>
+                      {getCoordinatesDisplay(selectedProject) && (
+                        <div style={{ fontSize: '0.8rem', color: '#5E6C84', marginTop: '0.25rem' }}>
+                          {getCoordinatesDisplay(selectedProject)}
+                        </div>
+                      )}
                     </div>
                     
                     <div>
@@ -914,6 +1192,15 @@ const handleResourceFormClose = async () => {
           </div>
         </div>
       )}
+
+      {/* Add keyframe animation for spinner */}
+      <style>
+        {`
+          @keyframes spin {
+            to { transform: rotate(360deg); }
+          }
+        `}
+      </style>
     </div>
   );
 };
