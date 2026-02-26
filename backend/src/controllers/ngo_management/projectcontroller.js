@@ -14,8 +14,8 @@ exports.createProject = async (req, res) => {
       endDate,
       status,
       resources,
-      volunteersNeeded,
-      coordinates
+      volunteersNeeded,    // Added this
+      coordinates          // Added this
     } = req.body;
 
     // Verify user is an NGO
@@ -62,7 +62,7 @@ exports.createProject = async (req, res) => {
           message: 'Invalid volunteersNeeded value. It must be an integer greater than or equal to 1.'
         });
       }
-      projectData.volunteersNeeded = parsedVolunteersNeeded;
+      projectData.volunteersNeeded = parsedVolunteersNeeded;  // Added this
     }
 
     // Add coordinates if provided (expects JSON string from FormData)
@@ -70,7 +70,7 @@ exports.createProject = async (req, res) => {
       try {
         const parsedCoords = typeof coordinates === 'string' ? JSON.parse(coordinates) : coordinates;
         if (parsedCoords && parsedCoords.type === 'Point' && Array.isArray(parsedCoords.coordinates) && parsedCoords.coordinates.length === 2) {
-          projectData.coordinates = parsedCoords;
+          projectData.coordinates = parsedCoords;  // Added this
         }
       } catch (e) {
         // Ignore invalid coordinates — field is optional
@@ -236,7 +236,7 @@ exports.updateProject = async (req, res) => {
           message: 'Invalid volunteersNeeded value. It must be an integer greater than or equal to 1.'
         });
       }
-      req.body.volunteersNeeded = parsedVolunteersNeeded;
+      req.body.volunteersNeeded = parsedVolunteersNeeded;  // Added this
     }
 
     // Parse coordinates if provided (GeoJSON from FormData)
@@ -246,7 +246,7 @@ exports.updateProject = async (req, res) => {
           ? JSON.parse(req.body.coordinates)
           : req.body.coordinates;
         if (parsedCoords && parsedCoords.type === 'Point' && Array.isArray(parsedCoords.coordinates) && parsedCoords.coordinates.length === 2) {
-          req.body.coordinates = parsedCoords;
+          req.body.coordinates = parsedCoords;  // Added this
         } else {
           delete req.body.coordinates;
         }
@@ -323,6 +323,25 @@ exports.updateProjectStatus = async (req, res) => {
       message: 'Error updating project status',
       error: error.message
     });
+  }
+};
+exports.getProjectsByNGO = async (req, res) => {
+  try {
+    const { ngoId } = req.params;
+    const { focusArea, location, skills } = req.query;
+
+    const filter = { ngoId: ngoId };
+
+    if (focusArea) filter.focusArea = focusArea;
+    if (location) filter.location = { $regex: location, $options: 'i' };
+    if (skills) filter.skills = { $in: skills.split(',') };
+
+    const projects = await Project.find(filter).sort({ createdAt: -1 });
+
+    res.status(200).json({ projects });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Failed to fetch NGO projects' });
   }
 };
 

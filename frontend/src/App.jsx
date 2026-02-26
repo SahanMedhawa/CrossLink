@@ -27,8 +27,10 @@ import ImpactReports from './pages/corporate/ImpactReports';
 import MyProposalsAndFunding from './pages/corporate/MyProposalsAndFunding';
 import CsrInitiatives from './pages/corporate/CsrInitiatives';
 import NgoVolunteerManagement from './pages/ngo/NgoVolunteerManagement';
-
+import NGOProfile from "./pages/ngo/ngoprofile";
+import NGOSPECIFICPROJECTS from "./pages/ngo/ngoprojects";
 import "./App.css";
+
 
 // Protected Route Component
 const ProtectedRoute = ({ children, allowedRoles }) => {
@@ -85,8 +87,15 @@ function AppRoutes() {
           <ProtectedRoute allowedRoles={["ngo"]}>
             <CreateProject />
           </ProtectedRoute>
-        }
-      />
+      }
+    />
+
+     <Route
+        path="/ngo/:ngoId/projects"
+        element={
+            <NGOSPECIFICPROJECTS />
+      }
+    />
 
       <Route
         path="/ngo/ngoprojects"
@@ -94,8 +103,17 @@ function AppRoutes() {
           <ProtectedRoute allowedRoles={["ngo"]}>
             <NGOProjects />
           </ProtectedRoute>
-        }
-      />
+      }
+    />
+
+      <Route
+          path="/ngo/profile"
+          element={
+            <ProtectedRoute allowedRoles={["ngo"]}>
+              <NGOProfile />
+            </ProtectedRoute>
+          }
+        />
 
       <Route
         path="/ngo/ProjectDonations"

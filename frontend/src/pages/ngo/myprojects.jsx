@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import Sidebar from '../../components/dashboard/Sidebar'; // Import the sidebar
-import Header from '../../components/dashboard/Header';
 import { SKILL_OPTIONS, FOCUS_AREA_OPTIONS } from '../../constants/skillsAndInterests';
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
+import DashboardLayout from '../../components/dashboard/DashboardLayout';
 import L from 'leaflet';
 
 // Fix default Leaflet marker icon
@@ -30,24 +29,11 @@ const MyProjects = () => {
   const [error, setError] = useState('');
   const [editingProject, setEditingProject] = useState(null);
   const [statusFilter, setStatusFilter] = useState('');
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-  
-  // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [projectsPerPage] = useState(6);
   const [totalPages, setTotalPages] = useState(1);
 
-  // Common skills array - from shared constants file
   const commonSkills = SKILL_OPTIONS;
-
-  useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
 
   useEffect(() => {
     fetchProjects();
@@ -56,14 +42,12 @@ const MyProjects = () => {
   const fetchProjects = async () => {
     try {
       const token = localStorage.getItem('crosslink_token');
-      const url = statusFilter 
+      const url = statusFilter
         ? `http://localhost:5000/api/projects/ngo/my-projects?status=${statusFilter}`
         : 'http://localhost:5000/api/projects/ngo/my-projects';
-        
+
       const response = await axios.get(url, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+        headers: { 'Authorization': `Bearer ${token}` }
       });
 
       setProjects(response.data.projects);
@@ -85,18 +69,12 @@ const MyProjects = () => {
   const prevPage = () => setCurrentPage(prev => Math.max(prev - 1, 1));
 
   const handleDelete = async (projectId) => {
-    if (!window.confirm('Are you sure you want to delete this project?')) {
-      return;
-    }
-
+    if (!window.confirm('Are you sure you want to delete this project?')) return;
     try {
       const token = localStorage.getItem('crosslink_token');
       await axios.delete(`http://localhost:5000/api/projects/${projectId}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+        headers: { 'Authorization': `Bearer ${token}` }
       });
-
       alert('Project deleted successfully');
       fetchProjects();
     } catch (err) {
@@ -104,20 +82,23 @@ const MyProjects = () => {
     }
   };
 
-  const handleStatusChange = async (projectId, newStatus) => {
+  const handleStatusChange = async (projectId, newStatus, currentStatus) => {
+    if (currentStatus === 'active' && newStatus === 'draft') {
+      alert('Cannot change an active project back to draft'); return;
+    }
+    if (currentStatus === 'completed' && newStatus !== 'completed') {
+      alert('Cannot change a completed project'); return;
+    }
+    if (currentStatus === 'cancelled' && newStatus !== 'cancelled') {
+      alert('Cannot reactivate a cancelled project. Please create a new project instead.'); return;
+    }
     try {
       const token = localStorage.getItem('crosslink_token');
       await axios.put(
         `http://localhost:5000/api/projects/${projectId}/status`,
         { status: newStatus },
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        }
+        { headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' } }
       );
-
       alert('Project status updated successfully');
       fetchProjects();
     } catch (err) {
@@ -125,852 +106,274 @@ const MyProjects = () => {
     }
   };
 
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  };
+  const formatDate = (dateString) =>
+    new Date(dateString).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'active': return { bg: '#EBF5FF', text: '#0052CC', border: '#0052CC' };
-      case 'draft': return { bg: '#F8F9FA', text: '#6C757D', border: '#ADB5BD' };
+      case 'active':    return { bg: '#EBF5FF', text: '#0052CC', border: '#0052CC' };
+      case 'draft':     return { bg: '#F8F9FA', text: '#6C757D', border: '#ADB5BD' };
       case 'completed': return { bg: '#E8F5E9', text: '#2E7D32', border: '#4CAF50' };
       case 'cancelled': return { bg: '#FFEBEE', text: '#C62828', border: '#EF5350' };
-      default: return { bg: '#F8F9FA', text: '#495057', border: '#CED4DA' };
+      default:          return { bg: '#F8F9FA', text: '#495057', border: '#CED4DA' };
     }
   };
 
-  const styles = {
-    appContainer: {
-      display: 'flex',
-      minHeight: '100%',
-      background: '#F8FAFD',
-      position: 'relative'
-    },
-    sidebarWrapper: {
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      bottom: 0,
-      width: '',
-      zIndex: 10,
-      background: 'white',
-    },
-    mainContent: {
-      flex: 1,
-      marginLeft: isMobile ? 0 : '16rem',
-      width: isMobile ? '100%' : 'calc(100% - 16rem)',
-      minHeight: '100vh'
-    },
-    mobileHeader: {
-      display: isMobile ? 'flex' : 'none',
-      alignItems: 'center',
-      padding: '1rem',
-      background: 'white',
-      borderBottom: '1px solid #E1E8ED',
-      position: 'sticky',
-      top: 0,
-      zIndex: 20
-    },
-    menuButton: {
-      padding: '0.5rem',
-      marginRight: '1rem',
-      background: 'white',
-      border: '1px solid #E1E8ED',
-      borderRadius: '8px',
-      cursor: 'pointer',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center'
-    },
-    container: {
-      minHeight: '100vh',
-      background: 'transparent',
-      padding: '0'
-    },
-    innerContainer: {
-      maxWidth: '1600px',
-      margin: '0 auto',
-      padding: '2rem 1.5rem'
-    },
-    pageHeader: {
-      background: 'linear-gradient(135deg, #0052CC 0%, #0747A6 100%)',
-      padding: '2.5rem 2rem',
-      marginBottom: '2rem',
-      boxShadow: '0 2px 8px rgba(0, 82, 204, 0.15)',
-      borderRadius: '0'
-    },
-    headerContent: {
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      flexWrap: 'wrap',
-      gap: '1.5rem'
-    },
-    titleSection: {
-      flex: 1
-    },
-    h1: {
-      color: '#FFFFFF',
-      fontSize: '2.25rem',
-      fontWeight: '600',
-      margin: '0 0 0.5rem 0',
-      letterSpacing: '-0.02em'
-    },
-    subtitle: {
-      color: 'rgba(255, 255, 255, 0.9)',
-      fontSize: '1rem',
-      margin: 0,
-      fontWeight: '400'
-    },
-    filterSection: {
-      display: 'flex',
-      alignItems: 'center',
-      gap: '0.75rem',
-      background: 'rgba(255, 255, 255, 0.15)',
-      padding: '0.75rem 1.25rem',
-      borderRadius: '8px',
-      border: '1px solid rgba(255, 255, 255, 0.2)',
-      backdropFilter: 'blur(10px)'
-    },
-    label: {
-      fontWeight: '500',
-      color: '#FFFFFF',
-      fontSize: '0.9rem'
-    },
-    select: {
-      padding: '0.625rem 2.5rem 0.625rem 1rem',
-      border: '1px solid #E1E8ED',
-      borderRadius: '6px',
-      fontSize: '0.9rem',
-      cursor: 'pointer',
-      background: 'white',
-      color: '#172B4D',
-      fontWeight: '500',
-      appearance: 'none',
-      backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%230052CC' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 8l4 4 4-4'/%3E%3C/svg%3E")`,
-      backgroundPosition: 'right 0.5rem center',
-      backgroundRepeat: 'no-repeat',
-      backgroundSize: '1.5rem',
-      transition: 'all 0.2s'
-    },
-    loading: {
-      textAlign: 'center',
-      padding: '4rem 2rem',
-      background: 'white',
-      borderRadius: '12px',
-      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
-      border: '1px solid #E1E8ED'
-    },
-    loadingText: {
-      color: '#172B4D',
-      fontSize: '1rem',
-      fontWeight: '500'
-    },
-    error: {
-      textAlign: 'center',
-      padding: '3rem 2rem',
-      background: 'white',
-      borderRadius: '12px',
-      border: '1px solid #FFEBEE',
-      color: '#C62828',
-      fontSize: '1rem',
-      fontWeight: '500',
-      boxShadow: '0 2px 8px rgba(198, 40, 40, 0.1)'
-    },
-    noProjects: {
-      textAlign: 'center',
-      padding: '4rem 2rem',
-      background: 'white',
-      borderRadius: '12px',
-      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
-      border: '1px solid #E1E8ED'
-    },
-    noProjectsTitle: {
-      fontSize: '1.5rem',
-      fontWeight: '600',
-      color: '#172B4D',
-      marginBottom: '0.75rem'
-    },
-    noProjectsText: {
-      color: '#5E6C84',
-      fontSize: '1rem',
-      margin: '0.5rem 0'
-    },
-    statsBar: {
-      background: 'white',
-      padding: '1rem 1.5rem',
-      borderRadius: '8px',
-      marginBottom: '1.5rem',
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      boxShadow: '0 1px 4px rgba(0, 0, 0, 0.08)',
-      border: '1px solid #E1E8ED'
-    },
-    projectCount: {
-      color: '#172B4D',
-      fontSize: '0.9rem',
-      fontWeight: '600',
-      margin: 0
-    },
-    projectsList: {
-      display: 'grid',
-      gridTemplateColumns: 'repeat(auto-fill, minmax(500px, 1fr))',
-      gap: '1.5rem',
-      marginBottom: '2rem'
-    },
-    projectCard: {
-      background: 'white',
-      border: '1px solid #E1E8ED',
-      borderRadius: '12px',
-      overflow: 'hidden',
-      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
-      display: 'grid',
-      gridTemplateColumns: '220px 1fr',
-      height: '100%',
-      minHeight: '280px'
-    },
-    projectImage: {
-      height: '100%',
-      overflow: 'hidden',
-      background: 'linear-gradient(135deg, #0052CC 0%, #0747A6 100%)',
-      position: 'relative'
-    },
-    projectImg: {
-      width: '100%',
-      height: '100%',
-      objectFit: 'cover'
-    },
-    projectContent: {
-      padding: '1.25rem 1.5rem',
-      display: 'flex',
-      flexDirection: 'column',
-      overflow: 'hidden'
-    },
-    projectHeader: {
-      marginBottom: '0.75rem'
-    },
-    titleRow: {
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'flex-start',
-      gap: '1rem',
-      marginBottom: '0.5rem'
-    },
-    h2: {
-      margin: 0,
-      color: '#172B4D',
-      fontSize: '1.1rem',
-      fontWeight: '600',
-      lineHeight: '1.4',
-      letterSpacing: '-0.01em',
-      overflow: 'hidden',
-      textOverflow: 'ellipsis',
-      whiteSpace: 'nowrap',
-      flex: 1
-    },
-    statusBadge: {
-      padding: '0.25rem 0.625rem',
-      borderRadius: '4px',
-      fontSize: '0.65rem',
-      fontWeight: '700',
-      letterSpacing: '0.05em',
-      textTransform: 'uppercase',
-      border: '1px solid',
-      whiteSpace: 'nowrap',
-      flexShrink: 0
-    },
-    description: {
-      color: '#5E6C84',
-      lineHeight: '1.5',
-      fontSize: '0.875rem',
-      marginBottom: '1rem',
-      display: '-webkit-box',
-      WebkitLineClamp: 2,
-      WebkitBoxOrient: 'vertical',
-      overflow: 'hidden'
-    },
-    projectDetails: {
-      background: '#F8F9FA',
-      padding: '0.875rem 1rem',
-      borderRadius: '8px',
-      marginBottom: '1rem',
-      border: '1px solid #E1E8ED',
-      display: 'grid',
-      gridTemplateColumns: 'repeat(2, 1fr)',
-      gap: '0.5rem 1rem'
-    },
-    detailItem: {
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      gap: '0.5rem'
-    },
-    detailLabel: {
-      fontWeight: '600',
-      color: '#172B4D',
-      fontSize: '0.75rem',
-      display: 'flex',
-      alignItems: 'center',
-      gap: '0.25rem',
-      whiteSpace: 'nowrap'
-    },
-    detailValue: {
-      color: '#5E6C84',
-      fontSize: '0.75rem',
-      textAlign: 'right',
-      fontWeight: '500',
-      overflow: 'hidden',
-      textOverflow: 'ellipsis',
-      whiteSpace: 'nowrap'
-    },
-    skillsSection: {
-      marginBottom: '1rem'
-    },
-    h4: {
-      margin: '0 0 0.5rem 0',
-      color: '#172B4D',
-      fontSize: '0.75rem',
-      fontWeight: '700',
-      textTransform: 'uppercase',
-      letterSpacing: '0.05em'
-    },
-    skillsList: {
-      display: 'flex',
-      flexWrap: 'wrap',
-      gap: '0.375rem'
-    },
-    skillBadge: {
-      padding: '0.25rem 0.625rem',
-      background: '#DEEBFF',
-      color: '#0052CC',
-      borderRadius: '4px',
-      fontSize: '0.7rem',
-      fontWeight: '600',
-      border: '1px solid #B3D4FF',
-      whiteSpace: 'nowrap'
-    },
-    resourcesSection: {
-      marginBottom: '1rem',
-      background: '#FFF4E6',
-      padding: '0.75rem 1rem',
-      borderRadius: '8px',
-      border: '1px solid #FFE0B2'
-    },
-    resourcesDisplay: {
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '0.375rem'
-    },
-    resourceItem: {
-      color: '#E65100',
-      fontSize: '0.75rem',
-      padding: '0.375rem 0.625rem',
-      background: 'white',
-      borderRadius: '4px',
-      border: '1px solid #FFCC80',
-      fontWeight: '500',
-      overflow: 'hidden',
-      textOverflow: 'ellipsis',
-      whiteSpace: 'nowrap'
-    },
-    projectActions: {
-      marginTop: 'auto',
-      paddingTop: '1rem',
-      borderTop: '1px solid #E1E8ED',
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '0.75rem'
-    },
-    statusChange: {
-      display: 'flex',
-      alignItems: 'center',
-      gap: '0.5rem'
-    },
-    statusLabel: {
-      fontSize: '0.75rem',
-      fontWeight: '600',
-      color: '#172B4D',
-      whiteSpace: 'nowrap'
-    },
-    statusSelect: {
-      flex: 1,
-      padding: '0.375rem 2rem 0.375rem 0.625rem',
-      border: '1px solid #E1E8ED',
-      borderRadius: '6px',
-      fontSize: '0.75rem',
-      cursor: 'pointer',
-      background: 'white',
-      color: '#172B4D',
-      fontWeight: '500',
-      appearance: 'none',
-      backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%230052CC' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 8l4 4 4-4'/%3E%3C/svg%3E")`,
-      backgroundPosition: 'right 0.5rem center',
-      backgroundRepeat: 'no-repeat',
-      backgroundSize: '1rem',
-      transition: 'all 0.2s'
-    },
-    actionButtons: {
-      display: 'grid',
-      gridTemplateColumns: '1fr 1fr',
-      gap: '0.5rem'
-    },
-    editButton: {
-      padding: '0.5rem 1rem',
-      background: '#0052CC',
-      color: 'white',
-      border: 'none',
-      borderRadius: '6px',
-      fontWeight: '600',
-      fontSize: '0.8rem',
-      cursor: 'pointer',
-      transition: 'all 0.2s',
-      boxShadow: '0 2px 4px rgba(0, 82, 204, 0.2)'
-    },
-    deleteButton: {
-      padding: '0.5rem 1rem',
-      background: 'white',
-      color: '#C62828',
-      border: '1px solid #FFCDD2',
-      borderRadius: '6px',
-      fontWeight: '600',
-      fontSize: '0.8rem',
-      cursor: 'pointer',
-      transition: 'all 0.2s'
-    },
-    paginationContainer: {
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      gap: '0.5rem',
-      marginTop: '2rem',
-      padding: '1rem'
-    },
-    paginationButton: {
-      padding: '0.625rem 1rem',
-      border: '1px solid #E1E8ED',
-      background: 'white',
-      color: '#172B4D',
-      borderRadius: '8px',
-      cursor: 'pointer',
-      fontSize: '0.875rem',
-      fontWeight: '500',
-      transition: 'all 0.2s',
-      minWidth: '40px',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center'
-    },
-    activePage: {
-      background: '#0052CC',
-      color: 'white',
-      borderColor: '#0052CC'
-    },
-    disabledButton: {
-      opacity: 0.5,
-      cursor: 'not-allowed',
-      pointerEvents: 'none'
-    },
-    pageInfo: {
-      margin: '0 1rem',
-      color: '#5E6C84',
-      fontSize: '0.875rem'
+  const canDeleteProject = (status) => status === 'draft' || status === 'cancelled';
+
+  const getAvailableStatusOptions = (currentStatus) => {
+    switch (currentStatus) {
+      case 'draft':     return ['draft', 'active', 'cancelled'];
+      case 'active':    return ['active', 'completed', 'cancelled'];
+      case 'completed': return ['completed'];
+      case 'cancelled': return ['cancelled'];
+      default:          return ['draft', 'active', 'completed', 'cancelled'];
     }
   };
-
-  if (loading) {
-    return (
-      <div style={styles.appContainer}>
-        {!isMobile && (
-          <div style={styles.sidebarWrapper}>
-            <Sidebar 
-              sidebarOpen={sidebarOpen}
-              setSidebarOpen={setSidebarOpen}
-              isMobile={isMobile}
-              userType="ngo"
-            />
-          </div>
-        )}
-        {isMobile && (
-          <Sidebar 
-            sidebarOpen={sidebarOpen}
-            setSidebarOpen={setSidebarOpen}
-            isMobile={isMobile}
-            userType="ngo"
-          />
-        )}
-        <div style={styles.mainContent}>
-          {isMobile && (
-            <div style={styles.mobileHeader}>
-              <button 
-                style={styles.menuButton}
-                onClick={() => setSidebarOpen(true)}
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-              </button>
-              <h2 style={{ fontSize: '1.25rem', fontWeight: '600', color: '#172B4D', margin: 0 }}>My Projects</h2>
-            </div>
-          )}
-          <div style={styles.container}>
-            <div style={styles.innerContainer}>
-              <div style={styles.loading}>
-                <div style={styles.loadingText}>Loading your projects...</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div style={styles.appContainer}>
-        {!isMobile && (
-          <div style={styles.sidebarWrapper}>
-            <Sidebar 
-              sidebarOpen={sidebarOpen}
-              setSidebarOpen={setSidebarOpen}
-              isMobile={isMobile}
-              userType="ngo"
-            />
-          </div>
-        )}
-        {isMobile && (
-          <Sidebar 
-            sidebarOpen={sidebarOpen}
-            setSidebarOpen={setSidebarOpen}
-            isMobile={isMobile}
-            userType="ngo"
-          />
-        )}
-        <div style={styles.mainContent}>
-          {isMobile && (
-            <div style={styles.mobileHeader}>
-              <button 
-                style={styles.menuButton}
-                onClick={() => setSidebarOpen(true)}
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-              </button>
-              <h2 style={{ fontSize: '1.25rem', fontWeight: '600', color: '#172B4D', margin: 0 }}>My Projects</h2>
-            </div>
-          )}
-          <div style={styles.container}>
-            <div style={styles.innerContainer}>
-              <div style={styles.error}>{error}</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
-    <div style={styles.appContainer}>
-      {!isMobile && (
-        <div style={styles.sidebarWrapper}>
-          <Sidebar 
-            sidebarOpen={sidebarOpen}
-            setSidebarOpen={setSidebarOpen}
-            isMobile={isMobile}
-            userType="ngo"
-          />
+    <DashboardLayout userType="ngo">
+      <div className="space-y-6">
+
+        {/* Page Header */}
+        <div className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl p-8 text-white">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h2 className="text-2xl font-bold mb-1">My Projects</h2>
+              <p className="text-blue-100 text-sm">Manage and track all your organisation's projects</p>
+            </div>
+            <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm border border-white/30 rounded-xl px-4 py-2">
+              <label className="text-white text-sm font-medium whitespace-nowrap">Filter:</label>
+              <select
+                value={statusFilter}
+                onChange={(e) => { setStatusFilter(e.target.value); setCurrentPage(1); }}
+                className="bg-white text-gray-800 text-sm font-medium rounded-lg px-3 py-1.5 border-0 outline-none cursor-pointer"
+              >
+                <option value="">All Projects</option>
+                <option value="active">Active</option>
+                <option value="draft">Draft</option>
+                <option value="completed">Completed</option>
+                <option value="cancelled">Cancelled</option>
+              </select>
+            </div>
+          </div>
         </div>
-      )}
-      
-      {isMobile && (
-        <Sidebar 
-          sidebarOpen={sidebarOpen}
-          setSidebarOpen={setSidebarOpen}
-          isMobile={isMobile}
-          userType="ngo"
-        />
-      )}
-      
-      <div style={styles.mainContent}>
-        {isMobile && (
-          <div style={styles.mobileHeader}>
-            <button 
-              style={styles.menuButton}
-              onClick={() => setSidebarOpen(true)}
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            </button>
-            <h2 style={{ fontSize: '1.25rem', fontWeight: '600', color: '#172B4D', margin: 0 }}>My Projects</h2>
+
+        {/* Loading */}
+        {loading && (
+          <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-16 text-center">
+            <p className="text-gray-500 font-medium">Loading your projects…</p>
           </div>
         )}
 
-        <div style={styles.container}>
-        <Header/>
-          <div style={styles.innerContainer}>
-            <div style={styles.pageHeader}>
-              <div style={styles.headerContent}>
-                <div style={styles.titleSection}>
-                  <h1 style={styles.h1}>My Projects</h1>
-                  <p style={styles.subtitle}>Manage and track all your organization's projects</p>
-                </div>
-                <div style={styles.filterSection}>
-                  <label style={styles.label}>Filter:</label>
-                  <select 
-                    value={statusFilter} 
-                    onChange={(e) => {
-                      setStatusFilter(e.target.value);
-                      setCurrentPage(1);
-                    }}
-                    style={styles.select}
-                  >
-                    <option value="">All Projects</option>
-                    <option value="active">Active</option>
-                    <option value="draft">Draft</option>
-                    <option value="completed">Completed</option>
-                    <option value="cancelled">Cancelled</option>
-                  </select>
-                </div>
-              </div>
+        {/* Error */}
+        {!loading && error && (
+          <div className="bg-red-50 border border-red-200 rounded-xl p-8 text-center">
+            <p className="text-red-700 font-medium">{error}</p>
+          </div>
+        )}
+
+        {/* Empty state */}
+        {!loading && !error && projects.length === 0 && (
+          <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-16 text-center">
+            <p className="text-xl font-semibold text-gray-800 mb-2">No projects found</p>
+            <p className="text-gray-500 text-sm">You haven't created any projects yet. Create your first project to get started!</p>
+          </div>
+        )}
+
+        {/* Projects grid */}
+        {!loading && !error && projects.length > 0 && (
+          <>
+            <div className="bg-white rounded-xl border border-gray-100 shadow-sm px-5 py-3 flex items-center">
+              <p className="text-sm font-semibold text-gray-800">
+                Showing {indexOfFirstProject + 1}–{Math.min(indexOfLastProject, projects.length)} of {projects.length} project{projects.length !== 1 ? 's' : ''}
+              </p>
             </div>
 
-            {projects.length === 0 ? (
-              <div style={styles.noProjects}>
-                <div style={styles.noProjectsTitle}>No projects found</div>
-                <p style={styles.noProjectsText}>You haven't created any projects yet.</p>
-                <p style={styles.noProjectsText}>Create your first project to get started!</p>
-              </div>
-            ) : (
-              <>
-                <div style={styles.statsBar}>
-                  <p style={styles.projectCount}>
-                    Showing {indexOfFirstProject + 1}-{Math.min(indexOfLastProject, projects.length)} of {projects.length} project{projects.length !== 1 ? 's' : ''}
-                  </p>
-                </div>
-                
-                <div style={styles.projectsList}>
-                  {currentProjects.map(project => {
-                    const statusColors = getStatusColor(project.status);
-                    return (
-                      <div 
-                        key={project._id} 
-                        style={styles.projectCard}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.transform = 'translateY(-4px)';
-                          e.currentTarget.style.boxShadow = '0 8px 24px rgba(0, 82, 204, 0.15)';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.transform = 'translateY(0)';
-                          e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.08)';
-                        }}
-                      >
-                        {project.image ? (
-                          <div style={styles.projectImage}>
-                            <img 
-                              src={`http://localhost:5000${project.image}`} 
-                              alt={project.title}
-                              style={styles.projectImg}
-                            />
-                          </div>
-                        ) : (
-                          <div style={styles.projectImage} />
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
+              {currentProjects.map(project => {
+                const statusColors = getStatusColor(project.status);
+                const canDelete = canDeleteProject(project.status);
+                const availableStatuses = getAvailableStatusOptions(project.status);
+                const isLocked = availableStatuses.length === 1;
+                const isFinished = project.status === 'completed' || project.status === 'cancelled';
+
+                return (
+                  <div
+                    key={project._id}
+                    className="bg-white border border-gray-100 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden flex"
+                    style={{ minHeight: '260px' }}
+                  >
+                    {/* Image */}
+                    <div className="w-44 shrink-0 bg-gradient-to-br from-blue-600 to-indigo-700 relative overflow-hidden">
+                      {project.image && (
+                        <img
+                          src={`http://localhost:5000${project.image}`}
+                          alt={project.title}
+                          className="w-full h-full object-cover"
+                        />
+                      )}
+                    </div>
+
+                    {/* Content */}
+                    <div className="flex flex-col flex-1 p-5 overflow-hidden">
+                      <div className="flex items-start justify-between gap-3 mb-2">
+                        <h3 className="font-semibold text-gray-900 text-base leading-snug truncate flex-1">
+                          {project.title}
+                        </h3>
+                        <span
+                          className="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded border shrink-0"
+                          style={{ background: statusColors.bg, color: statusColors.text, borderColor: statusColors.border }}
+                        >
+                          {project.status}
+                        </span>
+                      </div>
+
+                      <p className="text-gray-500 text-xs leading-relaxed mb-3 line-clamp-2">{project.description}</p>
+
+                      <div className="grid grid-cols-2 gap-x-4 gap-y-1 bg-gray-50 rounded-lg px-3 py-2 border border-gray-100 mb-3 text-xs">
+                        <div className="flex justify-between gap-1"><span className="font-semibold text-gray-700 shrink-0">Focus:</span><span className="text-gray-500 truncate">{project.focusArea}</span></div>
+                        <div className="flex justify-between gap-1"><span className="font-semibold text-gray-700 shrink-0">Location:</span><span className="text-gray-500 truncate">{project.location}</span></div>
+                        <div className="flex justify-between gap-1"><span className="font-semibold text-gray-700 shrink-0">Start:</span><span className="text-gray-500">{formatDate(project.startDate)}</span></div>
+                        <div className="flex justify-between gap-1"><span className="font-semibold text-gray-700 shrink-0">End:</span><span className="text-gray-500">{formatDate(project.endDate)}</span></div>
+                      </div>
+
+                      <div className="flex flex-wrap gap-1 mb-3">
+                        {project.skills.slice(0, 4).map(skill => (
+                          <span key={skill} className="px-2 py-0.5 bg-blue-50 text-blue-700 border border-blue-100 rounded text-[10px] font-semibold">{skill}</span>
+                        ))}
+                        {project.skills.length > 4 && (
+                          <span className="px-2 py-0.5 bg-blue-50 text-blue-700 border border-blue-100 rounded text-[10px] font-semibold">+{project.skills.length - 4}</span>
                         )}
-                        
-                        <div style={styles.projectContent}>
-                          <div style={styles.projectHeader}>
-                            <div style={styles.titleRow}>
-                              <h2 style={styles.h2}>{project.title}</h2>
-                              <span 
-                                style={{
-                                  ...styles.statusBadge,
-                                  backgroundColor: statusColors.bg,
-                                  color: statusColors.text,
-                                  borderColor: statusColors.border
-                                }}
-                              >
-                                {project.status}
-                              </span>
-                            </div>
-                          </div>
+                      </div>
 
-                          <p style={styles.description}>{project.description}</p>
+                      {project.resources?.length > 0 && (
+                        <div className="bg-orange-50 border border-orange-100 rounded-lg px-3 py-1.5 mb-3 text-[11px]">
+                          <span className="font-bold text-orange-800 uppercase tracking-wide text-[9px]">Resources · </span>
+                          <span className="text-orange-700 font-medium">
+                            {project.resources[0].name}: {project.resources[0].quantity}
+                            {project.resources.length > 1 && ` +${project.resources.length - 1} more`}
+                          </span>
+                        </div>
+                      )}
 
-                          <div style={styles.projectDetails}>
-                            <div style={styles.detailItem}>
-                              <span style={styles.detailLabel}>Focus:</span>
-                              <span style={styles.detailValue}>{project.focusArea}</span>
-                            </div>
-                            <div style={styles.detailItem}>
-                              <span style={styles.detailLabel}>Location:</span>
-                              <span style={styles.detailValue}>{project.location}</span>
-                            </div>
-                            <div style={styles.detailItem}>
-                              <span style={styles.detailLabel}>Start:</span>
-                              <span style={styles.detailValue}>{formatDate(project.startDate)}</span>
-                            </div>
-                            <div style={styles.detailItem}>
-                              <span style={styles.detailLabel}>End:</span>
-                              <span style={styles.detailValue}>{formatDate(project.endDate)}</span>
-                            </div>
-                          </div>
-
-                          <div style={styles.skillsSection}>
-                            <h4 style={styles.h4}>Required Skills</h4>
-                            <div style={styles.skillsList}>
-                              {project.skills.slice(0, 4).map(skill => (
-                                <span key={skill} style={styles.skillBadge}>{skill}</span>
-                              ))}
-                              {project.skills.length > 4 && (
-                                <span style={styles.skillBadge}>+{project.skills.length - 4}</span>
-                              )}
-                            </div>
-                          </div>
-
-                          {project.resources && project.resources.length > 0 && (
-                            <div style={styles.resourcesSection}>
-                              <h4 style={{...styles.h4, color: '#92400E', margin: '0 0 0.375rem 0'}}>Resources</h4>
-                              <div style={styles.resourcesDisplay}>
-                                {project.resources.slice(0, 1).map((resource, index) => (
-                                  <div key={index} style={styles.resourceItem}>
-                                    <strong>{resource.name}</strong>: {resource.quantity}
-                                  </div>
-                                ))}
-                                {project.resources.length > 1 && (
-                                  <div style={styles.resourceItem}>
-                                    +{project.resources.length - 1} more resource(s)
-                                  </div>
-                                )}
-                              </div>
-                            </div>
+                      <div className="mt-auto pt-3 border-t border-gray-100 space-y-2">
+                        <div className="flex items-center gap-2">
+                          <label className="text-xs font-semibold text-gray-700 whitespace-nowrap">Status:</label>
+                          <select
+                            value={project.status}
+                            onChange={(e) => handleStatusChange(project._id, e.target.value, project.status)}
+                            disabled={isLocked}
+                            className={`flex-1 text-xs border border-gray-200 rounded-md px-2 py-1.5 font-medium bg-white text-gray-800 outline-none
+                              ${isLocked ? 'opacity-50 cursor-not-allowed bg-gray-50' : 'cursor-pointer'}`}
+                          >
+                            {availableStatuses.map(s => (
+                              <option key={s} value={s}>
+                                {s.charAt(0).toUpperCase() + s.slice(1)}{isLocked ? ' (locked)' : ''}
+                              </option>
+                            ))}
+                          </select>
+                          {isLocked && (
+                            <span className="text-[10px] text-gray-400 italic whitespace-nowrap">
+                              {project.status === 'completed' ? 'Completed — locked' : 'Cancelled — locked'}
+                            </span>
                           )}
+                        </div>
 
-                          <div style={styles.projectActions}>
-                            <div style={styles.statusChange}>
-                              <label style={styles.statusLabel}>Status:</label>
-                              <select
-                                value={project.status}
-                                onChange={(e) => handleStatusChange(project._id, e.target.value)}
-                                style={styles.statusSelect}
-                              >
-                                <option value="draft">Draft</option>
-                                <option value="active">Active</option>
-                                <option value="completed">Completed</option>
-                                <option value="cancelled">Cancelled</option>
-                              </select>
-                            </div>
-
-                            <div style={styles.actionButtons}>
-                              <button 
-                                style={styles.editButton}
-                                onClick={() => setEditingProject(project)}
-                                onMouseOver={(e) => e.target.style.background = '#0747A6'}
-                                onMouseOut={(e) => e.target.style.background = '#0052CC'}
-                              >
-                                Edit
-                              </button>
-                              <button 
-                                style={styles.deleteButton}
-                                onClick={() => handleDelete(project._id)}
-                                onMouseOver={(e) => {
-                                  e.target.style.background = '#FFEBEE';
-                                  e.target.style.borderColor = '#C62828';
-                                }}
-                                onMouseOut={(e) => {
-                                  e.target.style.background = 'white';
-                                  e.target.style.borderColor = '#FFCDD2';
-                                }}
-                              >
-                                Delete
-                              </button>
-                            </div>
-                          </div>
+                        <div className="grid grid-cols-2 gap-2">
+                          <button
+                            onClick={() => !isFinished && setEditingProject(project)}
+                            disabled={isFinished}
+                            className={`text-xs font-semibold px-3 py-2 rounded-lg transition-colors
+                              ${isFinished
+                                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                : 'bg-blue-600 hover:bg-blue-700 text-white shadow-sm'}`}
+                          >
+                            {isFinished ? 'View Only' : 'Edit'}
+                          </button>
+                          <button
+                            onClick={() => canDelete && handleDelete(project._id)}
+                            disabled={!canDelete}
+                            className={`text-xs font-semibold px-3 py-2 rounded-lg border transition-colors
+                              ${!canDelete
+                                ? 'border-gray-200 text-gray-300 bg-gray-50 cursor-not-allowed'
+                                : 'border-red-200 text-red-600 hover:bg-red-50 hover:border-red-400'}`}
+                          >
+                            Delete
+                          </button>
                         </div>
                       </div>
-                    );
-                  })}
-                </div>
-
-                {totalPages > 1 && (
-                  <div style={styles.paginationContainer}>
-                    <button
-                      onClick={prevPage}
-                      style={{
-                        ...styles.paginationButton,
-                        ...(currentPage === 1 ? styles.disabledButton : {})
-                      }}
-                      disabled={currentPage === 1}
-                    >
-                      Previous
-                    </button>
-                    
-                    {Array.from({ length: totalPages }, (_, index) => {
-                      const pageNumber = index + 1;
-                      if (
-                        pageNumber === 1 ||
-                        pageNumber === totalPages ||
-                        (pageNumber >= currentPage - 1 && pageNumber <= currentPage + 1)
-                      ) {
-                        return (
-                          <button
-                            key={pageNumber}
-                            onClick={() => paginate(pageNumber)}
-                            style={{
-                              ...styles.paginationButton,
-                              ...(currentPage === pageNumber ? styles.activePage : {})
-                            }}
-                          >
-                            {pageNumber}
-                          </button>
-                        );
-                      } 
-                      else if (pageNumber === currentPage - 2 || pageNumber === currentPage + 2) {
-                        return <span key={pageNumber} style={styles.pageInfo}>...</span>;
-                      }
-                      return null;
-                    })}
-                    
-                    <button
-                      onClick={nextPage}
-                      style={{
-                        ...styles.paginationButton,
-                        ...(currentPage === totalPages ? styles.disabledButton : {})
-                      }}
-                      disabled={currentPage === totalPages}
-                    >
-                      Next
-                    </button>
+                    </div>
                   </div>
-                )}
-              </>
-            )}
+                );
+              })}
+            </div>
 
-            {editingProject && (
-              <EditProjectModal
-                project={editingProject}
-                onClose={() => setEditingProject(null)}
-                onUpdate={fetchProjects}
-                commonSkills={commonSkills}
-              />
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex justify-center items-center gap-2 py-4">
+                <button
+                  onClick={prevPage}
+                  disabled={currentPage === 1}
+                  className="px-4 py-2 text-sm font-medium border border-gray-200 rounded-lg bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                >
+                  Previous
+                </button>
+
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(pageNumber => {
+                  const show =
+                    pageNumber === 1 ||
+                    pageNumber === totalPages ||
+                    (pageNumber >= currentPage - 1 && pageNumber <= currentPage + 1);
+                  const showEllipsis = pageNumber === currentPage - 2 || pageNumber === currentPage + 2;
+                  if (show) {
+                    return (
+                      <button
+                        key={pageNumber}
+                        onClick={() => paginate(pageNumber)}
+                        className={`w-10 h-10 text-sm font-medium rounded-lg border transition-colors
+                          ${currentPage === pageNumber
+                            ? 'bg-blue-600 text-white border-blue-600'
+                            : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'}`}
+                      >
+                        {pageNumber}
+                      </button>
+                    );
+                  }
+                  if (showEllipsis) return <span key={pageNumber} className="text-gray-400 text-sm px-1">…</span>;
+                  return null;
+                })}
+
+                <button
+                  onClick={nextPage}
+                  disabled={currentPage === totalPages}
+                  className="px-4 py-2 text-sm font-medium border border-gray-200 rounded-lg bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                >
+                  Next
+                </button>
+              </div>
             )}
-          </div>
-        </div>
+          </>
+        )}
+
+        {/* Edit Modal */}
+        {editingProject && (
+          <EditProjectModal
+            project={editingProject}
+            onClose={() => setEditingProject(null)}
+            onUpdate={fetchProjects}
+            commonSkills={commonSkills}
+          />
+        )}
       </div>
-    </div>
+    </DashboardLayout>
   );
 };
 
-// Edit Modal Component
+// ── Edit Modal ────────────────────────────────────────────────────────────────
 const EditProjectModal = ({ project, onClose, onUpdate, commonSkills }) => {
-  // Derive initial map position from existing project coordinates
   const initialMapPos = project.coordinates?.coordinates
-    ? [project.coordinates.coordinates[1], project.coordinates.coordinates[0]] // [lat, lng] from GeoJSON [lng, lat]
+    ? [project.coordinates.coordinates[1], project.coordinates.coordinates[0]]
     : null;
 
   const [formData, setFormData] = useState({
@@ -987,7 +390,6 @@ const EditProjectModal = ({ project, onClose, onUpdate, commonSkills }) => {
   const [skillInput, setSkillInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [imageFile, setImageFile] = useState(null);
-  const [resourceInput, setResourceInput] = useState({ name: '', quantity: '', description: '' });
   const [mapPosition, setMapPosition] = useState(initialMapPos);
 
   const focusAreaOptions = FOCUS_AREA_OPTIONS;
@@ -999,81 +401,39 @@ const EditProjectModal = ({ project, onClose, onUpdate, commonSkills }) => {
 
   const addSkill = (skill) => {
     if (skill && !formData.skills.includes(skill)) {
-      setFormData(prev => ({
-        ...prev,
-        skills: [...prev.skills, skill]
-      }));
+      setFormData(prev => ({ ...prev, skills: [...prev.skills, skill] }));
       setSkillInput('');
     }
   };
 
   const removeSkill = (skillToRemove) => {
-    setFormData(prev => ({
-      ...prev,
-      skills: prev.skills.filter(skill => skill !== skillToRemove)
-    }));
-  };
-
-  const addResource = () => {
-    if (resourceInput.name && resourceInput.quantity) {
-      setFormData(prev => ({
-        ...prev,
-        resources: [...prev.resources, {
-          name: resourceInput.name,
-          quantity: parseInt(resourceInput.quantity),
-          description: resourceInput.description
-        }]
-      }));
-      setResourceInput({ name: '', quantity: '', description: '' });
-    }
-  };
-
-  const removeResource = (index) => {
-    setFormData(prev => ({
-      ...prev,
-      resources: prev.resources.filter((_, i) => i !== index)
-    }));
+    setFormData(prev => ({ ...prev, skills: prev.skills.filter(s => s !== skillToRemove) }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-
     try {
       const token = localStorage.getItem('crosslink_token');
-      const formDataToSend = new FormData();
-      
+      const fd = new FormData();
       Object.keys(formData).forEach(key => {
         if (key === 'skills' || key === 'resources') {
-          formDataToSend.append(key, JSON.stringify(formData[key]));
+          fd.append(key, JSON.stringify(formData[key]));
         } else {
-          formDataToSend.append(key, formData[key]);
+          fd.append(key, formData[key]);
         }
       });
-
-      // Append coordinates as GeoJSON if a map pin is placed
       if (mapPosition) {
-        formDataToSend.append('coordinates', JSON.stringify({
+        fd.append('coordinates', JSON.stringify({
           type: 'Point',
-          coordinates: [mapPosition[1], mapPosition[0]] // [lng, lat] for GeoJSON
+          coordinates: [mapPosition[1], mapPosition[0]]
         }));
       }
+      if (imageFile) fd.append('image', imageFile);
 
-      if (imageFile) {
-        formDataToSend.append('image', imageFile);
-      }
-
-      await axios.put(
-        `http://localhost:5000/api/projects/${project._id}`,
-        formDataToSend,
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'multipart/form-data'
-          }
-        }
-      );
-
+      await axios.put(`http://localhost:5000/api/projects/${project._id}`, fd, {
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'multipart/form-data' }
+      });
       alert('Project updated successfully');
       onUpdate();
       onClose();
@@ -1084,365 +444,114 @@ const EditProjectModal = ({ project, onClose, onUpdate, commonSkills }) => {
     }
   };
 
-  const modalStyles = {
-    overlay: {
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      background: 'rgba(9, 30, 66, 0.54)',
-      backdropFilter: 'blur(3px)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex: 1000,
-      padding: '2rem',
-      animation: 'fadeIn 0.2s ease-out'
-    },
-    content: {
-      background: 'white',
-      borderRadius: '8px',
-      maxWidth: '800px',
-      width: '100%',
-      maxHeight: '90vh',
-      overflowY: 'auto',
-      boxShadow: '0 8px 32px rgba(9, 30, 66, 0.25)',
-      animation: 'slideUp 0.3s ease-out'
-    },
-    header: {
-      padding: '1.75rem 2rem',
-      borderBottom: '2px solid #E1E8ED',
-      position: 'sticky',
-      top: 0,
-      background: 'white',
-      zIndex: 10,
-      borderRadius: '8px 8px 0 0'
-    },
-    headerContent: {
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center'
-    },
-    h2: {
-      margin: 0,
-      color: '#172B4D',
-      fontSize: '1.5rem',
-      fontWeight: '600',
-      letterSpacing: '-0.01em'
-    },
-    closeButton: {
-      background: '#F4F5F7',
-      border: 'none',
-      width: '36px',
-      height: '36px',
-      borderRadius: '6px',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      cursor: 'pointer',
-      transition: 'all 0.2s',
-      fontSize: '1.5rem',
-      color: '#5E6C84'
-    },
-    form: {
-      padding: '2rem',
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '1.75rem'
-    },
-    formGroup: {
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '0.5rem'
-    },
-    label: {
-      fontWeight: '600',
-      color: '#172B4D',
-      fontSize: '0.875rem',
-      letterSpacing: '0.01em'
-    },
-    input: {
-      padding: '0.75rem 1rem',
-      border: '1px solid #DFE1E6',
-      borderRadius: '6px',
-      fontSize: '0.95rem',
-      transition: 'all 0.2s',
-      background: 'white',
-      color: '#172B4D'
-    },
-    textarea: {
-      padding: '0.75rem 1rem',
-      border: '1px solid #DFE1E6',
-      borderRadius: '6px',
-      fontSize: '0.95rem',
-      fontFamily: 'inherit',
-      resize: 'vertical',
-      transition: 'all 0.2s',
-      background: 'white',
-      color: '#172B4D',
-      lineHeight: '1.6'
-    },
-    select: {
-      padding: '0.75rem 2.5rem 0.75rem 1rem',
-      border: '1px solid #DFE1E6',
-      borderRadius: '6px',
-      fontSize: '0.95rem',
-      background: 'white',
-      color: '#172B4D',
-      appearance: 'none',
-      backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%230052CC' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 8l4 4 4-4'/%3E%3C/svg%3E")`,
-      backgroundPosition: 'right 0.75rem center',
-      backgroundRepeat: 'no-repeat',
-      backgroundSize: '1.25rem',
-      cursor: 'pointer',
-      transition: 'all 0.2s'
-    },
-    skillButtons: {
-      display: 'flex',
-      flexWrap: 'wrap',
-      gap: '0.625rem',
-      marginTop: '0.75rem'
-    },
-    skillButton: {
-      padding: '0.5rem 1rem',
-      border: '1px solid #B3D4FF',
-      background: '#DEEBFF',
-      color: '#0052CC',
-      borderRadius: '4px',
-      cursor: 'pointer',
-      fontSize: '0.875rem',
-      fontWeight: '600',
-      transition: 'all 0.2s'
-    },
-    selectedSkills: {
-      display: 'flex',
-      flexWrap: 'wrap',
-      gap: '0.625rem',
-      marginTop: '0.875rem'
-    },
-    skillTag: {
-      display: 'inline-flex',
-      alignItems: 'center',
-      gap: '0.625rem',
-      padding: '0.625rem 1rem',
-      background: '#0052CC',
-      color: 'white',
-      borderRadius: '4px',
-      fontSize: '0.875rem',
-      fontWeight: '600'
-    },
-    removeBtn: {
-      background: 'rgba(255, 255, 255, 0.25)',
-      border: 'none',
-      color: 'white',
-      width: '20px',
-      height: '20px',
-      borderRadius: '50%',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      cursor: 'pointer',
-      fontSize: '1rem',
-      transition: 'all 0.2s'
-    },
-    modalActions: {
-      display: 'flex',
-      justifyContent: 'flex-end',
-      gap: '1rem',
-      padding: '1.5rem 2rem',
-      borderTop: '2px solid #E1E8ED',
-      position: 'sticky',
-      bottom: 0,
-      background: 'white',
-      borderRadius: '0 0 8px 8px'
-    },
-    cancelButton: {
-      padding: '0.75rem 1.75rem',
-      background: 'white',
-      color: '#5E6C84',
-      border: '1px solid #DFE1E6',
-      borderRadius: '6px',
-      fontWeight: '600',
-      cursor: 'pointer',
-      fontSize: '0.9rem',
-      transition: 'all 0.2s'
-    },
-    saveButton: {
-      padding: '0.75rem 1.75rem',
-      background: '#0052CC',
-      color: 'white',
-      border: 'none',
-      borderRadius: '6px',
-      fontWeight: '600',
-      cursor: 'pointer',
-      fontSize: '0.9rem',
-      transition: 'all 0.2s',
-      boxShadow: '0 2px 4px rgba(0, 82, 204, 0.2)'
-    }
-  };
-
   return (
-    <div style={modalStyles.overlay} onClick={onClose}>
-      <div style={modalStyles.content} onClick={(e) => e.stopPropagation()}>
-        <div style={modalStyles.header}>
-          <div style={modalStyles.headerContent}>
-            <h2 style={modalStyles.h2}>Edit Project</h2>
-            <button 
-              style={modalStyles.closeButton} 
-              onClick={onClose}
-              onMouseOver={(e) => e.target.style.background = '#DFE1E6'}
-              onMouseOut={(e) => e.target.style.background = '#F4F5F7'}
-            >
-              ×
-            </button>
-          </div>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-6"
+      style={{ background: 'rgba(9, 30, 66, 0.54)', backdropFilter: 'blur(3px)' }}
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 sticky top-0 bg-white rounded-t-xl z-10">
+          <h2 className="text-lg font-semibold text-gray-900">Edit Project</h2>
+          <button
+            onClick={onClose}
+            className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-500 text-xl leading-none transition-colors"
+          >
+            ×
+          </button>
         </div>
 
-        <form onSubmit={handleSubmit} style={modalStyles.form}>
-          <div style={modalStyles.formGroup}>
-            <label style={modalStyles.label}>Project Title *</label>
+        <form onSubmit={handleSubmit} className="px-6 py-5 space-y-5">
+          <div className="space-y-1">
+            <label className="text-sm font-semibold text-gray-700">Project Title *</label>
             <input
-              type="text"
-              name="title"
-              value={formData.title}
-              onChange={handleInputChange}
-              required
-              style={modalStyles.input}
-              onFocus={(e) => e.target.style.borderColor = '#0052CC'}
-              onBlur={(e) => e.target.style.borderColor = '#DFE1E6'}
+              type="text" name="title" value={formData.title} onChange={handleInputChange} required
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 outline-none focus:border-blue-500 transition-colors"
             />
           </div>
 
-          <div style={modalStyles.formGroup}>
-            <label style={modalStyles.label}>Description *</label>
+          <div className="space-y-1">
+            <label className="text-sm font-semibold text-gray-700">Description *</label>
             <textarea
-              name="description"
-              value={formData.description}
-              onChange={handleInputChange}
-              required
-              rows="4"
-              style={modalStyles.textarea}
-              onFocus={(e) => e.target.style.borderColor = '#0052CC'}
-              onBlur={(e) => e.target.style.borderColor = '#DFE1E6'}
+              name="description" value={formData.description} onChange={handleInputChange} required rows={4}
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 outline-none focus:border-blue-500 resize-y transition-colors"
             />
           </div>
 
-          <div style={modalStyles.formGroup}>
-            <label style={modalStyles.label}>Focus Area *</label>
+          <div className="space-y-1">
+            <label className="text-sm font-semibold text-gray-700">Focus Area *</label>
             <select
-              name="focusArea"
-              value={formData.focusArea}
-              onChange={handleInputChange}
-              required
-              style={modalStyles.select}
-              onFocus={(e) => e.target.style.borderColor = '#0052CC'}
-              onBlur={(e) => e.target.style.borderColor = '#DFE1E6'}
+              name="focusArea" value={formData.focusArea} onChange={handleInputChange} required
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 outline-none focus:border-blue-500 bg-white transition-colors"
             >
-              {focusAreaOptions.map(area => (
-                <option key={area} value={area}>{area}</option>
-              ))}
+              {focusAreaOptions.map(area => <option key={area} value={area}>{area}</option>)}
             </select>
           </div>
 
-          <div style={modalStyles.formGroup}>
-            <label style={modalStyles.label}>Skills *</label>
+          <div className="space-y-2">
+            <label className="text-sm font-semibold text-gray-700">Skills *</label>
             <input
-              type="text"
-              value={skillInput}
-              onChange={(e) => setSkillInput(e.target.value)}
-              onKeyPress={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  addSkill(skillInput);
-                }
-              }}
+              type="text" value={skillInput} onChange={(e) => setSkillInput(e.target.value)}
+              onKeyPress={(e) => { if (e.key === 'Enter') { e.preventDefault(); addSkill(skillInput); } }}
               placeholder="Type a skill and press Enter"
-              style={modalStyles.input}
-              onFocus={(e) => e.target.style.borderColor = '#0052CC'}
-              onBlur={(e) => e.target.style.borderColor = '#DFE1E6'}
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 outline-none focus:border-blue-500 transition-colors"
             />
-            <div style={modalStyles.skillButtons}>
+            <div className="flex flex-wrap gap-1.5">
               {commonSkills.filter(s => !formData.skills.includes(s)).slice(0, 18).map(skill => (
                 <button
-                  key={skill}
-                  type="button"
-                  onClick={() => addSkill(skill)}
-                  style={modalStyles.skillButton}
-                  onMouseOver={(e) => {
-                    e.target.style.background = '#0052CC';
-                    e.target.style.color = 'white';
-                  }}
-                  onMouseOut={(e) => {
-                    e.target.style.background = '#DEEBFF';
-                    e.target.style.color = '#0052CC';
-                  }}
+                  key={skill} type="button" onClick={() => addSkill(skill)}
+                  className="px-2.5 py-1 bg-blue-50 text-blue-600 border border-blue-100 rounded text-xs font-semibold hover:bg-blue-600 hover:text-white transition-colors"
                 >
                   + {skill}
                 </button>
               ))}
             </div>
-            <div style={modalStyles.selectedSkills}>
+            <div className="flex flex-wrap gap-1.5">
               {formData.skills.map(skill => (
-                <span key={skill} style={modalStyles.skillTag}>
+                <span key={skill} className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-600 text-white rounded text-xs font-semibold">
                   {skill}
-                  <button 
-                    type="button" 
-                    onClick={() => removeSkill(skill)} 
-                    style={modalStyles.removeBtn}
-                    onMouseOver={(e) => e.target.style.background = 'rgba(255, 255, 255, 0.3)'}
-                    onMouseOut={(e) => e.target.style.background = 'rgba(255, 255, 255, 0.2)'}
-                  >
-                    ×
-                  </button>
+                  <button type="button" onClick={() => removeSkill(skill)}
+                    className="w-4 h-4 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/40 text-white text-sm leading-none transition-colors"
+                  >×</button>
                 </span>
               ))}
             </div>
           </div>
 
-          <div style={modalStyles.formGroup}>
-            <label style={modalStyles.label}>Location *</label>
+          <div className="space-y-1">
+            <label className="text-sm font-semibold text-gray-700">Location *</label>
             <input
-              type="text"
-              name="location"
-              value={formData.location}
-              onChange={handleInputChange}
-              required
-              style={modalStyles.input}
-              onFocus={(e) => e.target.style.borderColor = '#0052CC'}
-              onBlur={(e) => e.target.style.borderColor = '#DFE1E6'}
+              type="text" name="location" value={formData.location} onChange={handleInputChange} required
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 outline-none focus:border-blue-500 transition-colors"
             />
           </div>
 
-          {/* Volunteers Needed */}
-          <div style={modalStyles.formGroup}>
-            <label style={modalStyles.label}>Volunteers Needed</label>
+          <div className="space-y-1">
+            <label className="text-sm font-semibold text-gray-700">Volunteers Needed</label>
             <input
-              type="number"
-              name="volunteersNeeded"
-              min="1"
-              max="500"
-              value={formData.volunteersNeeded}
+              type="number" name="volunteersNeeded" min="1" max="500" value={formData.volunteersNeeded}
               onChange={handleInputChange}
-              style={{ ...modalStyles.input, maxWidth: '200px' }}
-              onFocus={(e) => e.target.style.borderColor = '#0052CC'}
-              onBlur={(e) => e.target.style.borderColor = '#DFE1E6'}
+              className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 outline-none focus:border-blue-500 transition-colors w-36"
             />
-            <span style={{ fontSize: '0.75rem', color: '#5E6C84' }}>How many volunteers does this project need?</span>
+            <p className="text-xs text-gray-400">How many volunteers does this project need?</p>
           </div>
 
-          {/* Map Picker */}
-          <div style={{ ...modalStyles.formGroup, padding: '1.25rem', background: '#F4F5F7', borderRadius: '8px', border: '1px solid #DFE1E6' }}>
-            <label style={modalStyles.label}>
+          {/* Map */}
+          <div className="space-y-2 bg-gray-50 border border-gray-200 rounded-xl p-4">
+            <label className="text-sm font-semibold text-gray-700">
               📍 Pin Project Location on Map
-              <span style={{ fontWeight: 400, color: '#5E6C84', fontSize: '0.75rem', marginLeft: '6px' }}>(optional — helps volunteers find the project)</span>
+              <span className="font-normal text-gray-400 text-xs ml-2">(optional)</span>
             </label>
-            <div style={{ borderRadius: '8px', overflow: 'hidden', border: '1px solid #DFE1E6', marginTop: '8px' }}>
+            <div className="rounded-lg overflow-hidden border border-gray-200">
               <MapContainer
                 center={mapPosition || [7.8731, 80.7718]}
                 zoom={mapPosition ? 13 : 7}
-                style={{ height: '260px', width: '100%' }}
-                scrollWheelZoom={true}
+                style={{ height: '240px', width: '100%' }}
+                scrollWheelZoom
               >
                 <TileLayer
                   attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -1452,80 +561,55 @@ const EditProjectModal = ({ project, onClose, onUpdate, commonSkills }) => {
               </MapContainer>
             </div>
             {mapPosition ? (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px' }}>
-                <span style={{ fontSize: '0.75rem', color: '#172B4D' }}>
-                  📌 Lat: {mapPosition[0].toFixed(5)}, Lng: {mapPosition[1].toFixed(5)}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setMapPosition(null)}
-                  style={{ fontSize: '0.7rem', color: '#DE350B', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}
-                >
-                  Clear pin
-                </button>
+              <div className="flex items-center gap-3 text-xs">
+                <span className="text-gray-700">📌 Lat: {mapPosition[0].toFixed(5)}, Lng: {mapPosition[1].toFixed(5)}</span>
+                <button type="button" onClick={() => setMapPosition(null)}
+                  className="text-red-500 underline hover:text-red-700 transition-colors"
+                >Clear pin</button>
               </div>
             ) : (
-              <p style={{ fontSize: '0.75rem', color: '#5E6C84', marginTop: '6px' }}>Click on the map to place a pin at your project location.</p>
+              <p className="text-xs text-gray-400">Click on the map to place a pin at your project location.</p>
             )}
           </div>
 
-          <div style={modalStyles.formGroup}>
-            <label style={modalStyles.label}>Update Image (optional)</label>
+          <div className="space-y-1">
+            <label className="text-sm font-semibold text-gray-700">Update Image (optional)</label>
             <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => setImageFile(e.target.files[0])}
-              style={modalStyles.input}
+              type="file" accept="image/*" onChange={(e) => setImageFile(e.target.files[0])}
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-600"
             />
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
-            <div style={modalStyles.formGroup}>
-              <label style={modalStyles.label}>Start Date *</label>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <label className="text-sm font-semibold text-gray-700">Start Date *</label>
               <input
-                type="date"
-                name="startDate"
-                value={formData.startDate}
-                onChange={handleInputChange}
-                required
-                style={modalStyles.input}
-                onFocus={(e) => e.target.style.borderColor = '#0052CC'}
-                onBlur={(e) => e.target.style.borderColor = '#DFE1E6'}
+                type="date" name="startDate" value={formData.startDate} onChange={handleInputChange} required
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 outline-none focus:border-blue-500 transition-colors"
               />
             </div>
-            <div style={modalStyles.formGroup}>
-              <label style={modalStyles.label}>End Date *</label>
+            <div className="space-y-1">
+              <label className="text-sm font-semibold text-gray-700">End Date *</label>
               <input
-                type="date"
-                name="endDate"
-                value={formData.endDate}
-                onChange={handleInputChange}
-                required
-                style={modalStyles.input}
-                onFocus={(e) => e.target.style.borderColor = '#0052CC'}
-                onBlur={(e) => e.target.style.borderColor = '#DFE1E6'}
+                type="date" name="endDate" value={formData.endDate} onChange={handleInputChange} required
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 outline-none focus:border-blue-500 transition-colors"
               />
             </div>
           </div>
 
-          <div style={modalStyles.modalActions}>
-            <button 
-              type="button" 
-              onClick={onClose} 
-              style={modalStyles.cancelButton}
-              onMouseOver={(e) => e.target.style.background = '#F4F5F7'}
-              onMouseOut={(e) => e.target.style.background = 'white'}
+          {/* Footer */}
+          <div className="flex justify-end gap-3 pt-2 border-t border-gray-100 sticky bottom-0 bg-white pb-1">
+            <button
+              type="button" onClick={onClose}
+              className="px-5 py-2 text-sm font-semibold text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
             >
               Cancel
             </button>
-            <button 
-              type="submit" 
-              disabled={loading} 
-              style={modalStyles.saveButton}
-              onMouseOver={(e) => !loading && (e.target.style.background = '#0747A6')}
-              onMouseOut={(e) => !loading && (e.target.style.background = '#0052CC')}
+            <button
+              type="submit" disabled={loading}
+              className="px-5 py-2 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-60 rounded-lg shadow-sm transition-colors"
             >
-              {loading ? 'Saving...' : 'Save Changes'}
+              {loading ? 'Saving…' : 'Save Changes'}
             </button>
           </div>
         </form>
