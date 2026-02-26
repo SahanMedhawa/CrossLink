@@ -18,6 +18,7 @@
   "license": "ISC",
   "description": "CrossLink - Cross-sector collaboration platform API",
   "dependencies": {
+    "axios": "^1.13.5",
     "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",
     "dotenv": "^17.2.1",
