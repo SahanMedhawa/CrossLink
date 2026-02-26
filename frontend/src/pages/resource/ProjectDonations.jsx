@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
+import DashboardLayout from '../../components/dashboard/DashboardLayout';
 
 const ProjectDonations = () => {
   const navigate = useNavigate();
@@ -276,7 +277,7 @@ const ProjectDonations = () => {
 
   const styles = {
     container: {
-      minHeight: '100vh',
+      minHeight: 'calc(100vh - 80px)',
       background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
       padding: '2rem'
     },
@@ -468,6 +469,7 @@ const ProjectDonations = () => {
   }
 
   return (
+  <DashboardLayout userType="ngo">
     <div style={styles.container}>
       <div style={styles.content}>
         {/* Header */}
@@ -665,6 +667,7 @@ const ProjectDonations = () => {
         )}
       </div>
     </div>
+    </DashboardLayout>
   );
 };
 

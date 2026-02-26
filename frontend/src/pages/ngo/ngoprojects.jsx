@@ -1,9 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useParams } from 'react-router-dom';
 import Header from '../../components/user/Navbar';
 import ResourceForm from '../resource/ResourceForm';
 
 const AllProjects = () => {
+  const { ngoId } = useParams(); // from route: /ngo/:ngoId/projects
+
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -14,6 +17,7 @@ const AllProjects = () => {
     skills: '' 
   });
   const [showResourceForm, setShowResourceForm] = useState(false);
+
   const [projectFundingStatus, setProjectFundingStatus] = useState(null);
   const [checkingFunding, setCheckingFunding] = useState(false);
 
@@ -34,6 +38,7 @@ const AllProjects = () => {
   // Map view state
   const [showMap, setShowMap] = useState(false);
 
+  // ✅ FIXED: styles moved here into AllProjects scope
   const styles = {
     container: {
       minHeight: '100vh',
@@ -508,9 +513,29 @@ const AllProjects = () => {
     }
   };
 
+  const fetchProjects = async () => {
+    if (!ngoId) return;
+    try {
+      setLoading(true);
+      const params = {};
+      if (filters.focusArea) params.focusArea = filters.focusArea;
+      if (filters.location) params.location = filters.location;
+      if (filters.skills) params.skills = filters.skills;
+
+      const response = await axios.get(`http://localhost:5000/api/projects/ngoprojects/${ngoId}`, { params });
+      setProjects(response.data.projects || response.data);
+      setError('');
+    } catch (err) {
+      console.error(err);
+      setError('Failed to fetch projects');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => { 
     fetchProjects(); 
-  }, []);
+  }, [ngoId]);
 
   // Function to check project funding status
   const checkProjectFunding = async (projectId) => {
@@ -575,20 +600,6 @@ const AllProjects = () => {
     // Refresh funding status
     if (selectedProject?._id) {
       await checkProjectFunding(selectedProject._id);
-    }
-  };
-
-  const fetchProjects = async () => {
-    try {
-      setLoading(true);
-      const query = new URLSearchParams(filters).toString();
-      const response = await axios.get(`http://localhost:5000/api/projects/all?${query}`);
-      setProjects(response.data.projects);
-      setError('');
-    } catch (err) { 
-      setError('Failed to fetch data'); 
-    } finally { 
-      setLoading(false); 
     }
   };
 
@@ -678,16 +689,6 @@ const AllProjects = () => {
     }
     return null;
   };
-
-  if (loading) {
-    return (
-      <div style={styles.container}>
-        <div style={styles.contentWidth}>
-          <div style={styles.loadingContainer}>Loading projects...</div>
-        </div>
-      </div>
-    );
-  }
 
   if (error) {
     return (

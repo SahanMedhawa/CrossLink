@@ -87,8 +87,8 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isMobile, userType }) => {
             icon: <HeartSolidIcon  className="w-5 h-5" />,
           },
           {
-            name: "Settings",
-            href: "/ngo/settings",
+            name: "NGO Profile",
+            href: "/ngo/profile",
             icon: <Cog6ToothIcon className="w-5 h-5" />,
           },
         ];

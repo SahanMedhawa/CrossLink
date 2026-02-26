@@ -56,6 +56,26 @@ const Header = ({ setSidebarOpen, userType }) => {
       day: "numeric",
     });
   };
+  const handleViewProfile = () => {
+  setIsDropdownOpen(false);
+
+  switch (roleValue) {
+    case "ngo":
+      navigate("/ngo/profile");
+      break;
+
+    case "volunteer":
+      navigate("/volunteer/profile");
+      break;
+
+    case "corporate":
+      navigate("/corporate/profile");
+      break;
+
+    default:
+      navigate("/profile");
+  }
+};
 
   const getRoleLabel = () => {
     switch (userType) {
@@ -259,14 +279,13 @@ const Header = ({ setSidebarOpen, userType }) => {
                     Back to Home
                   </button>
                   <button
-                    type="button"
-                    onClick={() => setIsDropdownOpen(false)}
-                    className="flex items-center w-full px-5 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                    aria-disabled="true"
-                  >
-                    <UserIcon className="h-4 w-4 mr-3 text-gray-400" />
-                    View Profile
-                  </button>
+                      type="button"
+                      onClick={handleViewProfile}
+                      className="flex items-center w-full px-5 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                    >
+                      <UserIcon className="h-4 w-4 mr-3 text-gray-400" />
+                      View Profile
+                    </button>
                   <button
                     type="button"
                     onClick={() => setIsDropdownOpen(false)}

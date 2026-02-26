@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import NGOCard from '../../components/ngo/ngo_card';
 import Footer from '../../components/Footer';
+import Header from '../../components/user/Navbar';
+
 
 const NGOList = () => {
   const [ngos, setNgos] = useState([]);
@@ -224,8 +226,10 @@ const NGOList = () => {
     },
   };
 
+
   return (
     <div style={styles.container}>
+    <Header />
       {/* Hero Section */}
       <div style={styles.pageHeader}>
         <div style={styles.headerContent}>
@@ -237,15 +241,6 @@ const NGOList = () => {
           </div>
 
           {/* Back Button */}
-          <button
-            onClick={() => navigate('/')}
-            style={styles.backButton}
-          >
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M15.8333 10H4.16667M4.16667 10L10 15.8333M4.16667 10L10 4.16667" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-            Return to Home
-          </button>
         </div>
       </div>
 
