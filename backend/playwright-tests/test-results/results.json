@@ -1,0 +1,708 @@
+{
+  "config": {
+    "configFile": "C:\\Users\\UserAccount\\Desktop\\ProjectY3_S2\\CrossLink\\backend\\playwright-tests\\playwright.config.js",
+    "rootDir": "C:/Users/UserAccount/Desktop/ProjectY3_S2/CrossLink/backend/playwright-tests/tests",
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 2
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "C:/Users/UserAccount/Desktop/ProjectY3_S2/CrossLink/backend/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "API – Development",
+        "name": "API – Development",
+        "testDir": "C:/Users/UserAccount/Desktop/ProjectY3_S2/CrossLink/backend/playwright-tests/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "html",
+        {
+          "outputFolder": "playwright-report",
+          "open": "never"
+        }
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-results/results.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "runAgents": "none",
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.58.2",
+    "workers": 2,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "project_test\\project_bdd.spec.js",
+      "file": "project_test/project_bdd.spec.js",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "BDD — NGO creates a project",
+          "file": "project_test/project_bdd.spec.js",
+          "line": 11,
+          "column": 6,
+          "specs": [
+            {
+              "title": "Scenario: Successful project creation",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "API – Development",
+                  "projectName": "API – Development",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 35,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "\n    GIVEN an authenticated NGO user\n"
+                        },
+                        {
+                          "text": "    WHEN  the NGO submits a valid project form\n"
+                        },
+                        {
+                          "text": "    THEN  the API creates the project and returns HTTP 201\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-02T16:35:59.657Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "022f63e82bf849d77f6d-01967fb7b13f1816181e",
+              "file": "project_test/project_bdd.spec.js",
+              "line": 13,
+              "column": 3
+            },
+            {
+              "title": "Scenario: Volunteer is blocked from creating a project",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "API – Development",
+                  "projectName": "API – Development",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 35,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "\n    GIVEN a logged-in volunteer (not an NGO)\n"
+                        },
+                        {
+                          "text": "    WHEN  the volunteer attempts to create a project\n"
+                        },
+                        {
+                          "text": "    THEN  the API rejects the request with 403 Forbidden\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-02T16:35:59.717Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "022f63e82bf849d77f6d-e210df331a2f2476bdd6",
+              "file": "project_test/project_bdd.spec.js",
+              "line": 34,
+              "column": 3
+            }
+          ]
+        },
+        {
+          "title": "BDD — Volunteer browses projects",
+          "file": "project_test/project_bdd.spec.js",
+          "line": 55,
+          "column": 6,
+          "specs": [
+            {
+              "title": "Scenario: View all active projects",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "API – Development",
+                  "projectName": "API – Development",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 29,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "\n    GIVEN active projects exist in the system\n"
+                        },
+                        {
+                          "text": "    WHEN  the volunteer requests the project listing\n"
+                        },
+                        {
+                          "text": "    THEN  the API returns an array of active projects\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-02T16:35:59.816Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "022f63e82bf849d77f6d-e5bbee8f73b3dec9cd6f",
+              "file": "project_test/project_bdd.spec.js",
+              "line": 57,
+              "column": 3
+            },
+            {
+              "title": "Scenario: View details of one project",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "API – Development",
+                  "projectName": "API – Development",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 19,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "\n    GIVEN a project with ID mock-project-id-001 exists\n"
+                        },
+                        {
+                          "text": "    WHEN  the volunteer opens that project\n"
+                        },
+                        {
+                          "text": "    THEN  the full project details are returned\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-02T16:35:59.908Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "022f63e82bf849d77f6d-808ae8da42c55abbc311",
+              "file": "project_test/project_bdd.spec.js",
+              "line": 75,
+              "column": 3
+            },
+            {
+              "title": "Scenario: Project not found returns 404",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "API – Development",
+                  "projectName": "API – Development",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 14,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "\n    GIVEN no project exists with ID bad-id\n"
+                        },
+                        {
+                          "text": "    WHEN  the volunteer requests that project\n"
+                        },
+                        {
+                          "text": "    THEN  the API returns 404 Not Found\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-02T16:35:59.907Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "022f63e82bf849d77f6d-19562706a37780cbb8c6",
+              "file": "project_test/project_bdd.spec.js",
+              "line": 93,
+              "column": 3
+            }
+          ]
+        },
+        {
+          "title": "BDD — NGO edits a project",
+          "file": "project_test/project_bdd.spec.js",
+          "line": 114,
+          "column": 6,
+          "specs": [
+            {
+              "title": "Scenario: NGO successfully updates project details",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "API – Development",
+                  "projectName": "API – Development",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 13,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "\n    GIVEN an NGO owns an existing project\n"
+                        },
+                        {
+                          "text": "    WHEN  the NGO submits updated title and volunteer count\n"
+                        },
+                        {
+                          "text": "    THEN  the API saves changes and returns the updated project\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-02T16:36:00.030Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "022f63e82bf849d77f6d-a1d6b4e4f24cad786a00",
+              "file": "project_test/project_bdd.spec.js",
+              "line": 116,
+              "column": 3
+            },
+            {
+              "title": "Scenario: Another NGO cannot edit this project",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "API – Development",
+                  "projectName": "API – Development",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 12,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "\n    GIVEN a different NGO tries to edit someone else's project\n"
+                        },
+                        {
+                          "text": "    WHEN  they send a PUT request with new data\n"
+                        },
+                        {
+                          "text": "    THEN  the API blocks the request with 403\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-02T16:36:00.069Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "022f63e82bf849d77f6d-e3f55af2e00d3c8080fc",
+              "file": "project_test/project_bdd.spec.js",
+              "line": 136,
+              "column": 3
+            }
+          ]
+        },
+        {
+          "title": "BDD — NGO manages project status",
+          "file": "project_test/project_bdd.spec.js",
+          "line": 160,
+          "column": 6,
+          "specs": [
+            {
+              "title": "Scenario: NGO marks project as completed",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "API – Development",
+                  "projectName": "API – Development",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 10,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "\n    GIVEN an NGO has an active project\n"
+                        },
+                        {
+                          "text": "    WHEN  the NGO sets the status to completed\n"
+                        },
+                        {
+                          "text": "    THEN  the project status is updated and confirmed\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-02T16:36:00.145Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "022f63e82bf849d77f6d-0a5608e272b352d2f1a6",
+              "file": "project_test/project_bdd.spec.js",
+              "line": 162,
+              "column": 3
+            },
+            {
+              "title": "Scenario: Invalid status value is rejected",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "API – Development",
+                  "projectName": "API – Development",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 14,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "\n    GIVEN an NGO tries to set an unsupported status\n"
+                        },
+                        {
+                          "text": "    WHEN  they send status = \"published\"\n"
+                        },
+                        {
+                          "text": "    THEN  the API rejects it with 400 and lists valid values\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-02T16:36:00.201Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "022f63e82bf849d77f6d-d182b558d906b251b4eb",
+              "file": "project_test/project_bdd.spec.js",
+              "line": 182,
+              "column": 3
+            }
+          ]
+        },
+        {
+          "title": "BDD — NGO deletes a project",
+          "file": "project_test/project_bdd.spec.js",
+          "line": 205,
+          "column": 6,
+          "specs": [
+            {
+              "title": "Scenario: Owner deletes their project",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "API – Development",
+                  "projectName": "API – Development",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 8,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "\n    GIVEN an NGO owns a project they want to remove\n"
+                        },
+                        {
+                          "text": "    WHEN  the NGO sends a DELETE request\n"
+                        },
+                        {
+                          "text": "    THEN  the project is removed and a success message returned\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-02T16:36:00.243Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "022f63e82bf849d77f6d-dc3e77e0686e1f95d501",
+              "file": "project_test/project_bdd.spec.js",
+              "line": 207,
+              "column": 3
+            },
+            {
+              "title": "Scenario: Non-owner cannot delete the project",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "API – Development",
+                  "projectName": "API – Development",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 9,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "\n    GIVEN a different NGO tries to delete someone else's project\n"
+                        },
+                        {
+                          "text": "    WHEN  they send a DELETE request\n"
+                        },
+                        {
+                          "text": "    THEN  the API returns 403 Not Authorized\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-02T16:36:00.336Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "022f63e82bf849d77f6d-4c559c4f7cd187e87b77",
+              "file": "project_test/project_bdd.spec.js",
+              "line": 226,
+              "column": 3
+            }
+          ]
+        },
+        {
+          "title": "BDD — View projects by NGO",
+          "file": "project_test/project_bdd.spec.js",
+          "line": 248,
+          "column": 6,
+          "specs": [
+            {
+              "title": "Scenario: Anyone can view all projects from a specific NGO",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "API – Development",
+                  "projectName": "API – Development",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 29,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "\n    GIVEN an NGO has published multiple projects\n"
+                        },
+                        {
+                          "text": "    WHEN  a user visits that NGO's public profile\n"
+                        },
+                        {
+                          "text": "    THEN  all of that NGO's projects are returned\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-02T16:36:00.360Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "022f63e82bf849d77f6d-8dd6482c37cb1cebdeca",
+              "file": "project_test/project_bdd.spec.js",
+              "line": 250,
+              "column": 3
+            },
+            {
+              "title": "Scenario: NGO with no projects returns empty list",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "API – Development",
+                  "projectName": "API – Development",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 12,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "\n    GIVEN a new NGO that has not created any projects\n"
+                        },
+                        {
+                          "text": "    WHEN  someone views their profile\n"
+                        },
+                        {
+                          "text": "    THEN  an empty projects array is returned with 200\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-02T16:36:00.501Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "022f63e82bf849d77f6d-5803a2d4e76176d59aa9",
+              "file": "project_test/project_bdd.spec.js",
+              "line": 268,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-03-02T16:35:56.196Z",
+    "duration": 4457.338,
+    "expected": 13,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}
