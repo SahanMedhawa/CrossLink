@@ -27,7 +27,7 @@ const SAMPLE_PROJECT = {
   status: 'active',
 };
 
-// ── Extended test object with custom fixtures ─────────────────
+//  Extended test object with custom fixtures 
 const test = baseTest.extend({
 
   // FIXTURE: authToken
@@ -49,17 +49,17 @@ const test = baseTest.extend({
       token = body.crosslink_token;
     }
 
-    // ── Hand the token to the test ────────────────────────────
+    //  Hand the token to the test 
     await use(token);
 
-    // ── TEARDOWN (runs after test, even on failure) ───────────
-    console.log('  [fixture] 🧹 TEARDOWN — auth token released.');
+    //  TEARDOWN (runs after test, even on failure) 
+    console.log('  [fixture]  TEARDOWN — auth token released.');
   },
 
   // FIXTURE: createdProject
   // Depends on authToken; creates a project before test, deletes it after
   createdProject: async ({ request, authToken }, use) => {
-    console.log('  [fixture] 🔧 SETUP — creating a test project...');
+    console.log('  [fixture]  SETUP — creating a test project...');
 
     let projectId = null;
 
@@ -77,10 +77,10 @@ const test = baseTest.extend({
       projectId = 'mock-project-id-12345';
     }
 
-    // ── Hand the project ID to the test ──────────────────────
+    //  Hand the project ID to the test 
     await use({ id: projectId, ...SAMPLE_PROJECT });
 
-    // ── TEARDOWN — delete project so DB stays clean ───────────
+    //  TEARDOWN  delete project so DB stays clean 
     if (projectId && projectId !== 'mock-project-id-12345') {
       await request.delete(`/api/projects/${projectId}`, {
         headers: { Authorization: `Bearer ${authToken}` },

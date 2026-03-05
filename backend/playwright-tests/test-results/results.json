@@ -67,6 +67,1092 @@
   },
   "suites": [
     {
+      "title": "project_test\\proejct_fixtures.spec.js",
+      "file": "project_test/proejct_fixtures.spec.js",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Fixtures — Auth Token Setup",
+          "file": "project_test/proejct_fixtures.spec.js",
+          "line": 5,
+          "column": 6,
+          "specs": [
+            {
+              "title": "FIXTURE 1: authToken fixture provides a valid JWT string",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "API – Development",
+                  "projectName": "API – Development",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 456,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "\n  [fixture] 🔧 SETUP — obtaining NGO auth token...\n"
+                        },
+                        {
+                          "text": "  Token received (first 20 chars): mock-jwt-token-for-o...\n"
+                        },
+                        {
+                          "text": "  [fixture]  TEARDOWN — auth token released.\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-05T13:31:23.340Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ba73b6a626456f040d1e-bb3cef1ced7c3777b899",
+              "file": "project_test/proejct_fixtures.spec.js",
+              "line": 7,
+              "column": 3
+            },
+            {
+              "title": "FIXTURE 2: NGO and volunteer tokens are different",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "API – Development",
+                  "projectName": "API – Development",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 585,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "\n  [fixture] 🔧 SETUP — obtaining NGO auth token...\n"
+                        },
+                        {
+                          "text": "  [fixture] 🔧 SETUP — obtaining volunteer auth token...\n"
+                        },
+                        {
+                          "text": "  Two distinct tokens confirmed\n"
+                        },
+                        {
+                          "text": "  [fixture] 🧹 TEARDOWN — volunteer token released.\n"
+                        },
+                        {
+                          "text": "  [fixture]  TEARDOWN — auth token released.\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-05T13:31:23.310Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ba73b6a626456f040d1e-32a2733f7263e82d566d",
+              "file": "project_test/proejct_fixtures.spec.js",
+              "line": 14,
+              "column": 3
+            }
+          ]
+        },
+        {
+          "title": "Fixtures — Project CRUD Lifecycle",
+          "file": "project_test/proejct_fixtures.spec.js",
+          "line": 23,
+          "column": 6,
+          "specs": [
+            {
+              "title": "FIXTURE 3: createdProject fixture sets up a live project",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "API – Development",
+                  "projectName": "API – Development",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 286,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "\n  [fixture] 🔧 SETUP — obtaining NGO auth token...\n"
+                        },
+                        {
+                          "text": "  [fixture]  SETUP — creating a test project...\n"
+                        },
+                        {
+                          "text": "  [fixture]   (server offline — using mock project id)\n"
+                        },
+                        {
+                          "text": "  Project ready: mock-project-id-12345\n"
+                        },
+                        {
+                          "text": "  [fixture] 🧹 TEARDOWN — mock project discarded.\n"
+                        },
+                        {
+                          "text": "  [fixture]  TEARDOWN — auth token released.\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-05T13:31:23.938Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ba73b6a626456f040d1e-440aabdbac2fc8123c3e",
+              "file": "project_test/proejct_fixtures.spec.js",
+              "line": 25,
+              "column": 3
+            },
+            {
+              "title": "FIXTURE 4: getProjectById — fetch project created by fixture",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "API – Development",
+                  "projectName": "API – Development",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 170,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "\n  [fixture] 🔧 SETUP — obtaining NGO auth token...\n"
+                        },
+                        {
+                          "text": "  [fixture]  SETUP — creating a test project...\n"
+                        },
+                        {
+                          "text": "  [fixture]   (server offline — using mock project id)\n"
+                        },
+                        {
+                          "text": "  Fetched project: mock-project-id-12345\n"
+                        },
+                        {
+                          "text": "  [fixture] 🧹 TEARDOWN — mock project discarded.\n"
+                        },
+                        {
+                          "text": "  [fixture]  TEARDOWN — auth token released.\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-05T13:31:24.036Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ba73b6a626456f040d1e-df691943493e5b87dd4e",
+              "file": "project_test/proejct_fixtures.spec.js",
+              "line": 33,
+              "column": 3
+            },
+            {
+              "title": "FIXTURE 5: updateProject — update the fixture project title",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "API – Development",
+                  "projectName": "API – Development",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 202,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "\n  [fixture] 🔧 SETUP — obtaining NGO auth token...\n"
+                        },
+                        {
+                          "text": "  [fixture]  SETUP — creating a test project...\n"
+                        },
+                        {
+                          "text": "  [fixture]   (server offline — using mock project id)\n"
+                        },
+                        {
+                          "text": "  Project title updated via NGO credentials\n"
+                        },
+                        {
+                          "text": "  [fixture] 🧹 TEARDOWN — mock project discarded.\n"
+                        },
+                        {
+                          "text": "  [fixture]  TEARDOWN — auth token released.\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-05T13:31:24.486Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ba73b6a626456f040d1e-4f9f835ed1aa444b5a96",
+              "file": "project_test/proejct_fixtures.spec.js",
+              "line": 46,
+              "column": 3
+            },
+            {
+              "title": "FIXTURE 6: updateProjectStatus — mark fixture project as completed",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "API – Development",
+                  "projectName": "API – Development",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 190,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "\n  [fixture] 🔧 SETUP — obtaining NGO auth token...\n"
+                        },
+                        {
+                          "text": "  [fixture]  SETUP — creating a test project...\n"
+                        },
+                        {
+                          "text": "  [fixture]   (server offline — using mock project id)\n"
+                        },
+                        {
+                          "text": "  Project marked as completed\n"
+                        },
+                        {
+                          "text": "  [fixture] 🧹 TEARDOWN — mock project discarded.\n"
+                        },
+                        {
+                          "text": "  [fixture]  TEARDOWN — auth token released.\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-05T13:31:24.505Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ba73b6a626456f040d1e-9ead5dcd47cb09224b5e",
+              "file": "project_test/proejct_fixtures.spec.js",
+              "line": 61,
+              "column": 3
+            },
+            {
+              "title": "FIXTURE 7: deleteProject — owner can delete the fixture project",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "API – Development",
+                  "projectName": "API – Development",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 143,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "\n  [fixture] 🔧 SETUP — obtaining NGO auth token...\n"
+                        },
+                        {
+                          "text": "  [fixture]  SETUP — creating a test project...\n"
+                        },
+                        {
+                          "text": "  [fixture]   (server offline — using mock project id)\n"
+                        },
+                        {
+                          "text": "  [fixture] 🧹 TEARDOWN — mock project discarded.\n"
+                        },
+                        {
+                          "text": "  [fixture]  TEARDOWN — auth token released.\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-05T13:31:24.808Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ba73b6a626456f040d1e-8e3133b790e1030837c4",
+              "file": "project_test/proejct_fixtures.spec.js",
+              "line": 76,
+              "column": 3
+            }
+          ]
+        },
+        {
+          "title": "Fixtures — getNGOProjects with beforeEach/afterEach",
+          "file": "project_test/proejct_fixtures.spec.js",
+          "line": 92,
+          "column": 6,
+          "specs": [
+            {
+              "title": "FIXTURE 8: getNGOProjects — returns all projects for an NGO",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "API – Development",
+                  "projectName": "API – Development",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 15,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "\n  ── beforeEach: init context ──\n"
+                        },
+                        {
+                          "text": "  Returned 3 projects for NGO\n"
+                        },
+                        {
+                          "text": "  ── afterEach: \"FIXTURE 8: getNGOProjects — returns all projects for an NGO\" took 9ms ──\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-05T13:31:24.857Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ba73b6a626456f040d1e-fabdd793f1878f38c6cb",
+              "file": "project_test/proejct_fixtures.spec.js",
+              "line": 108,
+              "column": 3
+            },
+            {
+              "title": "FIXTURE 9: getNGOProjects — fresh stub per test, no cross-test contamination",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "API – Development",
+                  "projectName": "API – Development",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 17,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "\n  ── beforeEach: init context ──\n"
+                        },
+                        {
+                          "text": "  Fresh ApiStub confirmed — no contamination from previous test\n"
+                        },
+                        {
+                          "text": "  ── afterEach: \"FIXTURE 9: getNGOProjects — fresh stub per test, no cross-test contamination\" took 11ms ──\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-05T13:31:25.109Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ba73b6a626456f040d1e-aa57310e0e00653b9451",
+              "file": "project_test/proejct_fixtures.spec.js",
+              "line": 119,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "project_test\\project_assertions.spec.js",
+      "file": "project_test/project_assertions.spec.js",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Assertions — createProject",
+          "file": "project_test/project_assertions.spec.js",
+          "line": 5,
+          "column": 6,
+          "specs": [
+            {
+              "title": "returns 201 with correct project shape on success",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "API – Development",
+                  "projectName": "API – Development",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 61,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-05T13:31:25.248Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "2dc07ced3760e3eaae74-708dd2ff1d2df2777f6f",
+              "file": "project_test/project_assertions.spec.js",
+              "line": 7,
+              "column": 3
+            },
+            {
+              "title": "returns 403 when a volunteer tries to create a project",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "API – Development",
+                  "projectName": "API – Development",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 20,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-05T13:31:25.359Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "2dc07ced3760e3eaae74-af532d5c4128afff2efc",
+              "file": "project_test/project_assertions.spec.js",
+              "line": 26,
+              "column": 3
+            },
+            {
+              "title": "returns 400 for invalid volunteersNeeded value",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "API – Development",
+                  "projectName": "API – Development",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 10,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-05T13:31:25.450Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "2dc07ced3760e3eaae74-d33e6b082c2a51780d7e",
+              "file": "project_test/project_assertions.spec.js",
+              "line": 41,
+              "column": 3
+            }
+          ]
+        },
+        {
+          "title": "Assertions — getAllProjects",
+          "file": "project_test/project_assertions.spec.js",
+          "line": 58,
+          "column": 6,
+          "specs": [
+            {
+              "title": "returns 200 with array of active projects",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "API – Development",
+                  "projectName": "API – Development",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 32,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-05T13:31:25.468Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "2dc07ced3760e3eaae74-10ac6d92525650a9c106",
+              "file": "project_test/project_assertions.spec.js",
+              "line": 60,
+              "column": 3
+            },
+            {
+              "title": "filters projects by focusArea",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "API – Development",
+                  "projectName": "API – Development",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 10,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-05T13:31:25.568Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "2dc07ced3760e3eaae74-afda625b7558a5350b4d",
+              "file": "project_test/project_assertions.spec.js",
+              "line": 80,
+              "column": 3
+            }
+          ]
+        },
+        {
+          "title": "Assertions — getProjectById",
+          "file": "project_test/project_assertions.spec.js",
+          "line": 94,
+          "column": 6,
+          "specs": [
+            {
+              "title": "returns 200 with full project details for a valid ID",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "API – Development",
+                  "projectName": "API – Development",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 16,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-05T13:31:25.586Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "2dc07ced3760e3eaae74-f44794de7238733bdf6c",
+              "file": "project_test/project_assertions.spec.js",
+              "line": 96,
+              "column": 3
+            },
+            {
+              "title": "returns 404 when project ID does not exist",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "API – Development",
+                  "projectName": "API – Development",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 10,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-05T13:31:25.676Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "2dc07ced3760e3eaae74-3fcec836d098efcd3d14",
+              "file": "project_test/project_assertions.spec.js",
+              "line": 110,
+              "column": 3
+            },
+            {
+              "title": "soft assertions — validate all project fields at once",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "API – Development",
+                  "projectName": "API – Development",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 22,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-05T13:31:25.692Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "2dc07ced3760e3eaae74-27a942c7dc1cecf47f93",
+              "file": "project_test/project_assertions.spec.js",
+              "line": 122,
+              "column": 3
+            }
+          ]
+        },
+        {
+          "title": "Assertions — updateProject",
+          "file": "project_test/project_assertions.spec.js",
+          "line": 140,
+          "column": 6,
+          "specs": [
+            {
+              "title": "returns 200 with updated project data",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "API – Development",
+                  "projectName": "API – Development",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 83,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-05T13:31:25.840Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "2dc07ced3760e3eaae74-1f912aec2d3569ec4f5f",
+              "file": "project_test/project_assertions.spec.js",
+              "line": 142,
+              "column": 3
+            },
+            {
+              "title": "returns 403 when a different NGO tries to update the project",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "API – Development",
+                  "projectName": "API – Development",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 10,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-05T13:31:25.895Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "2dc07ced3760e3eaae74-83f8e35db4f1805755d6",
+              "file": "project_test/project_assertions.spec.js",
+              "line": 158,
+              "column": 3
+            }
+          ]
+        },
+        {
+          "title": "Assertions — updateProjectStatus",
+          "file": "project_test/project_assertions.spec.js",
+          "line": 174,
+          "column": 6,
+          "specs": [
+            {
+              "title": "returns 200 when NGO marks project as completed",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "API – Development",
+                  "projectName": "API – Development",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 12,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-05T13:31:26.087Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "2dc07ced3760e3eaae74-cda12655ceae1e3a88eb",
+              "file": "project_test/project_assertions.spec.js",
+              "line": 176,
+              "column": 3
+            },
+            {
+              "title": "returns 400 for an invalid status value",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "API – Development",
+                  "projectName": "API – Development",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 9,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-05T13:31:26.165Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "2dc07ced3760e3eaae74-1060fb3f935f7760dd01",
+              "file": "project_test/project_assertions.spec.js",
+              "line": 191,
+              "column": 3
+            }
+          ]
+        },
+        {
+          "title": "Assertions — deleteProject",
+          "file": "project_test/project_assertions.spec.js",
+          "line": 207,
+          "column": 6,
+          "specs": [
+            {
+              "title": "returns 200 with success message when owner deletes project",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "API – Development",
+                  "projectName": "API – Development",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 10,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-05T13:31:26.210Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "2dc07ced3760e3eaae74-35ffb274d9738cb9d5e0",
+              "file": "project_test/project_assertions.spec.js",
+              "line": 209,
+              "column": 3
+            },
+            {
+              "title": "returns 403 when non-owner tries to delete the project",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "API – Development",
+                  "projectName": "API – Development",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 11,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-05T13:31:26.271Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "2dc07ced3760e3eaae74-8f687f99a6665ade865a",
+              "file": "project_test/project_assertions.spec.js",
+              "line": 223,
+              "column": 3
+            }
+          ]
+        },
+        {
+          "title": "Assertions — getProjectsByNGO",
+          "file": "project_test/project_assertions.spec.js",
+          "line": 238,
+          "column": 6,
+          "specs": [
+            {
+              "title": "returns all projects belonging to a specific NGO",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "API – Development",
+                  "projectName": "API – Development",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 18,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-05T13:31:26.294Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "2dc07ced3760e3eaae74-4213b1336fa72ab9ac38",
+              "file": "project_test/project_assertions.spec.js",
+              "line": 240,
+              "column": 3
+            },
+            {
+              "title": "returns empty array when NGO has no projects",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "API – Development",
+                  "projectName": "API – Development",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 9,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-05T13:31:26.398Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "2dc07ced3760e3eaae74-067c8947ddfe302cda46",
+              "file": "project_test/project_assertions.spec.js",
+              "line": 252,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
       "title": "project_test\\project_bdd.spec.js",
       "file": "project_test/project_bdd.spec.js",
       "column": 0,
@@ -76,7 +1162,7 @@
         {
           "title": "BDD — NGO creates a project",
           "file": "project_test/project_bdd.spec.js",
-          "line": 11,
+          "line": 9,
           "column": 6,
           "specs": [
             {
@@ -92,10 +1178,10 @@
                   "projectName": "API – Development",
                   "results": [
                     {
-                      "workerIndex": 0,
-                      "parallelIndex": 0,
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
                       "status": "passed",
-                      "duration": 35,
+                      "duration": 24,
                       "errors": [],
                       "stdout": [
                         {
@@ -110,7 +1196,7 @@
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-03-02T16:35:59.657Z",
+                      "startTime": "2026-03-05T13:31:26.476Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -120,7 +1206,7 @@
               ],
               "id": "022f63e82bf849d77f6d-01967fb7b13f1816181e",
               "file": "project_test/project_bdd.spec.js",
-              "line": 13,
+              "line": 11,
               "column": 3
             },
             {
@@ -136,10 +1222,10 @@
                   "projectName": "API – Development",
                   "results": [
                     {
-                      "workerIndex": 1,
-                      "parallelIndex": 1,
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 35,
+                      "duration": 17,
                       "errors": [],
                       "stdout": [
                         {
@@ -154,7 +1240,7 @@
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-03-02T16:35:59.717Z",
+                      "startTime": "2026-03-05T13:31:26.507Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -164,7 +1250,7 @@
               ],
               "id": "022f63e82bf849d77f6d-e210df331a2f2476bdd6",
               "file": "project_test/project_bdd.spec.js",
-              "line": 34,
+              "line": 32,
               "column": 3
             }
           ]
@@ -172,7 +1258,7 @@
         {
           "title": "BDD — Volunteer browses projects",
           "file": "project_test/project_bdd.spec.js",
-          "line": 55,
+          "line": 52,
           "column": 6,
           "specs": [
             {
@@ -188,10 +1274,10 @@
                   "projectName": "API – Development",
                   "results": [
                     {
-                      "workerIndex": 0,
-                      "parallelIndex": 0,
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
                       "status": "passed",
-                      "duration": 29,
+                      "duration": 17,
                       "errors": [],
                       "stdout": [
                         {
@@ -206,7 +1292,7 @@
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-03-02T16:35:59.816Z",
+                      "startTime": "2026-03-05T13:31:26.589Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -216,7 +1302,7 @@
               ],
               "id": "022f63e82bf849d77f6d-e5bbee8f73b3dec9cd6f",
               "file": "project_test/project_bdd.spec.js",
-              "line": 57,
+              "line": 54,
               "column": 3
             },
             {
@@ -235,7 +1321,7 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 19,
+                      "duration": 17,
                       "errors": [],
                       "stdout": [
                         {
@@ -250,7 +1336,7 @@
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-03-02T16:35:59.908Z",
+                      "startTime": "2026-03-05T13:31:26.603Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -260,7 +1346,7 @@
               ],
               "id": "022f63e82bf849d77f6d-808ae8da42c55abbc311",
               "file": "project_test/project_bdd.spec.js",
-              "line": 75,
+              "line": 72,
               "column": 3
             },
             {
@@ -279,7 +1365,7 @@
                       "workerIndex": 1,
                       "parallelIndex": 1,
                       "status": "passed",
-                      "duration": 14,
+                      "duration": 16,
                       "errors": [],
                       "stdout": [
                         {
@@ -294,7 +1380,7 @@
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-03-02T16:35:59.907Z",
+                      "startTime": "2026-03-05T13:31:26.734Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -304,7 +1390,7 @@
               ],
               "id": "022f63e82bf849d77f6d-19562706a37780cbb8c6",
               "file": "project_test/project_bdd.spec.js",
-              "line": 93,
+              "line": 90,
               "column": 3
             }
           ]
@@ -312,7 +1398,7 @@
         {
           "title": "BDD — NGO edits a project",
           "file": "project_test/project_bdd.spec.js",
-          "line": 114,
+          "line": 109,
           "column": 6,
           "specs": [
             {
@@ -331,7 +1417,7 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 13,
+                      "duration": 16,
                       "errors": [],
                       "stdout": [
                         {
@@ -346,7 +1432,7 @@
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-03-02T16:36:00.030Z",
+                      "startTime": "2026-03-05T13:31:26.756Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -356,7 +1442,7 @@
               ],
               "id": "022f63e82bf849d77f6d-a1d6b4e4f24cad786a00",
               "file": "project_test/project_bdd.spec.js",
-              "line": 116,
+              "line": 111,
               "column": 3
             },
             {
@@ -375,7 +1461,7 @@
                       "workerIndex": 1,
                       "parallelIndex": 1,
                       "status": "passed",
-                      "duration": 12,
+                      "duration": 11,
                       "errors": [],
                       "stdout": [
                         {
@@ -390,7 +1476,7 @@
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-03-02T16:36:00.069Z",
+                      "startTime": "2026-03-05T13:31:26.857Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -400,7 +1486,7 @@
               ],
               "id": "022f63e82bf849d77f6d-e3f55af2e00d3c8080fc",
               "file": "project_test/project_bdd.spec.js",
-              "line": 136,
+              "line": 131,
               "column": 3
             }
           ]
@@ -408,7 +1494,7 @@
         {
           "title": "BDD — NGO manages project status",
           "file": "project_test/project_bdd.spec.js",
-          "line": 160,
+          "line": 154,
           "column": 6,
           "specs": [
             {
@@ -427,7 +1513,7 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 10,
+                      "duration": 8,
                       "errors": [],
                       "stdout": [
                         {
@@ -442,7 +1528,7 @@
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-03-02T16:36:00.145Z",
+                      "startTime": "2026-03-05T13:31:26.881Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -452,7 +1538,7 @@
               ],
               "id": "022f63e82bf849d77f6d-0a5608e272b352d2f1a6",
               "file": "project_test/project_bdd.spec.js",
-              "line": 162,
+              "line": 156,
               "column": 3
             },
             {
@@ -471,7 +1557,7 @@
                       "workerIndex": 1,
                       "parallelIndex": 1,
                       "status": "passed",
-                      "duration": 14,
+                      "duration": 10,
                       "errors": [],
                       "stdout": [
                         {
@@ -486,7 +1572,7 @@
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-03-02T16:36:00.201Z",
+                      "startTime": "2026-03-05T13:31:26.943Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -496,7 +1582,7 @@
               ],
               "id": "022f63e82bf849d77f6d-d182b558d906b251b4eb",
               "file": "project_test/project_bdd.spec.js",
-              "line": 182,
+              "line": 176,
               "column": 3
             }
           ]
@@ -504,7 +1590,7 @@
         {
           "title": "BDD — NGO deletes a project",
           "file": "project_test/project_bdd.spec.js",
-          "line": 205,
+          "line": 197,
           "column": 6,
           "specs": [
             {
@@ -523,7 +1609,7 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 8,
+                      "duration": 11,
                       "errors": [],
                       "stdout": [
                         {
@@ -538,7 +1624,7 @@
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-03-02T16:36:00.243Z",
+                      "startTime": "2026-03-05T13:31:26.956Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -548,11 +1634,464 @@
               ],
               "id": "022f63e82bf849d77f6d-dc3e77e0686e1f95d501",
               "file": "project_test/project_bdd.spec.js",
-              "line": 207,
+              "line": 199,
               "column": 3
             },
             {
               "title": "Scenario: Non-owner cannot delete the project",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "API – Development",
+                  "projectName": "API – Development",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 13,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "\n    GIVEN a different NGO tries to delete someone else's project\n"
+                        },
+                        {
+                          "text": "    WHEN  they send a DELETE request\n"
+                        },
+                        {
+                          "text": "    THEN  the API returns 403 Not Authorized\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-05T13:31:27.058Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "022f63e82bf849d77f6d-4c559c4f7cd187e87b77",
+              "file": "project_test/project_bdd.spec.js",
+              "line": 218,
+              "column": 3
+            }
+          ]
+        },
+        {
+          "title": "BDD — View projects by NGO",
+          "file": "project_test/project_bdd.spec.js",
+          "line": 239,
+          "column": 6,
+          "specs": [
+            {
+              "title": "Scenario: Anyone can view all projects from a specific NGO",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "API – Development",
+                  "projectName": "API – Development",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 24,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "\n    GIVEN an NGO has published multiple projects\n"
+                        },
+                        {
+                          "text": "    WHEN  a user visits that NGO's public profile\n"
+                        },
+                        {
+                          "text": "    THEN  all of that NGO's projects are returned\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-05T13:31:27.088Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "022f63e82bf849d77f6d-8dd6482c37cb1cebdeca",
+              "file": "project_test/project_bdd.spec.js",
+              "line": 241,
+              "column": 3
+            },
+            {
+              "title": "Scenario: NGO with no projects returns empty list",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "API – Development",
+                  "projectName": "API – Development",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 14,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "\n    GIVEN a new NGO that has not created any projects\n"
+                        },
+                        {
+                          "text": "    WHEN  someone views their profile\n"
+                        },
+                        {
+                          "text": "    THEN  an empty projects array is returned with 200\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-05T13:31:27.242Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "022f63e82bf849d77f6d-5803a2d4e76176d59aa9",
+              "file": "project_test/project_bdd.spec.js",
+              "line": 259,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "project_test\\project_mocking.spec.js",
+      "file": "project_test/project_mocking.spec.js",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Mocking — All Endpoints Stubbed",
+          "file": "project_test/project_mocking.spec.js",
+          "line": 5,
+          "column": 6,
+          "specs": [
+            {
+              "title": "MOCK 1: getAllProjects — returns list without hitting server",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "API – Development",
+                  "projectName": "API – Development",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 19,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "  GET /api/projects stubbed — no real network call\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-05T13:31:27.524Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "db98096f0f684f5a92e5-d03622c088cd9c517b4d",
+              "file": "project_test/project_mocking.spec.js",
+              "line": 7,
+              "column": 3
+            },
+            {
+              "title": "MOCK 2: getProjectById — returns single project stub",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "API – Development",
+                  "projectName": "API – Development",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 11,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-05T13:31:27.574Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "db98096f0f684f5a92e5-959a78536cfd9f716e45",
+              "file": "project_test/project_mocking.spec.js",
+              "line": 20,
+              "column": 3
+            },
+            {
+              "title": "MOCK 3: updateProject — returns updated project stub",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "API – Development",
+                  "projectName": "API – Development",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 13,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-05T13:31:27.643Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "db98096f0f684f5a92e5-13d7bf30165988a78300",
+              "file": "project_test/project_mocking.spec.js",
+              "line": 32,
+              "column": 3
+            },
+            {
+              "title": "MOCK 4: updateProjectStatus — stub status change to cancelled",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "API – Development",
+                  "projectName": "API – Development",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 13,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-05T13:31:27.673Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "db98096f0f684f5a92e5-a040beb53da65a4c2441",
+              "file": "project_test/project_mocking.spec.js",
+              "line": 46,
+              "column": 3
+            },
+            {
+              "title": "MOCK 5: deleteProject — stub successful deletion",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "API – Development",
+                  "projectName": "API – Development",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 16,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-05T13:31:27.772Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "db98096f0f684f5a92e5-3de8ca312b9369f0a53e",
+              "file": "project_test/project_mocking.spec.js",
+              "line": 59,
+              "column": 3
+            },
+            {
+              "title": "MOCK 6: getProjectsByNGO — returns only that NGO's projects",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "API – Development",
+                  "projectName": "API – Development",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 24,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-05T13:31:27.807Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "db98096f0f684f5a92e5-9930a6cfca6b24e0c68d",
+              "file": "project_test/project_mocking.spec.js",
+              "line": 70,
+              "column": 3
+            }
+          ]
+        },
+        {
+          "title": "Mocking — Call Recording",
+          "file": "project_test/project_mocking.spec.js",
+          "line": 84,
+          "column": 6,
+          "specs": [
+            {
+              "title": "MOCK 7: records method, path, and payload for updateProject",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "API – Development",
+                  "projectName": "API – Development",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 17,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-05T13:31:27.920Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "db98096f0f684f5a92e5-65f00800d075c9e52b69",
+              "file": "project_test/project_mocking.spec.js",
+              "line": 86,
+              "column": 3
+            },
+            {
+              "title": "MOCK 8: records status change payload for updateProjectStatus",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "API – Development",
+                  "projectName": "API – Development",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 8,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "  Status change payload verified from call record\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-05T13:31:28.120Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "db98096f0f684f5a92e5-364af710a2ed07129643",
+              "file": "project_test/project_mocking.spec.js",
+              "line": 102,
+              "column": 3
+            }
+          ]
+        },
+        {
+          "title": "Mocking — Error Simulation",
+          "file": "project_test/project_mocking.spec.js",
+          "line": 117,
+          "column": 6,
+          "specs": [
+            {
+              "title": "MOCK 9: getProjectById returns 404 for unknown ID",
               "ok": true,
               "tags": [],
               "tests": [
@@ -569,20 +2108,10 @@
                       "status": "passed",
                       "duration": 9,
                       "errors": [],
-                      "stdout": [
-                        {
-                          "text": "\n    GIVEN a different NGO tries to delete someone else's project\n"
-                        },
-                        {
-                          "text": "    WHEN  they send a DELETE request\n"
-                        },
-                        {
-                          "text": "    THEN  the API returns 403 Not Authorized\n"
-                        }
-                      ],
+                      "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-03-02T16:36:00.336Z",
+                      "startTime": "2026-03-05T13:31:28.233Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -590,21 +2119,13 @@
                   "status": "expected"
                 }
               ],
-              "id": "022f63e82bf849d77f6d-4c559c4f7cd187e87b77",
-              "file": "project_test/project_bdd.spec.js",
-              "line": 226,
+              "id": "db98096f0f684f5a92e5-3ac96b570da7a50409df",
+              "file": "project_test/project_mocking.spec.js",
+              "line": 119,
               "column": 3
-            }
-          ]
-        },
-        {
-          "title": "BDD — View projects by NGO",
-          "file": "project_test/project_bdd.spec.js",
-          "line": 248,
-          "column": 6,
-          "specs": [
+            },
             {
-              "title": "Scenario: Anyone can view all projects from a specific NGO",
+              "title": "MOCK 10: updateProject returns 403 for non-owner",
               "ok": true,
               "tags": [],
               "tests": [
@@ -619,22 +2140,12 @@
                       "workerIndex": 1,
                       "parallelIndex": 1,
                       "status": "passed",
-                      "duration": 29,
+                      "duration": 11,
                       "errors": [],
-                      "stdout": [
-                        {
-                          "text": "\n    GIVEN an NGO has published multiple projects\n"
-                        },
-                        {
-                          "text": "    WHEN  a user visits that NGO's public profile\n"
-                        },
-                        {
-                          "text": "    THEN  all of that NGO's projects are returned\n"
-                        }
-                      ],
+                      "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-03-02T16:36:00.360Z",
+                      "startTime": "2026-03-05T13:31:28.328Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -642,13 +2153,13 @@
                   "status": "expected"
                 }
               ],
-              "id": "022f63e82bf849d77f6d-8dd6482c37cb1cebdeca",
-              "file": "project_test/project_bdd.spec.js",
-              "line": 250,
+              "id": "db98096f0f684f5a92e5-54266cd005ce5386ec04",
+              "file": "project_test/project_mocking.spec.js",
+              "line": 130,
               "column": 3
             },
             {
-              "title": "Scenario: NGO with no projects returns empty list",
+              "title": "MOCK 11: updateProjectStatus returns 400 for invalid status",
               "ok": true,
               "tags": [],
               "tests": [
@@ -663,22 +2174,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 12,
+                      "duration": 14,
                       "errors": [],
-                      "stdout": [
-                        {
-                          "text": "\n    GIVEN a new NGO that has not created any projects\n"
-                        },
-                        {
-                          "text": "    WHEN  someone views their profile\n"
-                        },
-                        {
-                          "text": "    THEN  an empty projects array is returned with 200\n"
-                        }
-                      ],
+                      "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-03-02T16:36:00.501Z",
+                      "startTime": "2026-03-05T13:31:28.400Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -686,9 +2187,119 @@
                   "status": "expected"
                 }
               ],
-              "id": "022f63e82bf849d77f6d-5803a2d4e76176d59aa9",
-              "file": "project_test/project_bdd.spec.js",
-              "line": 268,
+              "id": "db98096f0f684f5a92e5-210ff0f05f6584a24332",
+              "file": "project_test/project_mocking.spec.js",
+              "line": 144,
+              "column": 3
+            },
+            {
+              "title": "MOCK 12: deleteProject returns 403 for non-owner",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "API – Development",
+                  "projectName": "API – Development",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 11,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-05T13:31:28.731Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "db98096f0f684f5a92e5-c0bd8eacb4e8009be174",
+              "file": "project_test/project_mocking.spec.js",
+              "line": 157,
+              "column": 3
+            }
+          ]
+        },
+        {
+          "title": "Mocking — page.route() Browser Interception",
+          "file": "project_test/project_mocking.spec.js",
+          "line": 170,
+          "column": 6,
+          "specs": [
+            {
+              "title": "MOCK 13: intercept GET /api/projects in browser",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "API – Development",
+                  "projectName": "API – Development",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 686,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-05T13:31:28.913Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "db98096f0f684f5a92e5-a48f6cf699a0d1b7f78f",
+              "file": "project_test/project_mocking.spec.js",
+              "line": 172,
+              "column": 3
+            },
+            {
+              "title": "MOCK 14: intercept DELETE and simulate 403 in browser",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "API – Development",
+                  "projectName": "API – Development",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 748,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-05T13:31:29.060Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "db98096f0f684f5a92e5-85ddac73131432aacc5f",
+              "file": "project_test/project_mocking.spec.js",
+              "line": 197,
               "column": 3
             }
           ]
@@ -698,9 +2309,9 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-03-02T16:35:56.196Z",
-    "duration": 4457.338,
-    "expected": 13,
+    "startTime": "2026-03-05T13:31:17.813Z",
+    "duration": 12820.514,
+    "expected": 52,
     "skipped": 0,
     "unexpected": 0,
     "flaky": 0

@@ -2,7 +2,7 @@
 
 const MOCK_RESPONSES = {
 
-  // ── createProject ──────────────────────────────────────────
+  //  createProject 
   createProject: {
     status: 201,
     body: {
@@ -27,7 +27,7 @@ const MOCK_RESPONSES = {
     },
   },
 
-  // ── getAllProjects ──────────────────────────────────────────
+  //  getAllProjects 
   getAllProjects: {
     status: 200,
     body: {
@@ -40,7 +40,7 @@ const MOCK_RESPONSES = {
     },
   },
 
-  // ── getProjectById ─────────────────────────────────────────
+  //  getProjectById 
   getProjectById: {
     status: 200,
     body: {
@@ -57,7 +57,7 @@ const MOCK_RESPONSES = {
     },
   },
 
-  // ── updateProject ──────────────────────────────────────────
+  //  updateProject 
   updateProject: {
     status: 200,
     body: {
@@ -67,7 +67,7 @@ const MOCK_RESPONSES = {
     },
   },
 
-  // ── updateProjectStatus ────────────────────────────────────
+  //  updateProjectStatus 
   updateStatus: {
     status: 200,
     body: {
@@ -94,13 +94,13 @@ const MOCK_RESPONSES = {
     },
   },
 
-  // ── deleteProject ──────────────────────────────────────────
+  //  deleteProject 
   deleteProject: {
     status: 200,
     body: { success: true, message: 'Project deleted successfully' },
   },
 
-  // ── getProjectsByNGO ───────────────────────────────────────
+  //  getProjectsByNGO 
   ngoProjects: {
     status: 200,
     body: {
@@ -117,7 +117,7 @@ const MOCK_RESPONSES = {
     body: { projects: [] },
   },
 
-  // ── getNGOProjects (owner view) ────────────────────────────
+  //  getNGOProjects (owner view) 
   ngoOwnProjects: {
     status: 200,
     body: {
@@ -131,7 +131,7 @@ const MOCK_RESPONSES = {
     },
   },
 
-  // ── Error responses ────────────────────────────────────────
+  //  Error responses 
   forbidden: {
     status: 403,
     body: { success: false, message: 'Only NGOs can create projects' },
@@ -158,7 +158,7 @@ const MOCK_RESPONSES = {
   },
 };
 
-// ── page.route() helper ───────────────────────────────────────
+//  page.route() helper 
 async function mockRoute(page, method, urlPattern, responseKey) {
   await page.route(`**${urlPattern}`, (route) => {
     if (route.request().method() !== method) return route.continue();
@@ -171,7 +171,7 @@ async function mockRoute(page, method, urlPattern, responseKey) {
   });
 }
 
-// ── In-memory API stub ────────────────────────────────────────
+//  In-memory API stub 
 class ApiStub {
   constructor() {
     this.calls   = [];
