@@ -26,3 +26,7 @@ coverage
 
 # Environment files
 backend/.env
+
+# Ignore Playwright test results and reports
+test-results/
+playwright-report/
