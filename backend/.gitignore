@@ -30,7 +30,4 @@ backend/.env
 # Ignore Playwright test results and reports
 test-results/
 playwright-report/
-playwright-report/
-# Playwright
-playwright-report/
-test-results/
+
