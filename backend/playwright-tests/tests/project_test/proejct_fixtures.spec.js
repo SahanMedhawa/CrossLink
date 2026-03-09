@@ -1,16 +1,7 @@
-// tests/02-fixtures.spec.js
-// ============================================================
-// FEATURE 2 — FIXTURES & SETUP / TEARDOWN
-// Covers: getNGOProjects, getProjectById, updateProject,
-//         deleteProject (lifecycle via fixture)
-// ============================================================
-
 const { test, expect, SAMPLE_PROJECT } = require('../../fixtures/projectFixtures');
 const { ApiStub } = require('../../mocks/projectapimocks');
 
-// ─────────────────────────────────────────────────────────────
 // authToken fixture
-// ─────────────────────────────────────────────────────────────
 test.describe('Fixtures — Auth Token Setup', () => {
 
   test('FIXTURE 1: authToken fixture provides a valid JWT string', async ({ authToken }) => {
@@ -28,9 +19,7 @@ test.describe('Fixtures — Auth Token Setup', () => {
   });
 });
 
-// ─────────────────────────────────────────────────────────────
 // createdProject fixture — full CRUD lifecycle
-// ─────────────────────────────────────────────────────────────
 test.describe('Fixtures — Project CRUD Lifecycle', () => {
 
   test('FIXTURE 3: createdProject fixture sets up a live project', async ({ createdProject }) => {
@@ -99,9 +88,7 @@ test.describe('Fixtures — Project CRUD Lifecycle', () => {
   });
 });
 
-// ─────────────────────────────────────────────────────────────
 // beforeEach / afterEach — getNGOProjects
-// ─────────────────────────────────────────────────────────────
 test.describe('Fixtures — getNGOProjects with beforeEach/afterEach', () => {
   let sharedContext = {};
 

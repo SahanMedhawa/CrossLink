@@ -5,9 +5,7 @@ async function given(desc, fn) { console.log(`\n    GIVEN ${desc}`); return fn()
 async function when(desc, fn)  { console.log(`    WHEN  ${desc}`); return fn(); }
 async function then(desc, fn)  { console.log(`    THEN  ${desc}`); return fn(); }
 
-// ─────────────────────────────────────────────────────────────
 // STORY 1: NGO creates a project
-// ─────────────────────────────────────────────────────────────
 test.describe('BDD — NGO creates a project', () => {
 
   test('Scenario: Successful project creation', async () => {
@@ -49,9 +47,8 @@ test.describe('BDD — NGO creates a project', () => {
   });
 });
 
-// ─────────────────────────────────────────────────────────────
+
 // STORY 2: Volunteer browses projects
-// ─────────────────────────────────────────────────────────────
 test.describe('BDD — Volunteer browses projects', () => {
 
   test('Scenario: View all active projects', async () => {
@@ -108,9 +105,7 @@ test.describe('BDD — Volunteer browses projects', () => {
   });
 });
 
-// ─────────────────────────────────────────────────────────────
 // STORY 3: NGO edits a project
-// ─────────────────────────────────────────────────────────────
 test.describe('BDD — NGO edits a project', () => {
 
   test('Scenario: NGO successfully updates project details', async () => {
@@ -154,9 +149,8 @@ test.describe('BDD — NGO edits a project', () => {
   });
 });
 
-// ─────────────────────────────────────────────────────────────
+
 // STORY 4: NGO manages project status
-// ─────────────────────────────────────────────────────────────
 test.describe('BDD — NGO manages project status', () => {
 
   test('Scenario: NGO marks project as completed', async () => {
@@ -199,9 +193,7 @@ test.describe('BDD — NGO manages project status', () => {
   });
 });
 
-// ─────────────────────────────────────────────────────────────
 // STORY 5: NGO deletes a project
-// ─────────────────────────────────────────────────────────────
 test.describe('BDD — NGO deletes a project', () => {
 
   test('Scenario: Owner deletes their project', async () => {
@@ -242,9 +234,8 @@ test.describe('BDD — NGO deletes a project', () => {
   });
 });
 
-// ─────────────────────────────────────────────────────────────
+
 // STORY 6: View projects by NGO (public profile)
-// ─────────────────────────────────────────────────────────────
 test.describe('BDD — View projects by NGO', () => {
 
   test('Scenario: Anyone can view all projects from a specific NGO', async () => {
