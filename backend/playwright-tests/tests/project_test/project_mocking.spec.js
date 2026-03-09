@@ -1,9 +1,7 @@
 const { test, expect } = require('@playwright/test');
 const { ApiStub, MOCK_RESPONSES, mockRoute } = require('../../mocks/projectapimocks');
 
-// ─────────────────────────────────────────────────────────────
 // ApiStub — basic stubs across all endpoints
-// ─────────────────────────────────────────────────────────────
 test.describe('Mocking — All Endpoints Stubbed', () => {
 
   test('MOCK 1: getAllProjects — returns list without hitting server', async () => {
@@ -82,9 +80,7 @@ test.describe('Mocking — All Endpoints Stubbed', () => {
   });
 });
 
-// ─────────────────────────────────────────────────────────────
 // Call recording — verify payloads sent to each endpoint
-// ─────────────────────────────────────────────────────────────
 test.describe('Mocking — Call Recording', () => {
 
   test('MOCK 7: records method, path, and payload for updateProject', async () => {
@@ -117,9 +113,7 @@ test.describe('Mocking — Call Recording', () => {
   });
 });
 
-// ─────────────────────────────────────────────────────────────
 // Error simulation across all endpoints
-// ─────────────────────────────────────────────────────────────
 test.describe('Mocking — Error Simulation', () => {
 
   test('MOCK 9: getProjectById returns 404 for unknown ID', async () => {
@@ -172,9 +166,7 @@ test.describe('Mocking — Error Simulation', () => {
   });
 });
 
-// ─────────────────────────────────────────────────────────────
 // page.route() — browser-level interception
-// ─────────────────────────────────────────────────────────────
 test.describe('Mocking — page.route() Browser Interception', () => {
 
   test('MOCK 13: intercept GET /api/projects in browser', async ({ page }) => {

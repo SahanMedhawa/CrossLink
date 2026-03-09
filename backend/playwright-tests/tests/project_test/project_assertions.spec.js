@@ -1,17 +1,7 @@
-// tests/01-assertions.spec.js
-// ============================================================
-// FEATURE 1 — ASSERTIONS
-// Covers: createProject, getAllProjects, getProjectById,
-//         updateProject, deleteProject, updateProjectStatus,
-//         getProjectsByNGO
-// ============================================================
-
 const { test, expect } = require('@playwright/test');
 const { ApiStub } = require('../../mocks/projectapimocks');
 
-// ─────────────────────────────────────────────────────────────
 // createProject
-// ─────────────────────────────────────────────────────────────
 test.describe('Assertions — createProject', () => {
 
   test('returns 201 with correct project shape on success', async () => {
@@ -64,9 +54,7 @@ test.describe('Assertions — createProject', () => {
   });
 });
 
-// ─────────────────────────────────────────────────────────────
 // getAllProjects
-// ─────────────────────────────────────────────────────────────
 test.describe('Assertions — getAllProjects', () => {
 
   test('returns 200 with array of active projects', async () => {
@@ -101,9 +89,8 @@ test.describe('Assertions — getAllProjects', () => {
   });
 });
 
-// ─────────────────────────────────────────────────────────────
+
 // getProjectById
-// ─────────────────────────────────────────────────────────────
 test.describe('Assertions — getProjectById', () => {
 
   test('returns 200 with full project details for a valid ID', async () => {
@@ -149,9 +136,7 @@ test.describe('Assertions — getProjectById', () => {
   });
 });
 
-// ─────────────────────────────────────────────────────────────
 // updateProject
-// ─────────────────────────────────────────────────────────────
 test.describe('Assertions — updateProject', () => {
 
   test('returns 200 with updated project data', async () => {
@@ -185,9 +170,7 @@ test.describe('Assertions — updateProject', () => {
   });
 });
 
-// ─────────────────────────────────────────────────────────────
 // updateProjectStatus
-// ─────────────────────────────────────────────────────────────
 test.describe('Assertions — updateProjectStatus', () => {
 
   test('returns 200 when NGO marks project as completed', async () => {
@@ -220,9 +203,7 @@ test.describe('Assertions — updateProjectStatus', () => {
   });
 });
 
-// ─────────────────────────────────────────────────────────────
 // deleteProject
-// ─────────────────────────────────────────────────────────────
 test.describe('Assertions — deleteProject', () => {
 
   test('returns 200 with success message when owner deletes project', async () => {
@@ -253,9 +234,7 @@ test.describe('Assertions — deleteProject', () => {
   });
 });
 
-// ─────────────────────────────────────────────────────────────
 // getProjectsByNGO
-// ─────────────────────────────────────────────────────────────
 test.describe('Assertions — getProjectsByNGO', () => {
 
   test('returns all projects belonging to a specific NGO', async () => {
