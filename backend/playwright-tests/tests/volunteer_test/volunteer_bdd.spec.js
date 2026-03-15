@@ -112,4 +112,56 @@ test.describe('BDD - Volunteer Discovery and Application Flow', () => {
       expect(deleteBody.message).toMatch(/withdrawn/i);
     });
   });
+
+  test('Feature E Scenario: volunteer filters applications by pending status', async () => {
+    let api;
+    let res;
+    let body;
+
+    await given('the volunteer has multiple applications with mixed statuses', async () => {
+      api = new ApiStub();
+      api.stub('GET', '/api/participation/my-applications', 'getMyApplications');
+    });
+
+    await when('the volunteer requests only pending applications', async () => {
+      res = await api.get('/api/participation/my-applications?status=requested');
+      body = await res.json();
+    });
+
+    await then('the API returns an applications collection suitable for filtered views', async () => {
+      expect(res.status()).toBe(200);
+      expect(body.success).toBe(true);
+      expect(Array.isArray(body.data)).toBe(true);
+      expect(api.calls[0].path).toContain('status=requested');
+      expect(body.data[0]).toHaveProperty('status');
+      expect(body.data[0]).toHaveProperty('projectId');
+    });
+  });
+
+  test('Feature F Scenario: volunteer cannot edit an approved request', async () => {
+    let api;
+    let res;
+    let body;
+
+    await given('the volunteer targets an already approved participation request', async () => {
+      api = new ApiStub();
+      api.stub('PATCH', '/api/participation/mock-participation-id-202', 'updateForbidden');
+    });
+
+    await when('the volunteer attempts to edit the approved request', async () => {
+      res = await api.patch('/api/participation/mock-participation-id-202', {
+        data: {
+          message: 'Trying to edit an approved request state.',
+          experienceSummary: 'Detailed attempt to modify an approved request.',
+        },
+      });
+      body = await res.json();
+    });
+
+    await then('the API rejects the edit due to state transition rules', async () => {
+      expect(res.status()).toBe(403);
+      expect(body.success).toBe(false);
+      expect(body.message).toMatch(/cannot edit/i);
+    });
+  });
 });
