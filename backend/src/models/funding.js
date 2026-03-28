@@ -33,6 +33,13 @@ const fundingSchema = new mongoose.Schema({
     enum: ['Bank Transfer', 'Check', 'Online Payment', 'Other'],
     required: [true, 'Payment method is required']
   },
+
+    transactionRefId: {
+    type: String,
+    trim: true,
+    default: null
+  },
+  
   note: {
     type: String,
     maxlength: 500,
