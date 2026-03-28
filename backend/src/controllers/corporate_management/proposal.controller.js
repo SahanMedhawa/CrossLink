@@ -7,9 +7,10 @@ const sendEmail = require('../../utils/sendEmail');
 // @access  Private (Corporate)
 exports.createProposal = async (req, res) => {
   try {
+    // ✅ FIX 1: Destructure 'deliveryLocation' as a single object to match Frontend
     const { 
       projectId, proposalTitle, description, amount, expectedImpact, message, 
-      deliveryAddress, deliveryCoordinates, priority, documentUrl 
+      deliveryLocation, priority, documentUrl 
     } = req.body;
     
     const corporateId = req.user.id; // From auth middleware
@@ -34,10 +35,8 @@ exports.createProposal = async (req, res) => {
       message,
       priority,
       documentUrl,
-      deliveryLocation: {
-        address: deliveryAddress,
-        coordinates: deliveryCoordinates // { lat, lng }
-      },
+      // ✅ FIX 2: Assign the nested object directly (Frontend sends it exactly like this)
+      deliveryLocation: deliveryLocation || { address: '', coordinates: { lat: 0, lng: 0 } },
       status: 'Pending'
     });
 
@@ -49,17 +48,18 @@ exports.createProposal = async (req, res) => {
       await sendEmail({
         to: ngoUser.email,
         subject: `🔔 New Proposal: ${proposalTitle}`,
-        message: `
-          <div style="font-family: Arial, sans-serif;">
-            <h2>New Collaboration Request</h2>
+        html: `
+          <div style="font-family: Arial, sans-serif; color: #333;">
+            <h2 style="color: #6B46C1;">New Collaboration Request</h2>
             <p><strong>From:</strong> ${corporateUser.companyName || corporateUser.name}</p>
             <p><strong>Project:</strong> ${project.title}</p>
-            <p><strong>Proposed Amount:</strong> $${amount.toLocaleString()}</p>
+            <p><strong>Proposed Amount:</strong> LKR ${amount.toLocaleString()}</p>
             <p><strong>Expected Impact:</strong> ${expectedImpact}</p>
             <p><strong>Message:</strong> ${message}</p>
+            ${deliveryLocation?.address ? `<p><strong>Location:</strong> ${deliveryLocation.address}</p>` : ''}
             <br/>
             <a href="${process.env.FRONTEND_URL}/ngo/dashboard" 
-               style="background-color: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
+               style="background-color: #6B46C1; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold;">
                View & Accept Proposal
             </a>
           </div>
@@ -70,9 +70,9 @@ exports.createProposal = async (req, res) => {
       await sendEmail({
         to: corporateUser.email,
         subject: '✅ Proposal Submitted Successfully',
-        message: `
-          <div style="font-family: Arial, sans-serif;">
-            <h2>Proposal Sent!</h2>
+        html: `
+          <div style="font-family: Arial, sans-serif; color: #333;">
+            <h2 style="color: #6B46C1;">Proposal Sent!</h2>
             <p>Your proposal for <strong>"${project.title}"</strong> has been sent to ${ngoUser.organizationName}.</p>
             <p>We will notify you once they review it.</p>
           </div>
@@ -131,7 +131,8 @@ exports.getProposalsByProject = async (req, res) => {
 exports.updateProposal = async (req, res) => {
   try {
     const { id } = req.params;
-    const { proposalTitle, description, amount, expectedImpact, message, priority, deliveryAddress, deliveryCoordinates } = req.body;
+    // ✅ FIX 3: Destructure 'deliveryLocation' here too
+    const { proposalTitle, description, amount, expectedImpact, message, priority, deliveryLocation } = req.body;
     
     const corporateId = req.user.id;
 
@@ -163,9 +164,10 @@ exports.updateProposal = async (req, res) => {
     if (message) proposal.message = message;
     if (priority) proposal.priority = priority;
     
-    if (deliveryAddress) {
-      proposal.deliveryLocation.address = deliveryAddress;
-      proposal.deliveryLocation.coordinates = deliveryCoordinates || proposal.deliveryLocation.coordinates;
+    // ✅ FIX 4: Update nested location object correctly
+    if (deliveryLocation) {
+      if (deliveryLocation.address) proposal.deliveryLocation.address = deliveryLocation.address;
+      if (deliveryLocation.coordinates) proposal.deliveryLocation.coordinates = deliveryLocation.coordinates;
     }
 
     await proposal.save();
@@ -205,8 +207,7 @@ exports.deleteProposal = async (req, res) => {
       });
     }
 
-    // 3. Business Logic Warning (Optional but good practice)
-    // Prevent deletion if already Accepted to avoid breaking data integrity
+    // 3. Business Logic Warning
     if (proposal.status === 'Accepted') {
       return res.status(400).json({ 
         success: false, 
@@ -237,7 +238,7 @@ exports.deleteProposal = async (req, res) => {
 exports.updateProposalStatus = async (req, res) => {
   try {
     const { id } = req.params;
-    const { status } = req.body; // Expecting 'Accepted' or 'Rejected'
+    const { status } = req.body; 
 
     if (!['Accepted', 'Rejected', 'Completed'].includes(status)) {
       return res.status(400).json({ success: false, message: 'Invalid status value' });
@@ -252,8 +253,6 @@ exports.updateProposalStatus = async (req, res) => {
     if (!proposal) {
       return res.status(404).json({ success: false, message: 'Proposal not found' });
     }
-
-    // Optional: Add email notification logic here for status update
 
     res.json({ 
       success: true, 

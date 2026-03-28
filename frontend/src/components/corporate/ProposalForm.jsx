@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
 
 // Helper component to handle map clicks
 function LocationPicker({ setLocation }) {
@@ -23,7 +24,7 @@ const ProposalForm = ({ project, existingData, onClose, onSubmit }) => {
     locationName: existingData?.deliveryLocation?.address || project?.location || '',
     latitude: defaultLat,
     longitude: defaultLng,
-    // Add missing fields for safety
+    // ✅ Added missing required fields from Schema
     expectedImpact: existingData?.expectedImpact || '',
     message: existingData?.message || '',
     priority: existingData?.priority || 'Medium',
@@ -40,11 +41,11 @@ const ProposalForm = ({ project, existingData, onClose, onSubmit }) => {
     });
   };
 
-  const handleSubmit = (e) => {
+    const handleSubmit = (e) => {
     e.preventDefault();
 
+    // CRITICAL FIX: Manually construct the nested object from separate state values
     const finalData = {
-      // 1. Map Basic Fields
       proposalTitle: formData.title,
       description: formData.description,
       amount: parseFloat(formData.amount),
@@ -52,18 +53,20 @@ const ProposalForm = ({ project, existingData, onClose, onSubmit }) => {
       message: formData.message || "Please consider this proposal.",
       priority: formData.priority || "Medium",
       
-      // 2. CRITICAL FIX: Map Map-State to Backend-Expected Keys
-      deliveryAddress: formData.locationName,      
-      deliveryCoordinates: {                       
-        lat: formData.latitude,                    
-        lng: formData.longitude                   
+      // Construct the object exactly how the Backend Schema expects it
+      deliveryLocation: {
+        address: formData.locationName, // Takes the text from the input field
+        coordinates: {
+          lat: formData.latitude,       // Takes the number from map state
+          lng: formData.longitude       // Takes the number from map state
+        }
       },
 
-      // 3. Project ID
       projectId: project._id
     };
 
-    console.log("Sending to API:", finalData); 
+    console.log("Sending to API:", finalData); // Check console to verify 'address' is there!
+    
     onSubmit(finalData);
   };
 
@@ -79,7 +82,6 @@ const ProposalForm = ({ project, existingData, onClose, onSubmit }) => {
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
         </div>
 
-        {/* ✅ FORM STARTS HERE */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4 flex-grow">
           
           {/* Title */}
@@ -90,7 +92,7 @@ const ProposalForm = ({ project, existingData, onClose, onSubmit }) => {
               required
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition"
               placeholder="e.g., Youth Skill Development Program"
             />
           </div>
@@ -104,7 +106,7 @@ const ProposalForm = ({ project, existingData, onClose, onSubmit }) => {
               min="0"
               value={formData.amount}
               onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition"
               placeholder="50000"
             />
           </div>
@@ -114,12 +116,52 @@ const ProposalForm = ({ project, existingData, onClose, onSubmit }) => {
             <label className="block text-sm font-medium text-gray-700 mb-1">Description & Impact</label>
             <textarea
               required
-              rows="4"
+              rows="3"
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition"
               placeholder="Describe how this project will help the community..."
             />
+          </div>
+
+          {/* ✅ NEW: Expected Impact (Specific Field) */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Expected Impact Summary</label>
+            <input
+              type="text"
+              required
+              value={formData.expectedImpact}
+              onChange={(e) => setFormData({ ...formData, expectedImpact: e.target.value })}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
+              placeholder="e.g., Educate 500 children"
+            />
+          </div>
+
+          {/* ✅ NEW: Message to NGO */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Message to NGO</label>
+            <textarea
+              required
+              rows="2"
+              value={formData.message}
+              onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
+              placeholder="Add a personal note..."
+            />
+          </div>
+
+          {/* ✅ NEW: Priority Level */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Priority Level</label>
+            <select
+              value={formData.priority}
+              onChange={(e) => setFormData({ ...formData, priority: e.target.value })}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
+            >
+              <option value="Low">Low</option>
+              <option value="Medium">Medium</option>
+              <option value="High">High</option>
+            </select>
           </div>
 
           {/* Location Name */}
@@ -127,9 +169,10 @@ const ProposalForm = ({ project, existingData, onClose, onSubmit }) => {
             <label className="block text-sm font-medium text-gray-700 mb-1">Location Name</label>
             <input
               type="text"
+              required
               value={formData.locationName}
               onChange={(e) => setFormData({ ...formData, locationName: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
               placeholder="e.g., Kandy City Center"
             />
           </div>
@@ -146,14 +189,14 @@ const ProposalForm = ({ project, existingData, onClose, onSubmit }) => {
                 className="z-0"
               >
                 <TileLayer
-                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                  attribution='&copy; OpenStreetMap contributors'
                   url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 />
                 <Marker position={markerPosition} />
                 <LocationPicker setLocation={(latlng) => handleMapClick(latlng)} />
               </MapContainer>
               <div className="absolute bottom-3 left-3 bg-white/90 px-3 py-1.5 text-xs font-medium rounded shadow-md z-[400] pointer-events-none">
-                📍 Click anywhere on the map to set location
+                📍 Click map to set location
               </div>
             </div>
             <div className="mt-2 text-xs text-gray-500 flex gap-4">
@@ -162,7 +205,7 @@ const ProposalForm = ({ project, existingData, onClose, onSubmit }) => {
             </div>
           </div>
 
-          {/* ✅ FOOTER MOVED INSIDE FORM SO SUBMIT WORKS */}
+          {/* Footer Buttons */}
           <div className="pt-6 border-t border-gray-100 flex justify-end gap-3">
             <button
               type="button"
@@ -173,13 +216,13 @@ const ProposalForm = ({ project, existingData, onClose, onSubmit }) => {
             </button>
             <button
               type="submit"
-              className="px-5 py-2.5 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 shadow-md transition transform active:scale-95"
+              className="px-5 py-2.5 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 shadow-md transition transform active:scale-95"
             >
               {existingData ? 'Update Proposal' : 'Submit Proposal'}
             </button>
           </div>
 
-        </form> {/* ✅ FORM ENDS HERE */}
+        </form>
       </div>
     </div>
   );
