@@ -7,13 +7,12 @@ const sendEmail = require('../../utils/sendEmail');
 // @access  Private (Corporate)
 exports.createProposal = async (req, res) => {
   try {
-    // ✅ FIX 1: Destructure 'deliveryLocation' as a single object to match Frontend
     const { 
       projectId, proposalTitle, description, amount, expectedImpact, message, 
       deliveryLocation, priority, documentUrl 
     } = req.body;
     
-    const corporateId = req.user.id; // From auth middleware
+    const corporateId = req.user.id;
 
     // 1. Verify Project Exists & Get NGO Details
     const project = await Project.findById(projectId).populate('ngoId');
@@ -35,7 +34,6 @@ exports.createProposal = async (req, res) => {
       message,
       priority,
       documentUrl,
-      // ✅ FIX 2: Assign the nested object directly (Frontend sends it exactly like this)
       deliveryLocation: deliveryLocation || { address: '', coordinates: { lat: 0, lng: 0 } },
       status: 'Pending'
     });
@@ -80,7 +78,6 @@ exports.createProposal = async (req, res) => {
       });
     } catch (emailError) {
       console.error('Email service failed:', emailError.message);
-      // We do not fail the request if email fails, just log it
     }
 
     res.status(201).json({ 
@@ -98,7 +95,6 @@ exports.createProposal = async (req, res) => {
     });
   }
 };
-
 
 // @desc    Get all proposals for a specific project (NGO View)
 // @route   GET /api/proposals/project/:projectId
@@ -131,24 +127,19 @@ exports.getProposalsByProject = async (req, res) => {
 exports.updateProposal = async (req, res) => {
   try {
     const { id } = req.params;
-    // ✅ FIX 3: Destructure 'deliveryLocation' here too
     const { proposalTitle, description, amount, expectedImpact, message, priority, deliveryLocation } = req.body;
     
     const corporateId = req.user.id;
-
-    // 1. Find the proposal
     const proposal = await Proposal.findById(id);
 
     if (!proposal) {
       return res.status(404).json({ success: false, message: 'Proposal not found' });
     }
 
-    // 2. Security Check: Only the creator (Corporate) can edit
     if (proposal.corporateId.toString() !== corporateId) {
       return res.status(403).json({ success: false, message: 'Not authorized to edit this proposal' });
     }
 
-    // 3. Business Logic: Cannot edit if already Accepted or Rejected
     if (proposal.status !== 'Pending') {
       return res.status(400).json({ 
         success: false, 
@@ -156,7 +147,6 @@ exports.updateProposal = async (req, res) => {
       });
     }
 
-    // 4. Update fields (only if provided)
     if (proposalTitle) proposal.proposalTitle = proposalTitle;
     if (description) proposal.description = description;
     if (amount) proposal.amount = amount;
@@ -164,7 +154,6 @@ exports.updateProposal = async (req, res) => {
     if (message) proposal.message = message;
     if (priority) proposal.priority = priority;
     
-    // ✅ FIX 4: Update nested location object correctly
     if (deliveryLocation) {
       if (deliveryLocation.address) proposal.deliveryLocation.address = deliveryLocation.address;
       if (deliveryLocation.coordinates) proposal.deliveryLocation.coordinates = deliveryLocation.coordinates;
@@ -183,23 +172,19 @@ exports.updateProposal = async (req, res) => {
   }
 };
 
-
- // @desc    Delete a Proposal (Corporate Only)
+// @desc    Delete a Proposal (Corporate Only)
 // @route   DELETE /api/proposals/:id
 // @access  Private (Corporate)
 exports.deleteProposal = async (req, res) => {
   try {
     const { id } = req.params;
     const corporateId = req.user.id;
-
-    // 1. Find the proposal
     const proposal = await Proposal.findById(id);
 
     if (!proposal) {
       return res.status(404).json({ success: false, message: 'Proposal not found' });
     }
 
-    // 2. Security Check: Only the creator can delete
     if (proposal.corporateId.toString() !== corporateId) {
       return res.status(403).json({ 
         success: false, 
@@ -207,7 +192,6 @@ exports.deleteProposal = async (req, res) => {
       });
     }
 
-    // 3. Business Logic Warning
     if (proposal.status === 'Accepted') {
       return res.status(400).json({ 
         success: false, 
@@ -215,7 +199,6 @@ exports.deleteProposal = async (req, res) => {
       });
     }
 
-    // 4. Delete the document
     await Proposal.findByIdAndDelete(id);
 
     res.json({ 
@@ -228,9 +211,6 @@ exports.deleteProposal = async (req, res) => {
     res.status(500).json({ success: false, message: 'Server Error', error: error.message });
   }
 };
-
-
-
 
 // @desc    Update Proposal Status (Accept/Reject) - NGO Action
 // @route   PATCH /api/proposals/:id/status
@@ -274,18 +254,14 @@ exports.updateProposalStatus = async (req, res) => {
 exports.getMyProposals = async (req, res) => {
   try {
     const corporateId = req.user.id;
-    
-    // ✅ NEW: Extract search keyword from query params
     const { search } = req.query;
     
-    // Build the base filter
     let query = { corporateId };
 
-    // ✅ If search keyword exists, add Regex filter for title
     if (search && search.trim() !== '') {
       query.proposalTitle = { 
         $regex: search, 
-        $options: 'i' // 'i' makes it case-insensitive
+        $options: 'i' 
       };
     }
 
@@ -300,6 +276,39 @@ exports.getMyProposals = async (req, res) => {
     });
   } catch (error) {
     console.error('Search Error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Server Error', 
+      error: error.message 
+    });
+  }
+};
+
+// ✅ NEW: Get all proposals received by a specific NGO
+// @route   GET /api/proposals/ngo/:ngoId
+// @access  Private (NGO)
+exports.getProposalsForNgo = async (req, res) => {
+  try {
+    const { ngoId } = req.params;
+
+    // 1. Find all Projects belonging to this NGO
+    const projects = await Project.find({ ngoId }).select('_id');
+    const projectIds = projects.map(p => p._id);
+
+    // 2. Find all Proposals linked to those projects
+    const proposals = await Proposal.find({ projectId: { $in: projectIds } })
+      .populate('projectId', 'title')
+      .populate('corporateId', 'companyName industry email')
+      .sort({ createdAt: -1 });
+
+    res.json({
+      success: true,
+      count: proposals.length,
+      data: proposals
+    });
+
+  } catch (error) {
+    console.error('Get NGO Proposals Error:', error);
     res.status(500).json({ 
       success: false, 
       message: 'Server Error', 
