@@ -221,7 +221,7 @@ exports.deleteProposal = async (req, res) => {
     res.json({ 
       success: true, 
       message: 'Proposal deleted successfully',
-      data:{} 
+      data: {} 
     });
 
   } catch (error) {
@@ -268,14 +268,28 @@ exports.updateProposalStatus = async (req, res) => {
   }
 };
 
-// @desc    Get all proposals sent by the logged-in Corporate
-// @route   GET /api/proposals/my
+// @desc    Get all proposals sent by the logged-in Corporate (WITH SEARCH)
+// @route   GET /api/proposals/my?search=keyword
 // @access  Private (Corporate)
 exports.getMyProposals = async (req, res) => {
   try {
     const corporateId = req.user.id;
     
-    const proposals = await Proposal.find({ corporateId })
+    // ✅ NEW: Extract search keyword from query params
+    const { search } = req.query;
+    
+    // Build the base filter
+    let query = { corporateId };
+
+    // ✅ If search keyword exists, add Regex filter for title
+    if (search && search.trim() !== '') {
+      query.proposalTitle = { 
+        $regex: search, 
+        $options: 'i' // 'i' makes it case-insensitive
+      };
+    }
+
+    const proposals = await Proposal.find(query)
       .populate('projectId', 'title organizationName status location')
       .sort({ createdAt: -1 });
 
@@ -285,6 +299,7 @@ exports.getMyProposals = async (req, res) => {
       data: proposals 
     });
   } catch (error) {
+    console.error('Search Error:', error);
     res.status(500).json({ 
       success: false, 
       message: 'Server Error', 
