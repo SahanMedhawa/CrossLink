@@ -92,6 +92,9 @@ const MyProposalsAndFunding = () => {
       if (editingProposal) {
         await axios.put(`http://localhost:5000/api/proposals/${editingProposal._id}`, formData, config);
         alert("Proposal updated!");
+      } else {
+        // For new proposals, you might need a POST call here if not handled inside the modal component directly
+        // Assuming the modal handles the POST via onSubmit prop passed to it
       }
       
       setShowForm(false);
@@ -115,18 +118,20 @@ const MyProposalsAndFunding = () => {
     <DashboardLayout userType="corporate">
       <div className="p-6 bg-gray-50 min-h-screen">
         
-        {/* Header */}
-        <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
-          <div>
-            <h2 className="text-3xl font-bold text-gray-800">My CSR Activities</h2>
-            <p className="text-gray-500 mt-1">Manage your proposals and funding records.</p>
+        {/* ✅ UPDATED HEADER: Blue Gradient with White Text */}
+        <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl p-8 mb-8 shadow-lg text-white">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+              <h2 className="text-3xl font-bold">My CSR Activities</h2>
+              <p className="text-blue-100 mt-2 font-medium">Manage your proposals and funding records.</p>
+            </div>
+            <button 
+              onClick={() => navigate('/corporate/ngo-partners')}
+              className="px-6 py-3 bg-white text-blue-600 rounded-xl font-semibold hover:bg-blue-50 transition shadow-md flex items-center gap-2"
+            >
+              <span>+ New Proposal</span>
+            </button>
           </div>
-          <button 
-            onClick={() => navigate('/corporate/ngo-partners')}
-            className="px-6 py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition shadow-lg hover:shadow-blue-500/30 flex items-center gap-2"
-          >
-            <span>+ New Proposal</span>
-          </button>
         </div>
 
         {/* Tabs */}
@@ -189,7 +194,6 @@ const MyProposalsAndFunding = () => {
                         <div className="flex items-center text-gray-500 text-xs">
                           <MapPinIcon />
                           <span className="truncate max-w-[150px]">
-                            {/* ✅ FIX: Check multiple possible field names */}
                             {p.deliveryLocation?.address || 
                              p.deliveryAddress || 
                              p.location || 
@@ -239,7 +243,6 @@ const MyProposalsAndFunding = () => {
                   </div>
                 ) : (
                   funding.map((f) => {
-                    // Safe navigation
                     const ngoName = f.projectId?.ngoId?.organizationName || 'NGO Partner';
                     const projectTitle = f.projectId?.title || 'Unknown Project';
 
