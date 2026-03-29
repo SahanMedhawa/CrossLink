@@ -34,21 +34,23 @@ exports.createFunding = async (req, res) => {
 
     await newFunding.save();
 
-    // 3. Send Email Notifications (Optional but recommended)
+    // 3. Send Email Notifications
     try {
       // To NGO
       await sendEmail({
         to: ngoUser.email,
         subject: `💰 New Funding Received: ${fundingTitle}`,
-        message: `
-          <h3>New Funding Alert!</h3>
-          <p><strong>From:</strong> ${corporateUser.companyName || corporateUser.name}</p>
-          <p><strong>Project:</strong> ${project.title}</p>
-          <p><strong>Amount:</strong> $${amount.toLocaleString()}</p>
-          <p><strong>Type:</strong> ${fundingType}</p>
-          <p><strong>Method:</strong> ${paymentMethod}</p>
-          <br/>
-          <a href="${process.env.FRONTEND_URL}/ngo/dashboard" style="background:#28a745; color:white; padding:10px 20px; text-decoration:none; border-radius:5px;">View Funding</a>
+        html: `
+          <div style="font-family: Arial, sans-serif;">
+            <h3 style="color: #28a745;">New Funding Alert!</h3>
+            <p><strong>From:</strong> ${corporateUser.companyName || corporateUser.name}</p>
+            <p><strong>Project:</strong> ${project.title}</p>
+            <p><strong>Amount:</strong> LKR ${amount.toLocaleString()}</p>
+            <p><strong>Type:</strong> ${fundingType}</p>
+            <p><strong>Method:</strong> ${paymentMethod}</p>
+            <br/>
+            <a href="${process.env.FRONTEND_URL}/ngo/dashboard" style="background:#28a745; color:white; padding:10px 20px; text-decoration:none; border-radius:5px;">View Funding</a>
+          </div>
         `
       });
 
@@ -56,7 +58,7 @@ exports.createFunding = async (req, res) => {
       await sendEmail({
         to: corporateUser.email,
         subject: '✅ Funding Recorded Successfully',
-        message: `<p>Your funding for <strong>${project.title}</strong> has been recorded.</p>`
+        html: `<p>Your funding for <strong>${project.title}</strong> has been recorded.</p>`
       });
     } catch (emailError) {
       console.error('Email failed:', emailError.message);
@@ -65,7 +67,7 @@ exports.createFunding = async (req, res) => {
     res.status(201).json({ 
       success: true, 
       message: 'Funding recorded successfully', 
-       newFunding 
+      data: newFunding 
     });
 
   } catch (error) {
@@ -87,7 +89,7 @@ exports.getFundingByProject = async (req, res) => {
     res.json({ 
       success: true, 
       count: fundings.length, 
-       fundings 
+      data: fundings 
     });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Server Error', error: error.message });
@@ -101,14 +103,13 @@ exports.getMyFunding = async (req, res) => {
   try {
     const corporateId = req.user.id;
     
-    // ✅ FIX: Populate 'projectId' AND 'projectId.ngoId'
     const fundings = await Funding.find({ corporateId })
       .populate({
         path: 'projectId',
-        select: 'title location ngoId', // Select the ngoId field from Project
+        select: 'title location ngoId',
         populate: {
-          path: 'ngoId', // Populate the NGO details inside the project
-          select: 'organizationName' // Select only the name we need
+          path: 'ngoId',
+          select: 'organizationName'
         }
       })
       .sort({ createdAt: -1 });
@@ -116,10 +117,62 @@ exports.getMyFunding = async (req, res) => {
     res.json({ 
       success: true, 
       count: fundings.length, 
-      data: fundings // Ensure key is 'data' to match frontend
+      data: fundings 
     });
   } catch (error) {
     console.error("Get My Funding Error:", error);
     res.status(500).json({ success: false, message: 'Server Error', error: error.message });
+  }
+}; 
+
+// NEW FUNCTION: Get all fundings received by a specific NGO
+// @desc    Get all fundings received by a specific NGO
+// @route   GET /api/fundings/ngo/:ngoId
+// @access  Private (NGO)
+// ✅ UPDATED: Get all fundings received by a specific NGO
+exports.getFundingsForNgo = async (req, res) => {
+  try {
+    const { ngoId } = req.params;
+
+    // 🛑 SAFETY CHECK 1: Ensure ngoId exists
+    if (!ngoId) {
+      return res.status(400).json({ success: false, message: 'NGO ID is required' });
+    }
+
+    console.log(`🔍 Fetching fundings for NGO ID: ${ngoId}`); // Debug log
+
+    // 1. Find all Projects belonging to this NGO
+    const projects = await Project.find({ ngoId }).select('_id');
+    
+    console.log(`📂 Found ${projects.length} projects for this NGO.`); // Debug log
+
+    if (projects.length === 0) {
+      // Return empty array instead of crashing if no projects exist
+      return res.json({ success: true, count: 0, data: [] });
+    }
+
+    const projectIds = projects.map(p => p._id);
+
+    // 2. Find all Fundings linked to those projects
+    const fundings = await Funding.find({ projectId: { $in: projectIds } })
+      .populate('projectId', 'title')
+      .populate('corporateId', 'companyName industry')
+      .sort({ createdAt: -1 });
+
+    console.log(`💰 Found ${fundings.length} funding records.`); // Debug log
+
+    res.json({
+      success: true,
+      count: fundings.length,
+      data: fundings
+    });
+
+  } catch (error) {
+    console.error('❌ CRITICAL ERROR in getFundingsForNgo:', error); // Detailed error log
+    res.status(500).json({ 
+      success: false, 
+      message: 'Server Error', 
+      error: error.message 
+    });
   }
 };
