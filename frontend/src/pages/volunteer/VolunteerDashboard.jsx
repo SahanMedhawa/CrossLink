@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import DashboardLayout from "../../components/dashboard/DashboardLayout";
 import { getVolunteerStats, getMatchedProjects } from "../../services/volunteerApi";
+import { resolveImageUrl } from "../../utils/imageUrl";
 
 const VolunteerDashboard = () => {
   const { user } = useAuth();
@@ -201,7 +202,7 @@ const VolunteerDashboard = () => {
                     <div className="sm:w-1/3 mb-4 sm:mb-0 sm:mr-6 flex-shrink-0">
                       {project.image ? (
                         <div className="w-full h-32 sm:h-full rounded-2xl overflow-hidden shadow-base">
-                          <img src={`http://localhost:5000${project.image}`} alt={project.title} className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700" />
+                          <img src={resolveImageUrl(project.image)} alt={project.title} className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700" />
                         </div>
                       ) : (
                         <div className="w-full h-32 sm:h-full bg-gradient-to-br from-indigo-50 to-blue-50 rounded-2xl flex items-center justify-center border border-dashed border-blue-200">

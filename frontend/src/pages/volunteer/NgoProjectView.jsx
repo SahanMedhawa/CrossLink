@@ -5,6 +5,7 @@ import DashboardLayout from '../../components/dashboard/DashboardLayout';
 import { requestParticipation } from "../../services/volunteerApi";
 import ParticipationFormModal from "../../components/volunteer/ParticipationFormModal";
 import toast from "react-hot-toast";
+import { resolveImageUrl } from '../../utils/imageUrl';
 
 const NgoProjectView = () => {
     const { ngoId } = useParams();
@@ -108,7 +109,7 @@ const NgoProjectView = () => {
                                 <div className="relative h-56 w-full overflow-hidden bg-gray-100">
                                     {project.image ? (
                                         <img
-                                            src={`http://localhost:5000${project.image}`}
+                                            src={resolveImageUrl(project.image)}
                                             alt={project.title}
                                             className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700"
                                         />

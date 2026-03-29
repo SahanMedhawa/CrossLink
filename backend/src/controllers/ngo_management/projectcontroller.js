@@ -78,9 +78,9 @@ exports.createProject = async (req, res) => {
       }
     }
 
-    // Add image path if uploaded
-    if (req.file) {
-      projectData.image = `/uploads/projects/${req.file.filename}`;
+    // Save Cloudinary delivery URL when an image is uploaded
+    if (req.file?.path) {
+      projectData.image = req.file.path;
     }
 
     const project = new Project(projectData);
@@ -256,9 +256,9 @@ exports.updateProject = async (req, res) => {
       }
     }
 
-    // Add new image path if uploaded
-    if (req.file) {
-      req.body.image = `/uploads/projects/${req.file.filename}`;
+    // Save Cloudinary delivery URL when an image is uploaded
+    if (req.file?.path) {
+      req.body.image = req.file.path;
     }
 
     const updatedProject = await Project.findByIdAndUpdate(

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Header from '../../components/user/Navbar';
 import ResourceForm from '../resource/ResourceForm';
+import { resolveImageUrl } from '../../utils/imageUrl';
 
 const AllProjects = () => {
   const [projects, setProjects] = useState([]);
@@ -790,7 +791,7 @@ const AllProjects = () => {
                 >
                   {project.image ? (
                     <img 
-                      src={`http://localhost:5000${project.image}`} 
+                      src={resolveImageUrl(project.image)} 
                       style={styles.cardImage} 
                       alt={project.title}
                     />

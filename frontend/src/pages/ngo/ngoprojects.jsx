@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useParams } from 'react-router-dom';
 import Header from '../../components/user/Navbar';
 import ResourceForm from '../resource/ResourceForm';
+import { resolveImageUrl } from '../../utils/imageUrl';
 
 const AllProjects = () => {
   const { ngoId } = useParams(); // from route: /ngo/:ngoId/projects
@@ -791,7 +792,7 @@ const AllProjects = () => {
                 >
                   {project.image ? (
                     <img 
-                      src={`http://localhost:5000${project.image}`} 
+                      src={resolveImageUrl(project.image)} 
                       style={styles.cardImage} 
                       alt={project.title}
                     />

@@ -4,6 +4,7 @@ import { SKILL_OPTIONS, FOCUS_AREA_OPTIONS } from '../../constants/skillsAndInte
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
 import DashboardLayout from '../../components/dashboard/DashboardLayout';
 import L from 'leaflet';
+import { resolveImageUrl } from '../../utils/imageUrl';
 
 // Fix default Leaflet marker icon
 delete L.Icon.Default.prototype._getIconUrl;
@@ -208,7 +209,7 @@ const MyProjects = () => {
                     <div className="w-44 shrink-0 bg-gradient-to-br from-blue-600 to-indigo-700 relative overflow-hidden">
                       {project.image && (
                         <img
-                          src={`http://localhost:5000${project.image}`}
+                          src={resolveImageUrl(project.image)}
                           alt={project.title}
                           className="w-full h-full object-cover"
                         />
