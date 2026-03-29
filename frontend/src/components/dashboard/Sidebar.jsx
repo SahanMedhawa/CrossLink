@@ -81,12 +81,27 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isMobile, userType }) => {
             name: "Corporate Partners",
             href: "/ngo/partners",
             icon: <BriefcaseIcon className="w-5 h-5" />,
+      
           },
+
+          {
+            name: "Proposals & Fundings",
+            href: "/ngo/proposals-fundings",
+            icon: <DocumentTextIcon className="w-5 h-5" />, // Using DocumentTextIcon for proposals
+          },
+
+
+
+
           {
             name: "Project Donations",
             href: "/ngo/ProjectDonations",
             icon: <HeartSolidIcon className="w-5 h-5" />,
           },
+          
+           
+            
+
           { 
             name: "SDG Goals", 
             href: "/ngo/sdggoals", 

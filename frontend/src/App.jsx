@@ -30,6 +30,7 @@ import NgoVolunteerManagement from './pages/ngo/NgoVolunteerManagement';
 import NGOProfile from "./pages/ngo/ngoprofile";
 import NGOSPECIFICPROJECTS from "./pages/ngo/ngoprojects";
 import SDGDashboard from "./pages/ngo/sdggoals";
+import ProposalsAndFundings from './pages/ngo/ProposalsAndFundings';
 import "./App.css";
 
 
@@ -144,6 +145,11 @@ function AppRoutes() {
         }
       />
 
+      <Route 
+           path="/ngo/proposals-fundings" 
+          element={<ProposalsAndFundings />} 
+       />
+       
       {/* Volunteer Routes - Protected */}
       <Route
         path="/volunteer/dashboard"
