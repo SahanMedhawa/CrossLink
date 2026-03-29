@@ -110,7 +110,7 @@ exports.getNGOProjects = async (req, res) => {
       query.status = status;
     }
 
-    const projects = await Project.find(query)
+    const projects = await Project.find(query).lean()
       .sort({ createdAt: -1 });
 
     res.status(200).json({
@@ -150,7 +150,7 @@ exports.getAllProjects = async (req, res) => {
       query.skills = { $in: skillsArray };
     }
 
-    const projects = await Project.find(query)
+    const projects = await Project.find(query).lean()
       .populate('ngoId', 'organizationName email phone location')
       .sort({ createdAt: -1 });
 
@@ -377,7 +377,7 @@ exports.getProjectsByNGO = async (req, res) => {
     if (location) filter.location = { $regex: location, $options: 'i' };
     if (skills) filter.skills = { $in: skills.split(',') };
 
-    const projects = await Project.find(filter).sort({ createdAt: -1 });
+    const projects = await Project.find(filter).lean().sort({ createdAt: -1 });
 
     res.status(200).json({ projects });
   } catch (error) {

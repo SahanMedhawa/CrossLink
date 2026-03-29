@@ -35,8 +35,8 @@ app.use(cors({
 }));
 
 // Request body size limit to prevent abuse
-app.use(express.json({ limit: '10kb' }));
-app.use(express.urlencoded({ extended: true, limit: '10kb' }));
+app.use(express.json({ limit: '2mb' }));
+app.use(express.urlencoded({ extended: true, limit: '2mb' }));
 
 // Sanitize data against NoSQL injection
 app.use(mongoSanitize());
@@ -44,7 +44,7 @@ app.use(mongoSanitize());
 // Rate limiting for auth endpoints (brute force protection)
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 20, // limit each IP to 20 auth requests per window
+  max: 50, // limit each IP to 50 auth requests per window
   message: {
     success: false,
     message: 'Too many requests. Please try again after 15 minutes.',
@@ -56,7 +56,7 @@ const authLimiter = rateLimit({
 // General API rate limiter
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 100,
+  max: 3000, // Increased significantly: modern SPAs make many concurrent requests
   message: {
     success: false,
     message: 'Too many requests. Please try again later.',
