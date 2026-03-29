@@ -6,8 +6,6 @@ const mongoSanitize = require('express-mongo-sanitize');
 const authRoutes = require('./routes/auth.routes');
 const ngoRoutes = require('./routes/ngo_management/ngo.routes');
 const projectRoutes = require('./routes/ngo_management/Projectroutes');
-const path = require('path');
-const fs = require('fs');
 const proposalRoutes = require('./routes/corporate_management/proposal.routes');
 const corporateRoutes = require('./routes/corporate_management/corporate.routes');
 const fundingRoutes = require('./routes/corporate_management/funding.routes');
@@ -19,11 +17,6 @@ const sdgRoutes = require('./routes/ngo_management/sdgRoutes');
 
 
 const app = express();
-
-const uploadsDir = path.join(__dirname, 'uploads', 'projects');
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
-}
 
 // Security headers
 app.use(helmet());
@@ -64,12 +57,6 @@ const apiLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
 });
-
-app.use('/uploads', (req, res, next) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
-  next();
-}, express.static(path.join(__dirname, 'uploads')));
 
 // Apply rate limiters
 app.use('/api/auth/signup', authLimiter);
