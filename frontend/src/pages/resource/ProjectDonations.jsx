@@ -12,6 +12,7 @@ const ProjectDonations = () => {
   const [projects, setProjects] = useState([]);
   const [selectedProject, setSelectedProject] = useState(null);
   const [donations, setDonations] = useState([]);
+  const [resourceNeeds, setResourceNeeds] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadingDonations, setLoadingDonations] = useState(false);
   const [error, setError] = useState(null);
@@ -48,7 +49,7 @@ const ProjectDonations = () => {
     return corporateId.email || null;
   };
 
-  // Fetch only this NGO's projects from resources
+  // Fetch this NGO's active projects that have donation requirements.
 const fetchNgoProjects = async () => {
   try {
     setLoading(true);
@@ -59,11 +60,8 @@ const fetchNgoProjects = async () => {
       return;
     }
 
-    console.log('Fetching resources for NGO:', user._id);
-    
-    // Get all resources
     const response = await axios.get(
-      'http://localhost:5000/api/resources/all',
+      'http://localhost:5000/api/projects/ngo/my-projects?status=active',
       {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -72,48 +70,10 @@ const fetchNgoProjects = async () => {
       }
     );
     
-    console.log("All Resources Response:", response.data);
-    
-    let resources = [];
-    if (Array.isArray(response.data)) {
-      resources = response.data;
-    } else if (response.data.resources && Array.isArray(response.data.resources)) {
-      resources = response.data.resources;
-    }
-    
-    // Extract unique projects from resources and filter by NGO ID
-    const projectMap = new Map();
-    
-    resources.forEach(resource => {
-      if (resource.projectId && resource.projectId._id) {
-        const project = resource.projectId;
-        
-        // Log to see what's available
-        console.log('Project data:', {
-          id: project._id,
-          title: project.title,
-          ngoId: project.ngoId,
-          userNgoId: user._id
-        });
-        
-        // Check if this project belongs to the logged-in NGO by comparing ngoId
-        if (project.ngoId && project.ngoId.toString() === user._id.toString()) {
-          if (!projectMap.has(project._id.toString())) {
-            projectMap.set(project._id.toString(), {
-              _id: project._id,
-              title: project.title,
-              organizationName: project.organizationName,
-              focusArea: project.focusArea,
-              location: project.location,
-              ngoId: project.ngoId
-            });
-          }
-        }
-      }
-    });
-    
-    const projectsList = Array.from(projectMap.values());
-    console.log("NGO Projects from resources:", projectsList);
+    const allNgoProjects = response.data?.projects || [];
+    const projectsList = allNgoProjects.filter(
+      (project) => Array.isArray(project.resources) && project.resources.length > 0
+    );
     
     setProjects(projectsList);
     
@@ -146,32 +106,33 @@ const fetchNgoProjects = async () => {
     setLoading(false);
   }
 };
-  // Fetch donations for selected project
+  // Fetch donations and requirement counters for selected project
   const fetchProjectDonations = async (projectId) => {
     if (!projectId) return;
     
     try {
       setLoadingDonations(true);
       
-      console.log('Fetching resources for project:', projectId);
-      
-      const response = await axios.get(
-        `http://localhost:5000/api/resources/project/${projectId}`,
-        {
+      const [resourcesResponse, statusResponse] = await Promise.all([
+        axios.get(`http://localhost:5000/api/resources/project/${projectId}`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
           }
-        }
-      );
-      
-      console.log("Project Resources Response:", response.data);
+        }),
+        axios.get(`http://localhost:5000/api/resources/project/${projectId}/status`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        })
+      ]);
       
       let resources = [];
-      if (Array.isArray(response.data)) {
-        resources = response.data;
-      } else if (response.data.resources && Array.isArray(response.data.resources)) {
-        resources = response.data.resources;
+      if (Array.isArray(resourcesResponse.data)) {
+        resources = resourcesResponse.data;
+      } else if (resourcesResponse.data.resources && Array.isArray(resourcesResponse.data.resources)) {
+        resources = resourcesResponse.data.resources;
       }
       
       // Extract all donations from all resources
@@ -198,13 +159,19 @@ const fetchNgoProjects = async () => {
         }
       });
       
-      console.log("Extracted Donations:", allDonations);
       setDonations(allDonations);
+
+      if (Array.isArray(statusResponse.data)) {
+        setResourceNeeds(statusResponse.data);
+      } else {
+        setResourceNeeds([]);
+      }
       
     } catch (err) {
       console.error("Error fetching donations:", err);
       toast.error("Failed to load donations for this project");
       setDonations([]);
+      setResourceNeeds([]);
     } finally {
       setLoadingDonations(false);
     }
@@ -286,6 +253,9 @@ const fetchNgoProjects = async () => {
   // Calculate statistics
   const totalDonations = donations.length;
   const totalQuantity = donations.reduce((sum, d) => sum + (d.quantity || 0), 0);
+  const totalRequired = resourceNeeds.reduce((sum, r) => sum + (r.originalNeed || 0), 0);
+  const totalRemaining = resourceNeeds.reduce((sum, r) => sum + (r.remainingNeeded || 0), 0);
+  const totalResourceTypes = resourceNeeds.length;
   const uniqueCorporateDonors = new Set(donations.map(d => {
     if (d.corporateId && typeof d.corporateId === 'object') {
       return d.corporateId._id?.toString();
@@ -471,6 +441,29 @@ const fetchNgoProjects = async () => {
     donorEmail: {
       fontSize: '0.7rem',
       opacity: 0.8
+    },
+    requirementGrid: {
+      display: 'grid',
+      gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
+      gap: '0.75rem',
+      padding: '1rem 2rem 1.5rem 2rem',
+      background: '#fff'
+    },
+    requirementCard: {
+      border: '1px solid #e2e8f0',
+      borderRadius: '10px',
+      padding: '0.85rem',
+      background: '#f8fafc'
+    },
+    requirementTitle: {
+      fontWeight: '600',
+      color: '#1e293b',
+      marginBottom: '0.4rem'
+    },
+    requirementMeta: {
+      fontSize: '0.82rem',
+      color: '#475569',
+      lineHeight: '1.5'
     }
   };
 
@@ -547,13 +540,31 @@ const fetchNgoProjects = async () => {
                 <div style={styles.statLabel}>Total Donations</div>
               </div>
               <div style={styles.statCard}>
-                <div style={styles.statValue}>{totalQuantity}</div>
-                <div style={styles.statLabel}>Units Donated</div>
+                <div style={styles.statValue}>{totalRequired}</div>
+                <div style={styles.statLabel}>Units Required</div>
               </div>
               <div style={styles.statCard}>
-                <div style={styles.statValue}>{uniqueCorporateDonors}</div>
-                <div style={styles.statLabel}>Corporate Donors</div>
+                <div style={styles.statValue}>{totalRemaining}</div>
+                <div style={styles.statLabel}>Units Remaining</div>
               </div>
+            </div>
+
+            {/* Resource Requirement Counters */}
+            <div style={styles.requirementGrid}>
+              {resourceNeeds.length === 0 ? (
+                <div style={{ ...styles.emptyState, padding: '1rem', textAlign: 'left' }}>
+                  No resource requirements found for this project.
+                </div>
+              ) : (
+                resourceNeeds.map((resource) => (
+                  <div key={resource.name} style={styles.requirementCard}>
+                    <div style={styles.requirementTitle}>{resource.name}</div>
+                    <div style={styles.requirementMeta}>Required: {resource.originalNeed || 0}</div>
+                    <div style={styles.requirementMeta}>Donated: {resource.totalDonated || 0}</div>
+                    <div style={styles.requirementMeta}>Remaining: {resource.remainingNeeded || 0}</div>
+                  </div>
+                ))
+              )}
             </div>
 
             {/* Search and Refresh */}
@@ -576,6 +587,9 @@ const fetchNgoProjects = async () => {
                 >
                   🔄 Refresh
                 </button>
+                <div style={{ color: '#64748b', fontSize: '0.9rem' }}>
+                  Resource Types: <strong>{totalResourceTypes}</strong> | Donated Units: <strong>{totalQuantity}</strong> | Donors: <strong>{uniqueCorporateDonors}</strong>
+                </div>
               </div>
               <button 
                 onClick={() => navigate('/ngo/dashboard')}
