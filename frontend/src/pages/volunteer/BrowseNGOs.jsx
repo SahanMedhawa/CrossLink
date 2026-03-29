@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import DashboardLayout from '../../components/dashboard/DashboardLayout';
+import { resolveImageUrl } from '../../utils/imageUrl';
 
 const BrowseNGOs = () => {
     const [ngos, setNgos] = useState([]);
@@ -76,9 +77,17 @@ const BrowseNGOs = () => {
                                 style={{ animationDelay: `${idx * 100}ms` }}
                             >
                                 <div className="flex items-center gap-5 mb-6">
-                                    <div className="w-16 h-16 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600 font-bold text-2xl shadow-inner border border-indigo-100">
-                                        {ngo.organizationName?.charAt(0) || 'N'}
-                                    </div>
+                                    {ngo.photoURL ? (
+                                        <img
+                                            src={resolveImageUrl(ngo.photoURL)}
+                                            alt={ngo.organizationName || 'NGO'}
+                                            className="w-16 h-16 rounded-2xl object-cover shadow-inner border border-indigo-100"
+                                        />
+                                    ) : (
+                                        <div className="w-16 h-16 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600 font-bold text-2xl shadow-inner border border-indigo-100">
+                                            {ngo.organizationName?.charAt(0) || 'N'}
+                                        </div>
+                                    )}
                                     <div className="flex-1">
                                         <h3 className="font-bold text-xl text-gray-900 group-hover:text-indigo-600 transition-colors line-clamp-1">{ngo.organizationName}</h3>
                                         <p className="text-sm font-medium flex items-center gap-1.5 text-gray-500 mt-1 line-clamp-1">

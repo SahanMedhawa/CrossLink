@@ -152,7 +152,7 @@ exports.getAllProjects = async (req, res) => {
     }
 
     const projects = await Project.find(query).lean()
-      .populate('ngoId', 'organizationName email phone location')
+      .populate('ngoId', 'organizationName email phone location photoURL')
       .sort({ createdAt: -1 });
 
     res.status(200).json({
@@ -173,7 +173,7 @@ exports.getAllProjects = async (req, res) => {
 exports.getProjectById = async (req, res) => {
   try {
     const project = await Project.findById(req.params.id)
-      .populate('ngoId', 'organizationName email phone location focusAreas');
+      .populate('ngoId', 'organizationName email phone location focusAreas photoURL');
 
     if (!project) {
       return res.status(404).json({

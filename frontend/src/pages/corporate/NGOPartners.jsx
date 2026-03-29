@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import DashboardLayout from '../../components/dashboard/DashboardLayout';
+import { resolveImageUrl } from '../../utils/imageUrl';
 
 // --- Icon Components ---
 const LocationIcon = () => (
@@ -72,9 +73,17 @@ const NGOPartners = () => {
                 <div className="p-6 flex-grow">
                   <div className="flex items-start gap-4 mb-4">
                     {/* Logo Circle with Blue Theme */}
-                    <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center text-blue-600 font-bold text-2xl border border-blue-100">
-                      {ngo.organizationName?.charAt(0) || 'N'}
-                    </div>
+                    {ngo.photoURL ? (
+                      <img
+                        src={resolveImageUrl(ngo.photoURL)}
+                        alt={ngo.organizationName || 'NGO'}
+                        className="w-16 h-16 rounded-full object-cover border border-blue-100"
+                      />
+                    ) : (
+                      <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center text-blue-600 font-bold text-2xl border border-blue-100">
+                        {ngo.organizationName?.charAt(0) || 'N'}
+                      </div>
+                    )}
                     <div className="flex-grow">
                       <h3 className="font-bold text-lg text-gray-900 leading-tight mb-1 group-hover:text-blue-600 transition-colors">
                         {ngo.organizationName}

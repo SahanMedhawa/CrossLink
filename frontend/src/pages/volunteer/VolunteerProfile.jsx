@@ -8,6 +8,7 @@ import {
   INTEREST_OPTIONS,
   AVAILABILITY_OPTIONS,
 } from "../../constants/skillsAndInterests";
+import { resolveImageUrl } from "../../utils/imageUrl";
 
 const VolunteerProfile = () => {
   const { user, setUser } = useAuth();
@@ -17,10 +18,13 @@ const VolunteerProfile = () => {
     phone: "",
     location: "",
     bio: "",
+    photoURL: "",
     skills: [],
     interests: [],
     availability: "",
   });
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState("");
   const [customSkill, setCustomSkill] = useState("");
   const [customInterest, setCustomInterest] = useState("");
 
@@ -31,12 +35,33 @@ const VolunteerProfile = () => {
         phone: user.phone || "",
         location: user.location || "",
         bio: user.bio || "",
+        photoURL: user.photoURL || "",
         skills: user.skills || [],
         interests: user.interests || [],
         availability: user.availability || "",
       });
+      setImagePreview(user.photoURL ? resolveImageUrl(user.photoURL) : "");
+      setImageFile(null);
     }
   }, [user]);
+
+  const handleImageChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please select a valid image file.");
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("Profile photo must be less than 10MB.");
+      return;
+    }
+
+    setImageFile(file);
+    setImagePreview(URL.createObjectURL(file));
+  };
 
   const toggleSkill = (skill) => {
     setFormData((prev) => ({
@@ -79,9 +104,23 @@ const VolunteerProfile = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const result = await updateVolunteerProfile(formData);
+      const payload = new FormData();
+      payload.append("name", formData.name);
+      payload.append("phone", formData.phone || "");
+      payload.append("location", formData.location || "");
+      payload.append("bio", formData.bio || "");
+      payload.append("availability", formData.availability || "");
+      payload.append("skills", JSON.stringify(formData.skills || []));
+      payload.append("interests", JSON.stringify(formData.interests || []));
+      if (imageFile) {
+        payload.append("photo", imageFile);
+      }
+
+      const result = await updateVolunteerProfile(payload);
       if (result.success) {
         setUser(result.data);
+        setImageFile(null);
+        setImagePreview(result.data?.photoURL ? resolveImageUrl(result.data.photoURL) : "");
         toast.success("Profile updated successfully!");
       }
     } catch (error) {
@@ -118,9 +157,17 @@ const VolunteerProfile = () => {
             <div className="hidden md:flex flex-shrink-0 animate-fade-in-up">
               <div className="w-40 h-40 rounded-full bg-white/10 backdrop-blur-md border-[6px] border-white/20 p-2 shadow-2xl relative overflow-hidden flex items-center justify-center">
                 <div className="absolute inset-0 bg-gradient-to-br from-indigo-400 to-fuchsia-400 opacity-20 blur-xl"></div>
-                <span className="text-6xl font-black text-white/80 select-none">
-                  {user?.name ? user.name.charAt(0).toUpperCase() : "U"}
-                </span>
+                {imagePreview ? (
+                  <img
+                    src={imagePreview}
+                    alt={formData.name || "Volunteer"}
+                    className="relative z-10 w-full h-full rounded-full object-cover"
+                  />
+                ) : (
+                  <span className="text-6xl font-black text-white/80 select-none">
+                    {user?.name ? user.name.charAt(0).toUpperCase() : "U"}
+                  </span>
+                )}
               </div>
             </div>
           </div>
@@ -135,6 +182,28 @@ const VolunteerProfile = () => {
                 <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
               </div>
               <h3 className="text-2xl font-bold text-gray-900 tracking-tight">Basic Details</h3>
+            </div>
+
+            <div className="mb-8 p-5 rounded-2xl border border-indigo-100 bg-indigo-50/40">
+              <label className="block text-sm font-bold text-gray-600 uppercase tracking-wider mb-3">Display Picture</label>
+              <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                <div className="w-20 h-20 rounded-full overflow-hidden border border-indigo-200 bg-white shadow-sm flex items-center justify-center">
+                  {imagePreview ? (
+                    <img src={imagePreview} alt={formData.name || 'Volunteer'} className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-2xl font-black text-indigo-400">{formData.name ? formData.name.charAt(0).toUpperCase() : 'V'}</span>
+                  )}
+                </div>
+                <div className="flex-1">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    className="block w-full text-sm text-gray-600 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-700"
+                  />
+                  <p className="text-xs text-gray-500 mt-2">Upload a clear profile photo so organizations can recognize you.</p>
+                </div>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">

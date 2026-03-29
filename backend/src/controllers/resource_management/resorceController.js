@@ -166,7 +166,7 @@ exports.getProjectResourceStatus = async (req, res) => {
     
     // For each resource in project, check its status in Resource collection
     project.resources.forEach(projRes => {
-      const resourceDoc = resources.find(r => r.name === projRes.name).lean();
+      const resourceDoc = resources.find(r => r.name === projRes.name);
       
       if (resourceDoc) {
         // Resource exists in Resource collection

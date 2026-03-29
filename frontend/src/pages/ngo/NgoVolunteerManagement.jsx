@@ -6,6 +6,7 @@ import {
   updateParticipationStatus,
 } from "../../services/volunteerApi";
 import toast from "react-hot-toast";
+import { resolveImageUrl } from "../../utils/imageUrl";
 
 const NgoVolunteerManagement = () => {
   const [projects, setProjects] = useState([]);
@@ -233,8 +234,16 @@ const NgoVolunteerManagement = () => {
                             >
                               <div className="flex items-center gap-4">
                                 {/* Avatar */}
-                                <div className="w-11 h-11 rounded-full bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center text-white font-bold text-base shrink-0">
-                                  {v.volunteerId?.name?.charAt(0)?.toUpperCase() || "?"}
+                                <div className="w-11 h-11 rounded-full bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center text-white font-bold text-base shrink-0 overflow-hidden">
+                                  {v.volunteerId?.photoURL ? (
+                                    <img
+                                      src={resolveImageUrl(v.volunteerId.photoURL)}
+                                      alt={v.volunteerId?.name || 'Volunteer'}
+                                      className="w-full h-full object-cover"
+                                    />
+                                  ) : (
+                                    v.volunteerId?.name?.charAt(0)?.toUpperCase() || "?"
+                                  )}
                                 </div>
 
                                 {/* Name + Meta */}
