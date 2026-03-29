@@ -1,6 +1,7 @@
 const Project = require('../../models/project');
 const User = require('../../models/user.model');
 const Participation = require('../../models/participation.model');
+const { syncProjectVolunteersCount } = require('../../services/volunteer_management/participation.service');
 
 // Create a new project
 exports.createProject = async (req, res) => {
@@ -351,6 +352,10 @@ exports.updateProjectStatus = async (req, res) => {
 
       participationSync.autoRejected = rejectedResult.modifiedCount || 0;
     }
+
+    // Keep denormalized count in sync with source-of-truth participation records.
+    const syncedCount = await syncProjectVolunteersCount(project._id);
+    project.volunteersCount = syncedCount;
 
     res.status(200).json({
       success: true,

@@ -5,7 +5,9 @@
   "scripts": {
     "dev": "nodemon src/server.js",
     "start": "node src/server.js",
-    "test": "playwright test --config=playwright-tests/playwright.config.js"
+    "test": "playwright test --config=playwright-tests/playwright.config.js",
+    "sync:volunteer-counts:dry": "node scripts/syncProjectVolunteerCounts.js --dry-run",
+    "sync:volunteer-counts": "node scripts/syncProjectVolunteerCounts.js"
   },
   "keywords": [
     "crosslink",
