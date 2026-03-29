@@ -1,5 +1,6 @@
 const Project = require('../../models/project');
 const User = require('../../models/user.model');
+const Participation = require('../../models/participation.model');
 
 // Create a new project
 exports.createProject = async (req, res) => {
@@ -312,10 +313,50 @@ exports.updateProjectStatus = async (req, res) => {
     project.status = status;
     await project.save();
 
+    let participationSync = {
+      autoCompleted: 0,
+      autoRejected: 0,
+    };
+
+    // When a project is completed, close all volunteer request workflows.
+    if (status === 'completed') {
+      const now = new Date();
+
+      const approvedParticipations = await Participation.find({
+        projectId: project._id,
+        status: 'approved',
+      }).select('volunteerId');
+
+      if (approvedParticipations.length > 0) {
+        const approvedVolunteerIds = approvedParticipations.map((p) => p.volunteerId);
+
+        await Participation.updateMany(
+          { projectId: project._id, status: 'approved' },
+          { $set: { status: 'completed', completedAt: now } }
+        );
+
+        // Mirror existing business rule: completed participations grant impact points.
+        await User.updateMany(
+          { _id: { $in: approvedVolunteerIds } },
+          { $inc: { impactPoints: 10 } }
+        );
+
+        participationSync.autoCompleted = approvedParticipations.length;
+      }
+
+      const rejectedResult = await Participation.updateMany(
+        { projectId: project._id, status: 'requested' },
+        { $set: { status: 'rejected' } }
+      );
+
+      participationSync.autoRejected = rejectedResult.modifiedCount || 0;
+    }
+
     res.status(200).json({
       success: true,
       message: `Project status updated to ${status}`,
-      project
+      project,
+      participationSync,
     });
   } catch (error) {
     res.status(500).json({
