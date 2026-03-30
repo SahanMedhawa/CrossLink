@@ -116,9 +116,9 @@ const ProposalsAndFundings = () => {
       <div className="p-6 bg-gray-50 min-h-screen">
         
         {/* Header */}
-        <div className="bg-gradient-to-r from-purple-600 to-indigo-700 rounded-2xl p-8 mb-8 shadow-lg text-white">
+        <div className="bg-gradient-to-r from-blue-700 to-indigo-600 rounded-2xl p-8 mb-8 shadow-lg text-white">
           <h2 className="text-3xl font-bold">Proposals & Fundings</h2>
-          <p className="text-purple-100 mt-2">Review and manage incoming collaboration requests.</p>
+          <p className="text-blue-100 mt-2">Review and manage incoming collaboration requests.</p>
         </div>
 
         {/* Tabs */}
@@ -126,7 +126,7 @@ const ProposalsAndFundings = () => {
           <button
             onClick={() => handleTabChange('proposals')}
             className={`px-6 py-2.5 rounded-lg font-semibold text-sm transition-all ${
-              activeTab === 'proposals' ? 'bg-purple-600 text-white shadow-md' : 'text-gray-500 hover:bg-gray-100'
+              activeTab === 'proposals' ? 'bg-blue-600 text-white shadow-md' : 'text-gray-500 hover:bg-gray-100'
             }`}
           >
             Proposals ({filteredProposals.filter(p => p.status === 'Pending').length} Pending)
@@ -154,7 +154,7 @@ const ProposalsAndFundings = () => {
         )}
 
         {loading ? (
-          <div className="text-center py-20"><div className="w-12 h-12 border-4 border-purple-600 border-t-transparent rounded-full animate-spin mx-auto"></div></div>
+          <div className="text-center py-20"><div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto"></div></div>
         ) : (
           <>
             {/* PROPOSALS TAB */}
@@ -166,10 +166,10 @@ const ProposalsAndFundings = () => {
                   </div>
                 ) : (
                   filteredProposals.map((p) => (
-                    <div key={p._id} className="bg-white rounded-2xl shadow-sm border-l-4 border-purple-500 overflow-hidden flex flex-col">
+                    <div key={p._id} className="bg-white rounded-2xl shadow-sm border-l-4 border-blue-500 overflow-hidden flex flex-col">
                       <div className="p-6 flex-grow">
                         <div className="flex justify-between items-start mb-4">
-                          <span className="px-3 py-1 bg-purple-50 text-purple-700 text-xs font-bold rounded-full uppercase">
+                          <span className="px-3 py-1 bg-blue-50 text-blue-700 text-xs font-bold rounded-full uppercase">
                             {p.corporateId?.companyName || 'Corporate Partner'}
                           </span>
                           <span className={`px-3 py-1 text-xs font-bold rounded-full border ${getStatusColor(p.status)}`}>
@@ -192,7 +192,7 @@ const ProposalsAndFundings = () => {
                         {p.status === 'Pending' ? (
                           <>
                             <button onClick={() => handleStatusUpdate(p._id, 'Rejected')} disabled={actionLoading === p._id} className="px-4 py-2 text-sm font-semibold text-red-600 bg-white border border-red-200 rounded-lg hover:bg-red-50 transition disabled:opacity-50">Reject</button>
-                            <button onClick={() => handleStatusUpdate(p._id, 'Accepted')} disabled={actionLoading === p._id} className="px-4 py-2 text-sm font-semibold text-white bg-purple-600 rounded-lg hover:bg-purple-700 transition shadow-md disabled:opacity-50">{actionLoading === p._id ? 'Processing...' : 'Accept Proposal'}</button>
+                            <button onClick={() => handleStatusUpdate(p._id, 'Accepted')} disabled={actionLoading === p._id} className="px-4 py-2 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition shadow-md disabled:opacity-50">{actionLoading === p._id ? 'Processing...' : 'Accept Proposal'}</button>
                           </>
                         ) : (
                           <span className="text-xs text-gray-400 italic">Decision Recorded</span>
