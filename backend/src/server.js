@@ -8,10 +8,14 @@ const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/crossl
 // Connect to MongoDB
 mongoose
   .connect(MONGODB_URI, {
-    maxPoolSize: 50, // Maintain up to 50 socket connections
-    serverSelectionTimeoutMS: 5000, // Keep trying to send operations for 5 seconds
-    socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
-    family: 4 // Use IPv4, skip trying IPv6
+    maxPoolSize: 30,
+    minPoolSize: 5,
+    serverSelectionTimeoutMS: 15000,
+    connectTimeoutMS: 10000,
+    socketTimeoutMS: 60000,
+    heartbeatFrequencyMS: 10000,
+    maxIdleTimeMS: 30000,
+    family: 4
   })
   .then(() => {
     console.log('✅ Connected to MongoDB');
@@ -29,10 +33,13 @@ mongoose
 
 // Handle connection events
 mongoose.connection.on('disconnected', () => {
-  console.log('⚠️ MongoDB disconnected! Attempting to reconnect...');
+  console.warn(`⚠️ MongoDB disconnected (state=${mongoose.connection.readyState}). Waiting for automatic reconnect...`);
 });
 mongoose.connection.on('reconnected', () => {
-  console.log('🔄 MongoDB reconnected!');
+  console.log('🔄 MongoDB reconnected.');
+});
+mongoose.connection.on('error', (error) => {
+  console.error('❌ MongoDB connection error event:', error.message);
 });
 
 // Graceful shutdown

@@ -139,12 +139,8 @@ exports.getFundingsForNgo = async (req, res) => {
       return res.status(400).json({ success: false, message: 'NGO ID is required' });
     }
 
-    console.log(`🔍 Fetching fundings for NGO ID: ${ngoId}`); // Debug log
-
     // 1. Find all Projects belonging to this NGO
     const projects = await Project.find({ ngoId }).lean().select('_id');
-    
-    console.log(`📂 Found ${projects.length} projects for this NGO.`); // Debug log
 
     if (projects.length === 0) {
       // Return empty array instead of crashing if no projects exist
@@ -158,8 +154,6 @@ exports.getFundingsForNgo = async (req, res) => {
       .populate('projectId', 'title')
       .populate('corporateId', 'companyName industry')
       .sort({ createdAt: -1 });
-
-    console.log(`💰 Found ${fundings.length} funding records.`); // Debug log
 
     res.json({
       success: true,

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
@@ -18,6 +18,7 @@ const ProjectDonations = () => {
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortConfig, setSortConfig] = useState({ key: 'donatedAt', direction: 'desc' });
+  const initialFetchDoneRef = useRef(false);
 
   // Format date helper
   const formatDate = (dateString) => {
@@ -76,12 +77,20 @@ const fetchNgoProjects = async () => {
     );
     
     setProjects(projectsList);
-    
-    // Auto-select first project if available
-    if (projectsList.length > 0 && !selectedProject) {
-      setSelectedProject(projectsList[0]);
-      fetchProjectDonations(projectsList[0]._id);
+
+    // Keep previous selection when possible; otherwise default to first project.
+    if (projectsList.length > 0) {
+      setSelectedProject((prevSelected) => {
+        if (prevSelected?._id) {
+          const preserved = projectsList.find((p) => p._id === prevSelected._id);
+          if (preserved) return preserved;
+        }
+        return projectsList[0];
+      });
     } else if (projectsList.length === 0) {
+      setSelectedProject(null);
+      setDonations([]);
+      setResourceNeeds([]);
       toast('No projects found for your organization', {
         icon: 'ℹ️',
         style: {
@@ -178,15 +187,20 @@ const fetchNgoProjects = async () => {
   };
 
   useEffect(() => {
-    if (user?._id && token) {
-      fetchNgoProjects();
+    if (!user?._id || !token || initialFetchDoneRef.current) return;
+    initialFetchDoneRef.current = true;
+    fetchNgoProjects();
+  }, [user?._id, token]);
+
+  useEffect(() => {
+    if (selectedProject?._id && token) {
+      fetchProjectDonations(selectedProject._id);
     }
-  }, [user, token]);
+  }, [selectedProject?._id, token]);
 
   // Handle project selection
   const handleProjectSelect = (project) => {
     setSelectedProject(project);
-    fetchProjectDonations(project._id);
     setSearchTerm('');
   };
 
