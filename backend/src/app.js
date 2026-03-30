@@ -16,6 +16,7 @@ const volunteerRoutes = require('./routes/volunteer_management/volunteer.routes'
 const matchmakingRoutes = require('./routes/volunteer_management/matchmaking.routes');
 const participationRoutes = require('./routes/volunteer_management/participation.routes');
 const sdgRoutes = require('./routes/ngo_management/sdgRoutes');
+const newsRoutes = require('./routes/corporate_management/news.routes');
 
 
 const app = express();
@@ -85,8 +86,12 @@ app.use('/api/funding', fundingRoutes);
 
 app.use('/api/proposals', proposalRoutes);
 
+app.use('/api/corporate/news', newsRoutes);
+
 app.use('/api/resources', resourceRoutes);
 app.use('/api/sdg', sdgRoutes);
+
+
 // Volunteer domain routes
 app.use('/api/volunteer', volunteerRoutes);
 app.use('/api/matchmaking', matchmakingRoutes);
