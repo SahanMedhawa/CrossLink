@@ -2,17 +2,37 @@ const express = require('express');
 const router = express.Router();
 const { 
   getAllCorporates, 
-  getCorporateById 
+  getCorporateById,
+  updateProfile,
+  getMyProfile // ✅ 1. Ensure this is imported
 } = require('../../controllers/corporate_management/corporate.controller');
 
+// Import Auth Middleware
+const { requireAuth } = require('../../middleware/auth.middleware');
 
-// const { protect } = require('../../middleware/auth.middleware');
-// router.use(protect); 
+// Protect all routes
+router.use(requireAuth); 
 
+// Existing Routes
 router.route('/')
   .get(getAllCorporates); // GET /api/corporates
 
+//  2. ADD NEW ROUTE: Get My Profile (MUST BE BEFORE /:id)
+// Method: GET
+// URL: /api/corporates/profile
+// Access: Private
+router.get('/profile', getMyProfile); 
+
+//  3. Update Profile Route
+// Method: PUT
+// URL: /api/corporates/profile
+// Access: Private
+router.put('/profile', updateProfile); 
+
+// 4. Dynamic ID Route (Must be LAST)
+// Method: GET
+// URL: /api/corporates/:id
 router.route('/:id')
-  .get(getCorporateById); // GET /api/corporates/65f8...
+  .get(getCorporateById); 
 
 module.exports = router;

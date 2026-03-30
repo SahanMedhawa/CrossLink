@@ -151,6 +151,13 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isMobile, userType }) => {
             href: "/corporate/resourcehManage",
             icon: <WrenchScrewdriverIcon className="w-5 h-5" />,
           },
+
+          {
+            name: "Profile",
+            href: "/corporate/profile",
+            icon: <UserIcon className="w-5 h-5" />, 
+          },
+
           {
             name: "Settings",
             href: "/corporate/settings",

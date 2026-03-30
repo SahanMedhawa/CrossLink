@@ -31,6 +31,8 @@ import NGOProfile from "./pages/ngo/ngoprofile";
 import NGOSPECIFICPROJECTS from "./pages/ngo/ngoprojects";
 import SDGDashboard from "./pages/ngo/sdggoals";
 import ProposalsAndFundings from './pages/ngo/ProposalsAndFundings';
+
+import CorporateProfile from './pages/corporate/CorporateProfile';
 import "./App.css";
 
 
@@ -267,7 +269,16 @@ function AppRoutes() {
         }
       />
 
+      <Route 
+          path="/corporate/profile" 
+          element={
+             <ProtectedRoute allowedRoles={['corporate']}>
+           <CorporateProfile />
+      </ProtectedRoute>
+      } 
+      />
 
+      
       {/* Resource Routes - Protected */}
       <Route
         path="/corporate/projects/:projectId/resources"
