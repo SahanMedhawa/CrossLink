@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import DashboardLayout from "../../components/dashboard/DashboardLayout";
 import {
   getNgoProjectsWithVolunteers,
@@ -7,8 +7,12 @@ import {
 } from "../../services/volunteerApi";
 import toast from "react-hot-toast";
 import { resolveImageUrl } from "../../utils/imageUrl";
+import { useAuth } from "../../context/AuthContext";
+import { getSocket } from "../../services/socket";
 
 const NgoVolunteerManagement = () => {
+  const { user } = useAuth();
+  const currentUserId = user?.id || user?._id;
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedProject, setSelectedProject] = useState(null);
@@ -18,13 +22,11 @@ const NgoVolunteerManagement = () => {
   const [expandedId, setExpandedId] = useState(null);
   const [statusFilter, setStatusFilter] = useState("all");
 
-  useEffect(() => {
-    fetchProjects();
-  }, []);
-
-  const fetchProjects = async () => {
+  const fetchProjects = useCallback(async (showLoader = true) => {
     try {
-      setLoading(true);
+      if (showLoader) {
+        setLoading(true);
+      }
       const result = await getNgoProjectsWithVolunteers();
       if (result.success) {
         setProjects(result.data);
@@ -32,25 +34,87 @@ const NgoVolunteerManagement = () => {
     } catch (error) {
       toast.error("Failed to load projects.");
     } finally {
-      setLoading(false);
+      if (showLoader) {
+        setLoading(false);
+      }
     }
-  };
+  }, []);
 
-  const handleSelectProject = async (project) => {
-    setSelectedProject(project);
-    setVolunteerLoading(true);
-    setStatusFilter("all");
-    setExpandedId(null);
+  const fetchVolunteersForProject = useCallback(async (projectId, showLoader = true) => {
+    if (!projectId) return;
+
     try {
-      const result = await getProjectVolunteers(project._id);
+      if (showLoader) {
+        setVolunteerLoading(true);
+      }
+      const result = await getProjectVolunteers(projectId);
       if (result.success) {
         setVolunteers(result.data);
       }
     } catch (error) {
       toast.error("Failed to load volunteers.");
     } finally {
-      setVolunteerLoading(false);
+      if (showLoader) {
+        setVolunteerLoading(false);
+      }
     }
+  }, []);
+
+  useEffect(() => {
+    fetchProjects();
+  }, [fetchProjects]);
+
+  useEffect(() => {
+    const socket = getSocket();
+    if (!socket) return undefined;
+
+    let refreshTimer;
+    const scheduleRefresh = (callback) => {
+      clearTimeout(refreshTimer);
+      refreshTimer = setTimeout(callback, 200);
+    };
+
+    const handleProjectEvent = (event) => {
+      if (event?.ngoId && currentUserId && event.ngoId !== currentUserId) {
+        return;
+      }
+
+      scheduleRefresh(async () => {
+        await fetchProjects(false);
+        if (selectedProject?._id && (!event?.projectId || event.projectId === selectedProject._id)) {
+          await fetchVolunteersForProject(selectedProject._id, false);
+        }
+      });
+    };
+
+    const handleParticipationEvent = (event) => {
+      if (event?.ngoId && currentUserId && event.ngoId !== currentUserId) {
+        return;
+      }
+
+      scheduleRefresh(async () => {
+        await fetchProjects(false);
+        if (selectedProject?._id && (!event?.projectId || event.projectId === selectedProject._id)) {
+          await fetchVolunteersForProject(selectedProject._id, false);
+        }
+      });
+    };
+
+    socket.on("project:updated", handleProjectEvent);
+    socket.on("participation:updated", handleParticipationEvent);
+
+    return () => {
+      clearTimeout(refreshTimer);
+      socket.off("project:updated", handleProjectEvent);
+      socket.off("participation:updated", handleParticipationEvent);
+    };
+  }, [currentUserId, selectedProject?._id, fetchProjects, fetchVolunteersForProject]);
+
+  const handleSelectProject = async (project) => {
+    setSelectedProject(project);
+    setStatusFilter("all");
+    setExpandedId(null);
+    await fetchVolunteersForProject(project._id);
   };
 
   const handleStatusUpdate = async (participationId, newStatus) => {
@@ -60,10 +124,9 @@ const NgoVolunteerManagement = () => {
       if (result.success) {
         toast.success(`Volunteer ${newStatus} successfully!`);
         if (selectedProject) {
-          const res = await getProjectVolunteers(selectedProject._id);
-          if (res.success) setVolunteers(res.data);
+          await fetchVolunteersForProject(selectedProject._id, false);
         }
-        fetchProjects();
+        fetchProjects(false);
       }
     } catch (error) {
       toast.error(error.response?.data?.message || `Failed to ${newStatus} volunteer.`);

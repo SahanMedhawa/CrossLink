@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useParams } from 'react-router-dom';
 import Header from '../../components/user/Navbar';
 import ResourceForm from '../resource/ResourceForm';
 import { resolveImageUrl } from '../../utils/imageUrl';
+import { getSocket } from '../../services/socket';
 
 const AllProjects = () => {
   const { ngoId } = useParams(); // from route: /ngo/:ngoId/projects
@@ -514,7 +515,7 @@ const AllProjects = () => {
     }
   };
 
-  const fetchProjects = async () => {
+  const fetchProjects = useCallback(async () => {
     if (!ngoId) return;
     try {
       setLoading(true);
@@ -532,11 +533,34 @@ const AllProjects = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [ngoId, filters]);
 
   useEffect(() => { 
     fetchProjects(); 
-  }, [ngoId]);
+  }, [fetchProjects]);
+
+  useEffect(() => {
+    const socket = getSocket();
+    if (!socket) return undefined;
+
+    let refreshTimer;
+    const handleProjectEvent = (event) => {
+      if (event?.ngoId && ngoId && event.ngoId !== ngoId) {
+        return;
+      }
+
+      clearTimeout(refreshTimer);
+      refreshTimer = setTimeout(() => {
+        fetchProjects();
+      }, 250);
+    };
+
+    socket.on('project:updated', handleProjectEvent);
+    return () => {
+      clearTimeout(refreshTimer);
+      socket.off('project:updated', handleProjectEvent);
+    };
+  }, [ngoId, fetchProjects]);
 
   // Function to check project funding status
   const checkProjectFunding = async (projectId) => {

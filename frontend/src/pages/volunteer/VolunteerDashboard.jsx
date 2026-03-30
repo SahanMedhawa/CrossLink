@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import DashboardLayout from "../../components/dashboard/DashboardLayout";
 import { getVolunteerStats, getMatchedProjects } from "../../services/volunteerApi";
 import { resolveImageUrl } from "../../utils/imageUrl";
+import { getSocket } from "../../services/socket";
 
 const VolunteerDashboard = () => {
   const { user } = useAuth();
@@ -11,27 +12,80 @@ const VolunteerDashboard = () => {
   const [topMatches, setTopMatches] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const fetchData = useCallback(async (showLoader = true) => {
+    try {
+      if (showLoader) {
+        setLoading(true);
+      }
+      const [statsRes, matchRes] = await Promise.all([
+        getVolunteerStats(),
+        getMatchedProjects(),
+      ]);
+
+      if (statsRes.success) setStats(statsRes.data);
+      if (matchRes.success) setTopMatches(matchRes.data.slice(0, 3));
+    } catch (error) {
+      console.error("Dashboard data fetch error:", error);
+    } finally {
+      if (showLoader) {
+        setLoading(false);
+      }
+    }
+  }, []);
+
   useEffect(() => {
     let isMounted = true;
-    const fetchData = async () => {
+
+    const run = async () => {
+      if (!isMounted) return;
+
       try {
-        const [statsRes, matchRes] = await Promise.all([
-          getVolunteerStats(),
-          getMatchedProjects(),
-        ]);
-        if (isMounted) {
-          if (statsRes.success) setStats(statsRes.data);
-          if (matchRes.success) setTopMatches(matchRes.data.slice(0, 3));
-        }
+        await fetchData(true);
       } catch (error) {
-        if (isMounted) console.error("Dashboard data fetch error:", error);
-      } finally {
-        if (isMounted) setLoading(false);
+        if (isMounted) {
+          console.error("Dashboard data fetch error:", error);
+        }
       }
     };
-    fetchData();
+
+    run();
     return () => { isMounted = false; };
-  }, []);
+  }, [fetchData]);
+
+  useEffect(() => {
+    const socket = getSocket();
+    if (!socket) return undefined;
+
+    let refreshTimer;
+    const currentUserId = user?.id || user?._id;
+
+    const scheduleRefresh = () => {
+      clearTimeout(refreshTimer);
+      refreshTimer = setTimeout(() => {
+        fetchData(false);
+      }, 250);
+    };
+
+    const handleParticipationEvent = (event) => {
+      if (event?.volunteerId && currentUserId && event.volunteerId !== currentUserId) {
+        return;
+      }
+      scheduleRefresh();
+    };
+
+    const handleProjectEvent = () => {
+      scheduleRefresh();
+    };
+
+    socket.on("participation:updated", handleParticipationEvent);
+    socket.on("project:updated", handleProjectEvent);
+
+    return () => {
+      clearTimeout(refreshTimer);
+      socket.off("participation:updated", handleParticipationEvent);
+      socket.off("project:updated", handleProjectEvent);
+    };
+  }, [user?.id, user?._id, fetchData]);
 
   const getScoreBarColor = (score) => {
     if (score >= 80) return "bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]";

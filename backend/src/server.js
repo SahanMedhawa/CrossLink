@@ -1,6 +1,8 @@
 require('dotenv').config();
+const http = require('http');
 const mongoose = require('mongoose');
 const app = require('./app');
+const { initSocket } = require('./socket/socket.service');
 
 const PORT = process.env.PORT || 5000;
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/crosslink';
@@ -19,9 +21,12 @@ mongoose
   })
   .then(() => {
     console.log('✅ Connected to MongoDB');
-    
-    // Start server
-    app.listen(PORT, () => {
+
+    // Start HTTP + WebSocket server
+    const httpServer = http.createServer(app);
+    initSocket(httpServer);
+
+    httpServer.listen(PORT, () => {
       console.log(`🚀 CrossLink server running on port ${PORT}`);
       console.log(`📡 API available at http://localhost:${PORT}/api`);
     });

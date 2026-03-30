@@ -2,6 +2,7 @@ const Project = require('../../models/project');
 const User = require('../../models/user.model');
 const Participation = require('../../models/participation.model');
 const { syncProjectVolunteersCount } = require('../../services/volunteer_management/participation.service');
+const { emitProjectEvent, emitParticipationEvent } = require('../../socket/socket.service');
 
 // Create a new project
 exports.createProject = async (req, res) => {
@@ -86,6 +87,13 @@ exports.createProject = async (req, res) => {
 
     const project = new Project(projectData);
     await project.save();
+
+    emitProjectEvent({
+      action: 'created',
+      projectId: project._id,
+      ngoId: req.user.id,
+      status: project.status,
+    });
 
     res.status(201).json({
       success: true,
@@ -268,6 +276,13 @@ exports.updateProject = async (req, res) => {
       { new: true, runValidators: true }
     );
 
+    emitProjectEvent({
+      action: 'updated',
+      projectId: updatedProject._id,
+      ngoId: req.user.id,
+      status: updatedProject.status,
+    });
+
     res.status(200).json({
       success: true,
       message: 'Project updated successfully',
@@ -357,6 +372,24 @@ exports.updateProjectStatus = async (req, res) => {
     const syncedCount = await syncProjectVolunteersCount(project._id);
     project.volunteersCount = syncedCount;
 
+    emitProjectEvent({
+      action: 'status-changed',
+      projectId: project._id,
+      ngoId: req.user.id,
+      status: project.status,
+      participationSync,
+    });
+
+    if (participationSync.autoCompleted > 0 || participationSync.autoRejected > 0) {
+      emitParticipationEvent({
+        action: 'bulk-status-sync',
+        projectId: project._id,
+        ngoId: req.user.id,
+        status: project.status,
+        participationSync,
+      });
+    }
+
     res.status(200).json({
       success: true,
       message: `Project status updated to ${status}`,
@@ -412,6 +445,13 @@ exports.deleteProject = async (req, res) => {
     }
 
     await Project.findByIdAndDelete(req.params.id);
+
+    emitProjectEvent({
+      action: 'deleted',
+      projectId: req.params.id,
+      ngoId: req.user.id,
+      status: project.status,
+    });
 
     res.status(200).json({
       success: true,

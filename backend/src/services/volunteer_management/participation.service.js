@@ -201,7 +201,13 @@ const deleteParticipationRequest = async (participationId, volunteerId) => {
   }
 
   await Participation.findByIdAndDelete(participationId);
-  return { message: 'Participation request withdrawn successfully.' };
+  return {
+    message: 'Participation request withdrawn successfully.',
+    participationId,
+    projectId: participation.projectId,
+    ngoId: participation.ngoId,
+    volunteerId: participation.volunteerId,
+  };
 };
 
 /**

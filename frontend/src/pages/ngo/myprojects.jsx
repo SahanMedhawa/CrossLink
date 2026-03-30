@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { SKILL_OPTIONS, FOCUS_AREA_OPTIONS } from '../../constants/skillsAndInterests';
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
 import DashboardLayout from '../../components/dashboard/DashboardLayout';
 import L from 'leaflet';
 import { resolveImageUrl } from '../../utils/imageUrl';
+import { getSocket } from '../../services/socket';
 
 // Fix default Leaflet marker icon
 delete L.Icon.Default.prototype._getIconUrl;
@@ -34,14 +35,24 @@ const MyProjects = () => {
   const [projectsPerPage] = useState(6);
   const [totalPages, setTotalPages] = useState(1);
 
+  let currentUserId = null;
+  try {
+    const rawUser = localStorage.getItem('crosslink_user');
+    if (rawUser) {
+      const parsedUser = JSON.parse(rawUser);
+      currentUserId = parsedUser?.id || parsedUser?._id || null;
+    }
+  } catch (error) {
+    currentUserId = null;
+  }
+
   const commonSkills = SKILL_OPTIONS;
 
-  useEffect(() => {
-    fetchProjects();
-  }, [statusFilter]);
-
-  const fetchProjects = async () => {
+  const fetchProjects = useCallback(async (showLoader = true) => {
     try {
+      if (showLoader) {
+        setLoading(true);
+      }
       const token = localStorage.getItem('crosslink_token');
       const url = statusFilter
         ? `http://localhost:5000/api/projects/ngo/my-projects?status=${statusFilter}`
@@ -59,7 +70,36 @@ const MyProjects = () => {
       setError(err.response?.data?.message || 'Failed to fetch projects');
       setLoading(false);
     }
-  };
+  }, [statusFilter, projectsPerPage]);
+
+  useEffect(() => {
+    fetchProjects();
+  }, [fetchProjects]);
+
+  useEffect(() => {
+    const socket = getSocket();
+    if (!socket) return undefined;
+
+    let refreshTimer;
+
+    const handleProjectEvent = (event) => {
+      if (event?.ngoId && currentUserId && event.ngoId !== currentUserId) {
+        return;
+      }
+
+      clearTimeout(refreshTimer);
+      refreshTimer = setTimeout(() => {
+        fetchProjects(false);
+      }, 200);
+    };
+
+    socket.on('project:updated', handleProjectEvent);
+
+    return () => {
+      clearTimeout(refreshTimer);
+      socket.off('project:updated', handleProjectEvent);
+    };
+  }, [currentUserId, fetchProjects]);
 
   const indexOfLastProject = currentPage * projectsPerPage;
   const indexOfFirstProject = indexOfLastProject - projectsPerPage;
