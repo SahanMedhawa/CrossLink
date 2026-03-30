@@ -163,12 +163,12 @@ const Header = ({ setSidebarOpen, userType }) => {
           >
             <Bars3Icon className="h-6 w-6" />
           </button>
-          <div className="hidden sm:block">
+          <div className="hidden sm:block text-left">
             <h1 className="text-lg font-semibold text-gray-800">
               {getGreeting()},{" "}
               <span className="text-blue-600">{user?.name || "User"}</span>
             </h1>
-            <p className="text-sm text-gray-500">{getCurrentDate()}</p>
+            <p className="text-sm text-gray-500 text-left">{getCurrentDate()}</p>
           </div>
         </div>
 

@@ -44,7 +44,14 @@ const VolunteerProfile = () => {
       setImageFile(null);
     }
   }, [user]);
-
+  useEffect(() => {
+    return () => {
+      // Cleanup object URL on unmount to prevent memory leaks
+      if (imagePreview && imagePreview.startsWith("blob:")) {
+        URL.revokeObjectURL(imagePreview);
+      }
+    };
+  }, [imagePreview]);
   const handleImageChange = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -60,6 +67,9 @@ const VolunteerProfile = () => {
     }
 
     setImageFile(file);
+    if (imagePreview && imagePreview.startsWith("blob:")) {
+      URL.revokeObjectURL(imagePreview);
+    }
     setImagePreview(URL.createObjectURL(file));
   };
 

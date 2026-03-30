@@ -12,21 +12,25 @@ const VolunteerDashboard = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let isMounted = true;
     const fetchData = async () => {
       try {
         const [statsRes, matchRes] = await Promise.all([
           getVolunteerStats(),
           getMatchedProjects(),
         ]);
-        if (statsRes.success) setStats(statsRes.data);
-        if (matchRes.success) setTopMatches(matchRes.data.slice(0, 3));
+        if (isMounted) {
+          if (statsRes.success) setStats(statsRes.data);
+          if (matchRes.success) setTopMatches(matchRes.data.slice(0, 3));
+        }
       } catch (error) {
-        console.error("Dashboard data fetch error:", error);
+        if (isMounted) console.error("Dashboard data fetch error:", error);
       } finally {
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
     };
     fetchData();
+    return () => { isMounted = false; };
   }, []);
 
   const getScoreBarColor = (score) => {
