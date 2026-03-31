@@ -212,31 +212,48 @@ const CreateProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
   const s = {
     overlay: {
       position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-      backgroundColor: 'rgba(15, 23, 42, 0.75)', backdropFilter: 'blur(6px)',
-      display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000, padding: '20px'
+      backgroundColor: 'rgba(15, 23, 42, 0.72)', backdropFilter: 'blur(10px)',
+      display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000, padding: '12px'
     },
     modal: {
-      backgroundColor: '#fff', width: '100%', maxWidth: '850px', maxHeight: '92vh',
-      borderRadius: '16px', display: 'flex', flexDirection: 'column', overflow: 'hidden',
-      boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
+      backgroundColor: '#fff', width: '100%', maxWidth: '960px', maxHeight: '94vh',
+      borderRadius: '24px', display: 'flex', flexDirection: 'column', overflow: 'hidden',
+      boxShadow: '0 25px 60px rgba(15, 23, 42, 0.28)',
+      border: '1px solid #e2e8f0'
     },
-    header: { padding: '1.5rem 2rem', borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
-    body: { padding: '2rem', overflowY: 'auto', flex: 1 },
-    footer: { padding: '1.25rem 2rem', borderTop: '1px solid #f1f5f9', display: 'flex', justifyContent: 'flex-end', gap: '1rem' },
+    header: {
+      padding: '1.25rem 1.5rem',
+      borderBottom: '1px solid #e5e7eb',
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      background: 'linear-gradient(135deg, #1d4ed8 0%, #4f46e5 100%)',
+      color: '#ffffff'
+    },
+    body: { padding: '1.25rem', overflowY: 'auto', flex: 1, background: '#f8fafc' },
+    footer: {
+      padding: '1rem 1.25rem',
+      borderTop: '1px solid #e5e7eb',
+      display: 'flex',
+      justifyContent: 'flex-end',
+      gap: '0.75rem',
+      flexWrap: 'wrap',
+      background: '#ffffff'
+    },
     label: { display: 'block', fontWeight: '600', color: '#1e293b', marginBottom: '0.4rem', fontSize: '0.85rem' },
     input: { width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '14px', outline: 'none', transition: 'border 0.2s' },
     skillBtn: { padding: '6px 14px', borderRadius: '20px', border: '1px solid #3b82f6', background: '#fff', color: '#3b82f6', cursor: 'pointer', fontSize: '12px' },
     skillBtnActive: { background: '#94a3b8', borderColor: '#94a3b8', color: '#fff', cursor: 'not-allowed' },
     tag: { display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '5px 12px', background: '#3b82f6', color: '#fff', borderRadius: '99px', fontSize: '12px' },
-    btnPrimary: { backgroundColor: '#2563eb', color: '#fff', padding: '0.75rem 1.5rem', borderRadius: '8px', border: 'none', fontWeight: '600', cursor: 'pointer' }
+    btnPrimary: { backgroundColor: '#2563eb', color: '#fff', padding: '0.75rem 1.5rem', borderRadius: '10px', border: 'none', fontWeight: '700', cursor: 'pointer' }
   };
 
   return (
     <div style={s.overlay} onClick={onClose}>
       <div style={s.modal} onClick={e => e.stopPropagation()}>
-        <div style={s.header}>
-          <h2 style={{ margin: 0, fontSize: '1.25rem', color: '#0f172a' }}>Publish New Project</h2>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer', color: '#94a3b8' }}>&times;</button>
+          <div style={s.header}>
+          <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 800 }}>Publish New Project</h2>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer', color: '#dbeafe' }}>&times;</button>
         </div>
 
         <form onSubmit={handleSubmit} style={{ display: 'contents' }}>
@@ -261,7 +278,7 @@ const CreateProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
               <textarea style={{ ...s.input, height: '100px', resize: 'vertical' }} name="description" value={formData.description} onChange={handleInputChange} required placeholder="Explain the mission and volunteer impact..." />
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '1.5rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem', marginBottom: '1.25rem' }}>
               <div>
                 <label style={s.label}>Focus Area *</label>
                 <select style={s.input} name="focusArea" value={formData.focusArea} onChange={handleInputChange} required>
@@ -363,7 +380,7 @@ const CreateProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
               ))}
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '1.5rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem', marginBottom: '1.25rem' }}>
               <div>
                 <label style={s.label}>Start Date *</label>
                 <input type="date" style={s.input} name="startDate" value={formData.startDate} onChange={handleInputChange} required />

@@ -1,5 +1,8 @@
 const Project = require('../../models/project');
 const User = require('../../models/user.model');
+const Participation = require('../../models/participation.model');
+const { syncProjectVolunteersCount } = require('../../services/volunteer_management/participation.service');
+const { emitProjectEvent, emitParticipationEvent } = require('../../socket/socket.service');
 
 // Create a new project
 exports.createProject = async (req, res) => {
@@ -77,13 +80,20 @@ exports.createProject = async (req, res) => {
       }
     }
 
-    // Add image path if uploaded
-    if (req.file) {
-      projectData.image = `/uploads/projects/${req.file.filename}`;
+    // Save Cloudinary delivery URL when an image is uploaded
+    if (req.file?.path) {
+      projectData.image = req.file.path;
     }
 
     const project = new Project(projectData);
     await project.save();
+
+    emitProjectEvent({
+      action: 'created',
+      projectId: project._id,
+      ngoId: req.user.id,
+      status: project.status,
+    });
 
     res.status(201).json({
       success: true,
@@ -109,7 +119,7 @@ exports.getNGOProjects = async (req, res) => {
       query.status = status;
     }
 
-    const projects = await Project.find(query)
+    const projects = await Project.find(query).lean()
       .sort({ createdAt: -1 });
 
     res.status(200).json({
@@ -149,8 +159,8 @@ exports.getAllProjects = async (req, res) => {
       query.skills = { $in: skillsArray };
     }
 
-    const projects = await Project.find(query)
-      .populate('ngoId', 'organizationName email phone location')
+    const projects = await Project.find(query).lean()
+      .populate('ngoId', 'organizationName email phone location photoURL')
       .sort({ createdAt: -1 });
 
     res.status(200).json({
@@ -171,7 +181,7 @@ exports.getAllProjects = async (req, res) => {
 exports.getProjectById = async (req, res) => {
   try {
     const project = await Project.findById(req.params.id)
-      .populate('ngoId', 'organizationName email phone location focusAreas');
+      .populate('ngoId', 'organizationName email phone location focusAreas photoURL');
 
     if (!project) {
       return res.status(404).json({
@@ -255,9 +265,9 @@ exports.updateProject = async (req, res) => {
       }
     }
 
-    // Add new image path if uploaded
-    if (req.file) {
-      req.body.image = `/uploads/projects/${req.file.filename}`;
+    // Save Cloudinary delivery URL when an image is uploaded
+    if (req.file?.path) {
+      req.body.image = req.file.path;
     }
 
     const updatedProject = await Project.findByIdAndUpdate(
@@ -265,6 +275,13 @@ exports.updateProject = async (req, res) => {
       req.body,
       { new: true, runValidators: true }
     );
+
+    emitProjectEvent({
+      action: 'updated',
+      projectId: updatedProject._id,
+      ngoId: req.user.id,
+      status: updatedProject.status,
+    });
 
     res.status(200).json({
       success: true,
@@ -312,10 +329,72 @@ exports.updateProjectStatus = async (req, res) => {
     project.status = status;
     await project.save();
 
+    let participationSync = {
+      autoCompleted: 0,
+      autoRejected: 0,
+    };
+
+    // When a project is completed, close all volunteer request workflows.
+    if (status === 'completed') {
+      const now = new Date();
+
+      const approvedParticipations = await Participation.find({
+        projectId: project._id,
+        status: 'approved',
+      }).select('volunteerId');
+
+      if (approvedParticipations.length > 0) {
+        const approvedVolunteerIds = approvedParticipations.map((p) => p.volunteerId);
+
+        await Participation.updateMany(
+          { projectId: project._id, status: 'approved' },
+          { $set: { status: 'completed', completedAt: now } }
+        );
+
+        // Mirror existing business rule: completed participations grant impact points.
+        await User.updateMany(
+          { _id: { $in: approvedVolunteerIds } },
+          { $inc: { impactPoints: 10 } }
+        );
+
+        participationSync.autoCompleted = approvedParticipations.length;
+      }
+
+      const rejectedResult = await Participation.updateMany(
+        { projectId: project._id, status: 'requested' },
+        { $set: { status: 'rejected' } }
+      );
+
+      participationSync.autoRejected = rejectedResult.modifiedCount || 0;
+    }
+
+    // Keep denormalized count in sync with source-of-truth participation records.
+    const syncedCount = await syncProjectVolunteersCount(project._id);
+    project.volunteersCount = syncedCount;
+
+    emitProjectEvent({
+      action: 'status-changed',
+      projectId: project._id,
+      ngoId: req.user.id,
+      status: project.status,
+      participationSync,
+    });
+
+    if (participationSync.autoCompleted > 0 || participationSync.autoRejected > 0) {
+      emitParticipationEvent({
+        action: 'bulk-status-sync',
+        projectId: project._id,
+        ngoId: req.user.id,
+        status: project.status,
+        participationSync,
+      });
+    }
+
     res.status(200).json({
       success: true,
       message: `Project status updated to ${status}`,
-      project
+      project,
+      participationSync,
     });
   } catch (error) {
     res.status(500).json({
@@ -336,7 +415,7 @@ exports.getProjectsByNGO = async (req, res) => {
     if (location) filter.location = { $regex: location, $options: 'i' };
     if (skills) filter.skills = { $in: skills.split(',') };
 
-    const projects = await Project.find(filter).sort({ createdAt: -1 });
+    const projects = await Project.find(filter).lean().sort({ createdAt: -1 });
 
     res.status(200).json({ projects });
   } catch (error) {
@@ -366,6 +445,13 @@ exports.deleteProject = async (req, res) => {
     }
 
     await Project.findByIdAndDelete(req.params.id);
+
+    emitProjectEvent({
+      action: 'deleted',
+      projectId: req.params.id,
+      ngoId: req.user.id,
+      status: project.status,
+    });
 
     res.status(200).json({
       success: true,

@@ -1,4 +1,5 @@
 const participationService = require('../../services/volunteer_management/participation.service');
+const { emitParticipationEvent } = require('../../socket/socket.service');
 
 /**
  * POST /api/participation/request
@@ -21,6 +22,15 @@ const requestParticipation = async (req, res) => {
       projectId,
       { message, experienceSummary, availabilityConfirmed, preferredRole, expectedHours }
     );
+
+    emitParticipationEvent({
+      action: 'requested',
+      participationId: participation._id,
+      projectId: participation.projectId,
+      ngoId: participation.ngoId,
+      volunteerId: participation.volunteerId,
+      status: participation.status,
+    });
 
     res.status(201).json({
       success: true,
@@ -57,6 +67,15 @@ const updateStatus = async (req, res) => {
       req.user.id,
       status
     );
+
+    emitParticipationEvent({
+      action: 'status-changed',
+      participationId: participation._id,
+      projectId: participation.projectId,
+      ngoId: participation.ngoId,
+      volunteerId: participation.volunteerId,
+      status: participation.status,
+    });
 
     res.status(200).json({
       success: true,
@@ -180,6 +199,15 @@ const updateRequest = async (req, res) => {
       req.body
     );
 
+    emitParticipationEvent({
+      action: 'request-updated',
+      participationId: participation._id,
+      projectId: participation.projectId,
+      ngoId: participation.ngoId,
+      volunteerId: participation.volunteerId,
+      status: participation.status,
+    });
+
     res.status(200).json({
       success: true,
       message: 'Participation request updated successfully.',
@@ -204,6 +232,15 @@ const deleteRequest = async (req, res) => {
       req.params.id,
       req.user.id
     );
+
+    emitParticipationEvent({
+      action: 'request-deleted',
+      participationId: result.participationId,
+      projectId: result.projectId,
+      ngoId: result.ngoId,
+      volunteerId: result.volunteerId,
+      status: 'requested',
+    });
 
     res.status(200).json({
       success: true,

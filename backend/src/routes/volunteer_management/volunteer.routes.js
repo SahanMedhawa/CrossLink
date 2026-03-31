@@ -7,10 +7,11 @@ const {
   getPublicProfile,
 } = require('../../controllers/volunteer_management/volunteer.controller');
 const { requireVolunteer, requireAuth } = require('../../middleware/auth.middleware');
+const profileUpload = require('../../middleware/profileUpload');
 
 // Protected volunteer-only routes
 router.get('/profile', requireVolunteer, getProfile);
-router.put('/profile', requireVolunteer, updateProfile);
+router.put('/profile', requireVolunteer, profileUpload.single('photo'), updateProfile);
 router.delete('/profile', requireVolunteer, deleteProfile);
 
 // Public limited view (requires any authenticated user)

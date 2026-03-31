@@ -10,7 +10,10 @@ export const getVolunteerProfile = async () => {
 };
 
 export const updateVolunteerProfile = async (data) => {
-  const response = await api.put('/volunteer/profile', data);
+  const config = data instanceof FormData
+    ? { headers: { 'Content-Type': 'multipart/form-data' } }
+    : undefined;
+  const response = await api.put('/volunteer/profile', data, config);
   return response.data;
 };
 

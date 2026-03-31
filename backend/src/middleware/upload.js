@@ -1,34 +1,30 @@
 const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
+const cloudinary = require('cloudinary').v2;
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
 
-// Get the correct path relative to this file's location
-// This file is in: backend/middleware/upload.js
-// We want: backend/uploads/projects
-const uploadPath = path.join(__dirname, '../uploads/projects');
+cloudinary.config({
+  cloud_name: process.env.CLOUD_NAME,
+  api_key: process.env.CLOUD_API_KEY,
+  api_secret: process.env.CLOUD_API_SECRET
+});
 
-console.log('📁 Upload path:', uploadPath);
-
-// Ensure the folder exists
-if (!fs.existsSync(uploadPath)) {
-  fs.mkdirSync(uploadPath, { recursive: true });
-  console.log('✅ Created uploads directory');
-} else {
-  console.log('✅ Uploads directory exists');
-}
-
-// Configure storage
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    console.log('💾 Saving file to:', uploadPath);
-    cb(null, uploadPath);
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-    const filename = 'project-' + uniqueSuffix + path.extname(file.originalname);
-    console.log('📸 Generated filename:', filename);
-    cb(null, filename);
-  }
+const storage = new CloudinaryStorage({
+  cloudinary,
+  params: async (req, file) => ({
+    folder: 'crosslink/projects',
+    resource_type: 'image',
+    allowed_formats: ['jpg', 'jpeg', 'png', 'webp', 'gif', 'bmp', 'tiff'],
+    format: 'webp',
+    transformation: [
+      {
+        width: 1000,
+        crop: 'limit',
+        fetch_format: 'webp',
+        quality: 'auto'
+      }
+    ],
+    public_id: `project-${Date.now()}-${Math.round(Math.random() * 1e9)}`
+  })
 });
 
 // File filter - ONLY allow image files

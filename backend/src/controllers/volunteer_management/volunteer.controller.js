@@ -26,9 +26,48 @@ const getProfile = async (req, res) => {
  */
 const updateProfile = async (req, res) => {
   try {
+    const updates = { ...req.body };
+
+    if (typeof updates.skills === 'string') {
+      try {
+        updates.skills = JSON.parse(updates.skills);
+      } catch (error) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid skills format.',
+        });
+      }
+    }
+
+    if (typeof updates.interests === 'string') {
+      try {
+        updates.interests = JSON.parse(updates.interests);
+      } catch (error) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid interests format.',
+        });
+      }
+    }
+
+    if (typeof updates.coordinates === 'string') {
+      try {
+        updates.coordinates = JSON.parse(updates.coordinates);
+      } catch (error) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid coordinates format.',
+        });
+      }
+    }
+
+    if (req.file?.path) {
+      updates.photoURL = req.file.path;
+    }
+
     const updatedProfile = await volunteerService.updateVolunteerProfile(
       req.user.id,
-      req.body
+      updates
     );
     res.status(200).json({
       success: true,

@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import DashboardLayout from "../../components/dashboard/DashboardLayout";
 import { getMyApplications, updateParticipationRequest, deleteParticipationRequest } from "../../services/volunteerApi";
 import ParticipationFormModal from "../../components/volunteer/ParticipationFormModal";
 import toast from "react-hot-toast";
+import { useAuth } from "../../context/AuthContext";
+import { getSocket } from "../../services/socket";
 
 const STATUS_COLORS = {
   requested: "bg-amber-100/80 text-amber-800 border-amber-200 shadow-[0_0_10px_rgba(251,191,36,0.2)]",
@@ -19,6 +21,7 @@ const STATUS_LABELS = {
 };
 
 const MyApplications = () => {
+  const { user } = useAuth();
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState("all");
@@ -27,13 +30,11 @@ const MyApplications = () => {
   const [editLoading, setEditLoading] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
 
-  useEffect(() => {
-    fetchApplications();
-  }, []);
-
-  const fetchApplications = async () => {
+  const fetchApplications = useCallback(async (showLoader = true) => {
     try {
-      setLoading(true);
+      if (showLoader) {
+        setLoading(true);
+      }
       const result = await getMyApplications();
       if (result.success) {
         setApplications(result.data);
@@ -41,9 +42,50 @@ const MyApplications = () => {
     } catch (error) {
       toast.error("Failed to load applications.");
     } finally {
-      setLoading(false);
+      if (showLoader) {
+        setLoading(false);
+      }
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchApplications();
+  }, [fetchApplications]);
+
+  useEffect(() => {
+    const socket = getSocket();
+    if (!socket) return undefined;
+
+    let refreshTimer;
+    const currentUserId = user?.id || user?._id;
+
+    const scheduleRefresh = () => {
+      clearTimeout(refreshTimer);
+      refreshTimer = setTimeout(() => {
+        fetchApplications(false);
+      }, 200);
+    };
+
+    const handleParticipationEvent = (event) => {
+      if (event?.volunteerId && currentUserId && event.volunteerId !== currentUserId) {
+        return;
+      }
+      scheduleRefresh();
+    };
+
+    const handleProjectEvent = () => {
+      scheduleRefresh();
+    };
+
+    socket.on("participation:updated", handleParticipationEvent);
+    socket.on("project:updated", handleProjectEvent);
+
+    return () => {
+      clearTimeout(refreshTimer);
+      socket.off("participation:updated", handleParticipationEvent);
+      socket.off("project:updated", handleProjectEvent);
+    };
+  }, [user?.id, user?._id, fetchApplications]);
 
   const filteredApplications =
     activeFilter === "all"

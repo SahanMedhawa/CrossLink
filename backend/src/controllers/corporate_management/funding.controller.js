@@ -82,7 +82,7 @@ exports.getFundingByProject = async (req, res) => {
   try {
     const { projectId } = req.params;
     
-    const fundings = await Funding.find({ projectId })
+    const fundings = await Funding.find({ projectId }).lean()
       .populate('corporateId', 'companyName industry email')
       .sort({ createdAt: -1 });
 
@@ -103,7 +103,7 @@ exports.getMyFunding = async (req, res) => {
   try {
     const corporateId = req.user.id;
     
-    const fundings = await Funding.find({ corporateId })
+    const fundings = await Funding.find({ corporateId }).lean()
       .populate({
         path: 'projectId',
         select: 'title location ngoId',
@@ -139,12 +139,8 @@ exports.getFundingsForNgo = async (req, res) => {
       return res.status(400).json({ success: false, message: 'NGO ID is required' });
     }
 
-    console.log(`🔍 Fetching fundings for NGO ID: ${ngoId}`); // Debug log
-
     // 1. Find all Projects belonging to this NGO
-    const projects = await Project.find({ ngoId }).select('_id');
-    
-    console.log(`📂 Found ${projects.length} projects for this NGO.`); // Debug log
+    const projects = await Project.find({ ngoId }).lean().select('_id');
 
     if (projects.length === 0) {
       // Return empty array instead of crashing if no projects exist
@@ -154,12 +150,10 @@ exports.getFundingsForNgo = async (req, res) => {
     const projectIds = projects.map(p => p._id);
 
     // 2. Find all Fundings linked to those projects
-    const fundings = await Funding.find({ projectId: { $in: projectIds } })
+    const fundings = await Funding.find({ projectId: { $in: projectIds } }).lean()
       .populate('projectId', 'title')
       .populate('corporateId', 'companyName industry')
       .sort({ createdAt: -1 });
-
-    console.log(`💰 Found ${fundings.length} funding records.`); // Debug log
 
     res.json({
       success: true,

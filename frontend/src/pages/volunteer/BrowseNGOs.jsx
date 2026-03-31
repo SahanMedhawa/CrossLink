@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../../services/api';
 import DashboardLayout from '../../components/dashboard/DashboardLayout';
+import { resolveImageUrl } from '../../utils/imageUrl';
 
 const BrowseNGOs = () => {
     const [ngos, setNgos] = useState([]);
@@ -9,17 +10,29 @@ const BrowseNGOs = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
+        let isMounted = true;
+        
         const fetchNGOs = async () => {
             try {
-                const response = await axios.get('http://localhost:5000/api/ngos');
-                setNgos(response.data.data || response.data.ngos || []);
+                const response = await api.get('/ngos');
+                if (isMounted) {
+                    setNgos(response.data.data || response.data.ngos || []);
+                }
             } catch (error) {
-                console.error("Error fetching NGOs:", error);
+                if (isMounted) {
+                    console.error("Error fetching NGOs:", error);
+                }
             } finally {
-                setLoading(false);
+                if (isMounted) {
+                    setLoading(false);
+                }
             }
         };
         fetchNGOs();
+
+        return () => {
+            isMounted = false;
+        };
     }, []);
 
     const handleViewProjects = (ngoId) => {
@@ -76,23 +89,31 @@ const BrowseNGOs = () => {
                                 style={{ animationDelay: `${idx * 100}ms` }}
                             >
                                 <div className="flex items-center gap-5 mb-6">
-                                    <div className="w-16 h-16 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600 font-bold text-2xl shadow-inner border border-indigo-100">
-                                        {ngo.organizationName?.charAt(0) || 'N'}
-                                    </div>
-                                    <div className="flex-1">
+                                    {ngo.photoURL ? (
+                                        <img
+                                            src={resolveImageUrl(ngo.photoURL)}
+                                            alt={ngo.organizationName || 'NGO'}
+                                            className="w-16 h-16 rounded-2xl object-cover shadow-inner border border-indigo-100"
+                                        />
+                                    ) : (
+                                        <div className="w-16 h-16 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600 font-bold text-2xl shadow-inner border border-indigo-100">
+                                            {ngo.organizationName?.charAt(0) || 'N'}
+                                        </div>
+                                    )}
+                                    <div className="flex-1 text-left">
                                         <h3 className="font-bold text-xl text-gray-900 group-hover:text-indigo-600 transition-colors line-clamp-1">{ngo.organizationName}</h3>
-                                        <p className="text-sm font-medium flex items-center gap-1.5 text-gray-500 mt-1 line-clamp-1">
+                                        <p className="text-sm font-medium flex items-center justify-start gap-1.5 text-gray-500 mt-1 line-clamp-1">
                                             <svg className="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clipRule="evenodd" /></svg>
                                             {ngo.location || "Unknown Location"}
                                         </p>
                                     </div>
                                 </div>
 
-                                <p className="text-gray-600 text-sm mb-6 line-clamp-3 flex-1 leading-relaxed">
+                                <p className="text-gray-600 text-sm mb-6 line-clamp-3 flex-1 leading-relaxed text-left">
                                     {ngo.bio || "No description available yet."}
                                 </p>
 
-                                <div className="flex flex-wrap gap-2 mb-8">
+                                <div className="flex flex-wrap gap-2 mb-8 justify-start">
                                     {ngo.focusAreas?.slice(0, 3).map((area, i) => (
                                         <span key={i} className="px-3 py-1.5 bg-gray-50 text-gray-600 border border-gray-100 text-xs rounded-xl font-bold shadow-sm">
                                             {area}

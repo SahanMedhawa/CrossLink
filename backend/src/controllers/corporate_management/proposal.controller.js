@@ -103,7 +103,7 @@ exports.getProposalsByProject = async (req, res) => {
   try {
     const { projectId } = req.params;
     
-    const proposals = await Proposal.find({ projectId })
+    const proposals = await Proposal.find({ projectId }).lean()
       .populate('corporateId', 'companyName industry email location')
       .sort({ createdAt: -1 });
 
@@ -265,7 +265,7 @@ exports.getMyProposals = async (req, res) => {
       };
     }
 
-    const proposals = await Proposal.find(query)
+    const proposals = await Proposal.find(query).lean()
       .populate('projectId', 'title organizationName status location')
       .sort({ createdAt: -1 });
 
@@ -292,11 +292,11 @@ exports.getProposalsForNgo = async (req, res) => {
     const { ngoId } = req.params;
 
     // 1. Find all Projects belonging to this NGO
-    const projects = await Project.find({ ngoId }).select('_id');
+    const projects = await Project.find({ ngoId }).lean().select('_id');
     const projectIds = projects.map(p => p._id);
 
     // 2. Find all Proposals linked to those projects
-    const proposals = await Proposal.find({ projectId: { $in: projectIds } })
+    const proposals = await Proposal.find({ projectId: { $in: projectIds } }).lean()
       .populate('projectId', 'title')
       .populate('corporateId', 'companyName industry email')
       .sort({ createdAt: -1 });

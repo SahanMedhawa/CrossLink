@@ -5,7 +5,8 @@ const User = require('../../models/user.model');
 // @access  Public
 exports.getAllCorporates = async (req, res) => {
   try {
-    const corporates = await User.find({ userType: 'corporate' })
+    // Query 'userType' instead of 'role' based on auth controller
+    const corporates = await User.find({ userType: 'corporate' }).lean()
       .select('-password -__v') 
       .lean();
 
