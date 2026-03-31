@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import DashboardLayout from '../../components/dashboard/DashboardLayout';
 
-// NEWS API KEY FROM newsapi.org
-const NEWS_API_KEY = import.meta.env.VITE_NEWS_API_KEY;
+// REMOVED: No longer importing NEWS_API_KEY here for security.
+// The key is now safely stored in the backend .env file.
 
 const CsrInitiatives = () => {
   const [stats, setStats] = useState({
@@ -61,15 +61,15 @@ const CsrInitiatives = () => {
     }
   };
 
+  //  UPDATED: Fetch news from OUR backend (Secure Proxy Pattern)
   const fetchNews = async () => {
     try {
-      const res = await axios.get(
-        `https://newsapi.org/v2/everything?q=(CSR OR "corporate social responsibility" OR sustainability OR climate change)&language=en&sortBy=publishedAt&pageSize=4`,
-        { headers: { 'X-Api-Key': NEWS_API_KEY } }
-      );
-      setNews(res.data.articles || []);
+      // Call our own backend endpoint which holds the secret key securely
+      const res = await axios.get('http://localhost:5000/api/corporate/news/csr');
+      setNews(res.data.data || []);
     } catch (error) {
-      console.error("Error fetching news:", error);
+      console.error("Error fetching news from proxy:", error);
+      // Fallback data if our backend fails or API is down
       setNews([
         { title: "Global CSR Trends for 2026", description: "Companies are shifting focus to direct community impact...", source: { name: "CSR World" }, url: "#", publishedAt: new Date().toISOString(), urlToImage: "https://via.placeholder.com/400x200?text=CSR+News" },
         { title: "Climate Action: Corporate Pledges", description: "New initiatives launched to reduce carbon footprint...", source: { name: "Green Business" }, url: "#", publishedAt: new Date().toISOString(), urlToImage: "https://via.placeholder.com/400x200?text=Climate+News" }
@@ -85,7 +85,7 @@ const CsrInitiatives = () => {
     <DashboardLayout userType="corporate">
       <div className="p-8 bg-gray-50 min-h-screen">
         
-        {/* ✅ UPDATED HEADER: Blue Gradient (Matching Proposals & NGO Pages) */}
+        {/* Header */}
         <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl p-8 mb-8 shadow-lg text-white text-center">
           <h2 className="text-3xl font-bold">CSR Impact & Insights</h2>
           <p className="text-blue-100 mt-2 font-medium">Real-time analytics and latest industry news.</p>
@@ -102,7 +102,6 @@ const CsrInitiatives = () => {
             <p className="text-xs font-bold text-gray-400 uppercase">Funding Records</p>
             <p className="text-2xl font-bold text-gray-900 mt-1">{stats.totalFundingRecords}</p>
           </div>
-          {/* ✅ Updated Border Color to Blue for Consistency */}
           <div className="bg-white p-6 rounded-xl shadow-sm border-l-4 border-blue-600">
             <p className="text-xs font-bold text-gray-400 uppercase">Total Value</p>
             <p className="text-2xl font-bold text-gray-900 mt-1">LKR {(stats.totalValue / 1000).toFixed(1)}k</p>
@@ -115,7 +114,7 @@ const CsrInitiatives = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
-          {/* 2. Recent Activity (Left 2/3) */}
+          {/* 2. Recent Activity */}
           <div className="lg:col-span-2 bg-white rounded-xl shadow-sm overflow-hidden">
             <div className="p-6 border-b border-gray-100">
               <h3 className="text-lg font-bold text-gray-800">Recent Activity Feed</h3>
@@ -142,7 +141,7 @@ const CsrInitiatives = () => {
             )}
           </div>
 
-          {/* 3. Live News Feed (Right 1/3) */}
+          {/* 3. Live News Feed */}
           <div className="bg-white rounded-xl shadow-sm overflow-hidden flex flex-col">
             <div className="p-6 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-white">
               <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
