@@ -159,7 +159,7 @@ exports.getProjectResourceStatus = async (req, res) => {
     }
     
     // Get all resources for this project from Resource collection
-    const resources = await Resource.find({ projectId });
+    const resources = await Resource.find({ projectId }).lean();
     
     // Create status map/array
     const status = [];
@@ -220,7 +220,7 @@ exports.getAllResources = async (req, res) => {
       };
     }
     
-    const resources = await Resource.find(query)
+    const resources = await Resource.find(query).lean()
       .populate({
         path: 'projectId',
         model: 'Project',
@@ -342,7 +342,7 @@ exports.getResourcesByProject = async (req, res) => {
   try {
     const { projectId } = req.params;
     
-    const resources = await Resource.find({ projectId })
+    const resources = await Resource.find({ projectId }).lean()
       .populate({
         path: 'projectId',
         select: 'title organizationName location focusArea ngoId'

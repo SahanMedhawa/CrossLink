@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import Header from '../../components/user/Navbar';
 import ResourceForm from '../resource/ResourceForm';
+import { resolveImageUrl } from '../../utils/imageUrl';
+import { getSocket } from '../../services/socket';
 
 const AllProjects = () => {
   const [projects, setProjects] = useState([]);
@@ -123,7 +125,7 @@ const AllProjects = () => {
     },
     projectGrid: {
       display: 'grid',
-      gridTemplateColumns: 'repeat(auto-fill, minmax(380px, 1fr))',
+      gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
       gap: '1.75rem'
     },
     card: {
@@ -508,10 +510,6 @@ const AllProjects = () => {
     }
   };
 
-  useEffect(() => { 
-    fetchProjects(); 
-  }, []);
-
   // Function to check project funding status
   const checkProjectFunding = async (projectId) => {
     if (!projectId) return;
@@ -578,7 +576,7 @@ const AllProjects = () => {
     }
   };
 
-  const fetchProjects = async () => {
+  const fetchProjects = useCallback(async () => {
     try {
       setLoading(true);
       const query = new URLSearchParams(filters).toString();
@@ -590,7 +588,30 @@ const AllProjects = () => {
     } finally { 
       setLoading(false); 
     }
-  };
+  }, [filters]);
+
+  useEffect(() => {
+    fetchProjects();
+  }, [fetchProjects]);
+
+  useEffect(() => {
+    const socket = getSocket();
+    if (!socket) return undefined;
+
+    let refreshTimer;
+    const handleProjectEvent = () => {
+      clearTimeout(refreshTimer);
+      refreshTimer = setTimeout(() => {
+        fetchProjects();
+      }, 250);
+    };
+
+    socket.on('project:updated', handleProjectEvent);
+    return () => {
+      clearTimeout(refreshTimer);
+      socket.off('project:updated', handleProjectEvent);
+    };
+  }, [fetchProjects]);
 
   const handleFilterChange = (key, value) => {
     setFilters(prev => ({ ...prev, [key]: value }));
@@ -790,7 +811,7 @@ const AllProjects = () => {
                 >
                   {project.image ? (
                     <img 
-                      src={`http://localhost:5000${project.image}`} 
+                      src={resolveImageUrl(project.image)} 
                       style={styles.cardImage} 
                       alt={project.title}
                     />

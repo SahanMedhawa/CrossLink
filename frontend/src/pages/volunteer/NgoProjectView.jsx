@@ -1,10 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import DashboardLayout from '../../components/dashboard/DashboardLayout';
 import { requestParticipation } from "../../services/volunteerApi";
 import ParticipationFormModal from "../../components/volunteer/ParticipationFormModal";
 import toast from "react-hot-toast";
+import { resolveImageUrl } from '../../utils/imageUrl';
+import { getSocket } from '../../services/socket';
 
 const NgoProjectView = () => {
     const { ngoId } = useParams();
@@ -19,28 +21,54 @@ const NgoProjectView = () => {
     const [selectedProjectId, setSelectedProjectId] = useState(null);
     const [formLoading, setFormLoading] = useState(false);
 
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const res = await axios.get('http://localhost:5000/api/projects/all');
-                const projects = res.data.projects || res.data.data || [];
+    const fetchData = useCallback(async () => {
+        try {
+            setLoading(true);
+            const res = await axios.get('http://localhost:5000/api/projects/all');
+            const projects = res.data.projects || res.data.data || [];
 
-                const filtered = projects.filter(p => p.ngoId && p.ngoId._id === ngoId);
-                setFilteredProjects(filtered);
+            const filtered = projects.filter(p => p.ngoId && p.ngoId._id === ngoId);
+            setFilteredProjects(filtered);
 
-                if (filtered.length > 0 && filtered[0].ngoId) {
-                    setNgoName(filtered[0].ngoId.organizationName);
-                } else {
-                    setNgoName('Selected NGO');
-                }
-            } catch (error) {
-                console.error("Error fetching projects:", error);
-            } finally {
-                setLoading(false);
+            if (filtered.length > 0 && filtered[0].ngoId) {
+                setNgoName(filtered[0].ngoId.organizationName);
+            } else {
+                setNgoName('Selected NGO');
             }
-        };
-        fetchData();
+        } catch (error) {
+            console.error("Error fetching projects:", error);
+        } finally {
+            setLoading(false);
+        }
     }, [ngoId]);
+
+    useEffect(() => {
+        fetchData();
+    }, [fetchData]);
+
+    useEffect(() => {
+        const socket = getSocket();
+        if (!socket) return undefined;
+
+        let refreshTimer;
+        const handleProjectEvent = (event) => {
+            if (event?.ngoId && ngoId && event.ngoId !== ngoId) {
+                return;
+            }
+
+            clearTimeout(refreshTimer);
+            refreshTimer = setTimeout(() => {
+                fetchData();
+            }, 250);
+        };
+
+        socket.on('project:updated', handleProjectEvent);
+
+        return () => {
+            clearTimeout(refreshTimer);
+            socket.off('project:updated', handleProjectEvent);
+        };
+    }, [ngoId, fetchData]);
 
     const handleApply = (projectId) => {
         setSelectedProjectId(projectId);
@@ -108,7 +136,7 @@ const NgoProjectView = () => {
                                 <div className="relative h-56 w-full overflow-hidden bg-gray-100">
                                     {project.image ? (
                                         <img
-                                            src={`http://localhost:5000${project.image}`}
+                                            src={resolveImageUrl(project.image)}
                                             alt={project.title}
                                             className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700"
                                         />

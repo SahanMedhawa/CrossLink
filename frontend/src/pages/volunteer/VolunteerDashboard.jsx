@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import DashboardLayout from "../../components/dashboard/DashboardLayout";
 import { getVolunteerStats, getMatchedProjects } from "../../services/volunteerApi";
+import { resolveImageUrl } from "../../utils/imageUrl";
+import { getSocket } from "../../services/socket";
 
 const VolunteerDashboard = () => {
   const { user } = useAuth();
@@ -10,23 +12,80 @@ const VolunteerDashboard = () => {
   const [topMatches, setTopMatches] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [statsRes, matchRes] = await Promise.all([
-          getVolunteerStats(),
-          getMatchedProjects(),
-        ]);
-        if (statsRes.success) setStats(statsRes.data);
-        if (matchRes.success) setTopMatches(matchRes.data.slice(0, 3));
-      } catch (error) {
-        console.error("Dashboard data fetch error:", error);
-      } finally {
+  const fetchData = useCallback(async (showLoader = true) => {
+    try {
+      if (showLoader) {
+        setLoading(true);
+      }
+      const [statsRes, matchRes] = await Promise.all([
+        getVolunteerStats(),
+        getMatchedProjects(),
+      ]);
+
+      if (statsRes.success) setStats(statsRes.data);
+      if (matchRes.success) setTopMatches(matchRes.data.slice(0, 3));
+    } catch (error) {
+      console.error("Dashboard data fetch error:", error);
+    } finally {
+      if (showLoader) {
         setLoading(false);
       }
-    };
-    fetchData();
+    }
   }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const run = async () => {
+      if (!isMounted) return;
+
+      try {
+        await fetchData(true);
+      } catch (error) {
+        if (isMounted) {
+          console.error("Dashboard data fetch error:", error);
+        }
+      }
+    };
+
+    run();
+    return () => { isMounted = false; };
+  }, [fetchData]);
+
+  useEffect(() => {
+    const socket = getSocket();
+    if (!socket) return undefined;
+
+    let refreshTimer;
+    const currentUserId = user?.id || user?._id;
+
+    const scheduleRefresh = () => {
+      clearTimeout(refreshTimer);
+      refreshTimer = setTimeout(() => {
+        fetchData(false);
+      }, 250);
+    };
+
+    const handleParticipationEvent = (event) => {
+      if (event?.volunteerId && currentUserId && event.volunteerId !== currentUserId) {
+        return;
+      }
+      scheduleRefresh();
+    };
+
+    const handleProjectEvent = () => {
+      scheduleRefresh();
+    };
+
+    socket.on("participation:updated", handleParticipationEvent);
+    socket.on("project:updated", handleProjectEvent);
+
+    return () => {
+      clearTimeout(refreshTimer);
+      socket.off("participation:updated", handleParticipationEvent);
+      socket.off("project:updated", handleProjectEvent);
+    };
+  }, [user?.id, user?._id, fetchData]);
 
   const getScoreBarColor = (score) => {
     if (score >= 80) return "bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]";
@@ -201,7 +260,7 @@ const VolunteerDashboard = () => {
                     <div className="sm:w-1/3 mb-4 sm:mb-0 sm:mr-6 flex-shrink-0">
                       {project.image ? (
                         <div className="w-full h-32 sm:h-full rounded-2xl overflow-hidden shadow-base">
-                          <img src={`http://localhost:5000${project.image}`} alt={project.title} className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700" />
+                          <img src={resolveImageUrl(project.image)} alt={project.title} className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700" />
                         </div>
                       ) : (
                         <div className="w-full h-32 sm:h-full bg-gradient-to-br from-indigo-50 to-blue-50 rounded-2xl flex items-center justify-center border border-dashed border-blue-200">
@@ -219,7 +278,15 @@ const VolunteerDashboard = () => {
                       </div>
 
                       <p className="text-sm font-medium text-gray-500 mb-4 flex items-center gap-1.5">
-                        <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
+                        {project.ngo?.photoURL ? (
+                          <img
+                            src={resolveImageUrl(project.ngo.photoURL)}
+                            alt={project.ngo?.organizationName || 'NGO'}
+                            className="w-5 h-5 rounded-full object-cover border border-gray-200"
+                          />
+                        ) : (
+                          <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
+                        )}
                         {project.ngo?.organizationName} <span className="mx-1 text-gray-300">&bull;</span> {project.location}
                       </p>
 

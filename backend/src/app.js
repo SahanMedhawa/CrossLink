@@ -6,8 +6,6 @@ const mongoSanitize = require('express-mongo-sanitize');
 const authRoutes = require('./routes/auth.routes');
 const ngoRoutes = require('./routes/ngo_management/ngo.routes');
 const projectRoutes = require('./routes/ngo_management/Projectroutes');
-const path = require('path');
-const fs = require('fs');
 const proposalRoutes = require('./routes/corporate_management/proposal.routes');
 const corporateRoutes = require('./routes/corporate_management/corporate.routes');
 const fundingRoutes = require('./routes/corporate_management/funding.routes');
@@ -20,11 +18,6 @@ const sdgRoutes = require('./routes/ngo_management/sdgRoutes');
 
 const app = express();
 
-const uploadsDir = path.join(__dirname, 'uploads', 'projects');
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
-}
-
 // Security headers
 app.use(helmet());
 
@@ -35,8 +28,8 @@ app.use(cors({
 }));
 
 // Request body size limit to prevent abuse
-app.use(express.json({ limit: '10kb' }));
-app.use(express.urlencoded({ extended: true, limit: '10kb' }));
+app.use(express.json({ limit: '2mb' }));
+app.use(express.urlencoded({ extended: true, limit: '2mb' }));
 
 // Sanitize data against NoSQL injection
 app.use(mongoSanitize());
@@ -44,7 +37,7 @@ app.use(mongoSanitize());
 // Rate limiting for auth endpoints (brute force protection)
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 20, // limit each IP to 20 auth requests per window
+  max: 50, // limit each IP to 50 auth requests per window
   message: {
     success: false,
     message: 'Too many requests. Please try again after 15 minutes.',
@@ -56,7 +49,7 @@ const authLimiter = rateLimit({
 // General API rate limiter
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 100,
+  max: 3000, // Increased significantly: modern SPAs make many concurrent requests
   message: {
     success: false,
     message: 'Too many requests. Please try again later.',
@@ -64,12 +57,6 @@ const apiLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
 });
-
-app.use('/uploads', (req, res, next) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
-  next();
-}, express.static(path.join(__dirname, 'uploads')));
 
 // Apply rate limiters
 app.use('/api/auth/signup', authLimiter);

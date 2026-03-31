@@ -1,4 +1,5 @@
 import React from 'react';
+import { resolveImageUrl } from '../../utils/imageUrl';
 
 const CorporateProjectCard = ({ project, onPropose, onFund }) => {
   return (
@@ -7,7 +8,7 @@ const CorporateProjectCard = ({ project, onPropose, onFund }) => {
       <div className="h-48 w-full bg-gray-200 relative">
         {project.image ? (
           <img 
-            src={`http://localhost:5000${project.image}`} 
+            src={resolveImageUrl(project.image)} 
             alt={project.title} 
             className="w-full h-full object-cover"
           />

@@ -1,11 +1,16 @@
 const nodemailer = require('nodemailer');
 
+const MAIL_USER = process.env.GMAIL_USER || process.env.EMAIL_USER;
+const MAIL_PASS = process.env.GMAIL_APP_PASSWORD || process.env.EMAIL_PASS;
+const isEmailConfigured = () => Boolean(MAIL_USER && MAIL_PASS);
+let hasWarnedMissingGmailConfig = false;
+
 // Create transporter using Gmail SMTP
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
-    user: process.env.GMAIL_USER,
-    pass: process.env.GMAIL_APP_PASSWORD
+    user: MAIL_USER,
+    pass: MAIL_PASS
   }
 });
 
@@ -86,10 +91,18 @@ const emailStyles = {
 // Send donation confirmation to corporate donor
 const sendDonationConfirmation = async (donation, project, corporate) => {
   try {
+    if (!isEmailConfigured()) {
+      if (!hasWarnedMissingGmailConfig) {
+        console.warn('⚠️ Gmail is not configured (set GMAIL_USER/GMAIL_APP_PASSWORD or EMAIL_USER/EMAIL_PASS). Skipping donation emails.');
+        hasWarnedMissingGmailConfig = true;
+      }
+      return { success: false, error: 'Email configuration missing' };
+    }
+
     const progressPercentage = ((donation.totalQuantity - donation.remainingQuantity) / donation.totalQuantity) * 100;
     
     const mailOptions = {
-      from: `"🌱 Resource Management" <${process.env.GMAIL_USER}>`,
+      from: `"🌱 Resource Management" <${MAIL_USER}>`,
       to: corporate.email,
       subject: `✨ Thank You! Your donation to ${project.title} is confirmed`,
       html: `
@@ -235,10 +248,18 @@ const sendDonationConfirmation = async (donation, project, corporate) => {
 // Send notification to NGO about new donation
 const sendNgoNotification = async (donation, project, corporate) => {
   try {
+    if (!isEmailConfigured()) {
+      if (!hasWarnedMissingGmailConfig) {
+        console.warn('⚠️ Gmail is not configured (set GMAIL_USER/GMAIL_APP_PASSWORD or EMAIL_USER/EMAIL_PASS). Skipping donation emails.');
+        hasWarnedMissingGmailConfig = true;
+      }
+      return { success: false, error: 'Email configuration missing' };
+    }
+
     const progressPercentage = ((donation.totalQuantity - donation.remainingQuantity) / donation.totalQuantity) * 100;
     
     const mailOptions = {
-      from: `"🌱 Resource Management" <${process.env.GMAIL_USER}>`,
+      from: `"🌱 Resource Management" <${MAIL_USER}>`,
       to: project.ngoEmail,
       subject: `🎁 Great News! New donation received for ${project.title}`,
       html: `

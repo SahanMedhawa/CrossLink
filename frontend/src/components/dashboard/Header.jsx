@@ -10,14 +10,33 @@ import {
   HomeIcon,
 } from "@heroicons/react/24/outline";
 import { useAuth } from "../../context/AuthContext";
+import { resolveImageUrl } from "../../utils/imageUrl";
+import { getProfile } from "../../services/api";
 
 const Header = ({ setSidebarOpen, userType }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const dropdownRef = useRef(null);
   const notificationsRef = useRef(null);
-  const { user, logout } = useAuth();
+  const { user, logout, setUser } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const refreshUserProfile = async () => {
+      if (!user) return;
+
+      try {
+        const response = await getProfile();
+        if (response?.success && response?.data) {
+          setUser(response.data);
+        }
+      } catch (error) {
+        // Ignore profile sync errors in header; existing auth state remains usable.
+      }
+    };
+
+    refreshUserProfile();
+  }, []);
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -144,12 +163,12 @@ const Header = ({ setSidebarOpen, userType }) => {
           >
             <Bars3Icon className="h-6 w-6" />
           </button>
-          <div className="hidden sm:block">
+          <div className="hidden sm:block text-left">
             <h1 className="text-lg font-semibold text-gray-800">
               {getGreeting()},{" "}
               <span className="text-blue-600">{user?.name || "User"}</span>
             </h1>
-            <p className="text-sm text-gray-500">{getCurrentDate()}</p>
+            <p className="text-sm text-gray-500 text-left">{getCurrentDate()}</p>
           </div>
         </div>
 
@@ -224,9 +243,17 @@ const Header = ({ setSidebarOpen, userType }) => {
               <div
                 className={`w-9 h-9 rounded-full bg-gradient-to-r ${getRoleColor(
                   roleValue
-                )} flex items-center justify-center text-white font-semibold text-sm shadow-sm`}
+                )} flex items-center justify-center text-white font-semibold text-sm shadow-sm overflow-hidden`}
               >
-                {user?.name?.charAt(0).toUpperCase() || "U"}
+                {user?.photoURL ? (
+                  <img
+                    src={resolveImageUrl(user.photoURL)}
+                    alt={user?.name || 'User'}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  user?.name?.charAt(0).toUpperCase() || "U"
+                )}
               </div>
               <div className="hidden md:block text-left">
                 <p className="text-sm font-medium text-gray-800">
@@ -251,7 +278,15 @@ const Header = ({ setSidebarOpen, userType }) => {
                 >
                   <div className="flex flex-col items-center text-center space-y-2">
                     <div className="h-12 w-12 rounded-full bg-white/20 flex items-center justify-center text-white text-lg">
-                      {user?.name?.charAt(0).toUpperCase() || "U"}
+                      {user?.photoURL ? (
+                        <img
+                          src={resolveImageUrl(user.photoURL)}
+                          alt={user?.name || 'User'}
+                          className="w-full h-full rounded-full object-cover"
+                        />
+                      ) : (
+                        user?.name?.charAt(0).toUpperCase() || "U"
+                      )}
                     </div>
                     <div>
                       <p className="text-sm font-semibold">

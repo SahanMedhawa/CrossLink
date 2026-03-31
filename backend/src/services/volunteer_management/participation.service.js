@@ -2,6 +2,16 @@ const Participation = require('../../models/participation.model');
 const Project = require('../../models/project');
 const User = require('../../models/user.model');
 
+const syncProjectVolunteersCount = async (projectId) => {
+  const activeCount = await Participation.countDocuments({
+    projectId,
+    status: { $in: ['approved', 'completed'] },
+  });
+
+  await Project.findByIdAndUpdate(projectId, { volunteersCount: activeCount });
+  return activeCount;
+};
+
 /**
  * Request participation in a project (volunteer action)
  */
@@ -15,8 +25,11 @@ const requestParticipation = async (volunteerId, projectId, formData) => {
     throw { status: 400, message: 'Project is not currently active.' };
   }
 
+  // Re-sync first to avoid stale denormalized count before capacity check.
+  const activeVolunteers = await syncProjectVolunteersCount(projectId);
+
   // Check if project still needs volunteers
-  if (project.volunteersCount >= project.volunteersNeeded) {
+  if (activeVolunteers >= project.volunteersNeeded) {
     throw { status: 400, message: 'This project has reached its volunteer capacity.' };
   }
 
@@ -99,11 +112,6 @@ const updateParticipationStatus = async (participationId, ngoId, newStatus) => {
   if (newStatus === 'approved') {
     participation.approvedAt = new Date();
 
-    // Increment project volunteer count
-    await Project.findByIdAndUpdate(participation.projectId, {
-      $inc: { volunteersCount: 1 },
-    });
-
     // Increment volunteer's projectsJoinedCount
     await User.findByIdAndUpdate(participation.volunteerId, {
       $inc: { projectsJoinedCount: 1 },
@@ -120,6 +128,7 @@ const updateParticipationStatus = async (participationId, ngoId, newStatus) => {
   }
 
   await participation.save();
+  await syncProjectVolunteersCount(participation.projectId);
   return participation;
 };
 
@@ -192,7 +201,13 @@ const deleteParticipationRequest = async (participationId, volunteerId) => {
   }
 
   await Participation.findByIdAndDelete(participationId);
-  return { message: 'Participation request withdrawn successfully.' };
+  return {
+    message: 'Participation request withdrawn successfully.',
+    participationId,
+    projectId: participation.projectId,
+    ngoId: participation.ngoId,
+    volunteerId: participation.volunteerId,
+  };
 };
 
 /**
@@ -330,6 +345,7 @@ const getNgoProjectsWithVolunteerCounts = async (ngoId) => {
 };
 
 module.exports = {
+  syncProjectVolunteersCount,
   requestParticipation,
   updateParticipationStatus,
   updateParticipationRequest,

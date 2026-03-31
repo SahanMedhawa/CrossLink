@@ -1,6 +1,16 @@
 const nodemailer = require('nodemailer');
 
+let hasWarnedMissingEmailConfig = false;
+
 const sendEmail = async (options) => {
+  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+    if (!hasWarnedMissingEmailConfig) {
+      console.warn('⚠️ Email is not configured (EMAIL_USER/EMAIL_PASS missing). Skipping email sends.');
+      hasWarnedMissingEmailConfig = true;
+    }
+    return;
+  }
+
   // 1. Create the transporter
   const transporter = nodemailer.createTransport({
     service: 'gmail', 
