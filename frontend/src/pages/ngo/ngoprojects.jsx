@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+﻿import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useParams } from 'react-router-dom';
 import Header from '../../components/user/Navbar';
@@ -524,7 +524,7 @@ const AllProjects = () => {
       if (filters.location) params.location = filters.location;
       if (filters.skills) params.skills = filters.skills;
 
-      const response = await axios.get(`http://localhost:5000/api/projects/ngoprojects/${ngoId}`, { params });
+      const response = await axios.get(`/api/projects/ngoprojects/${ngoId}`, { params });
       setProjects(response.data.projects || response.data);
       setError('');
     } catch (err) {
@@ -569,7 +569,7 @@ const AllProjects = () => {
     try {
       setCheckingFunding(true);
       const response = await axios.get(
-        `http://localhost:5000/api/resources/project/${projectId}/status`
+        `/api/resources/project/${projectId}/status`
       );
       
       console.log("Funding status response:", response.data);
@@ -659,7 +659,7 @@ const AllProjects = () => {
 
     try {
       const response = await axios.post(
-        `http://localhost:5000/api/projects/${selectedProject._id}/volunteer`,
+        `/api/projects/${selectedProject._id}/volunteer`,
         {
           ...volunteerApplication,
           projectId: selectedProject._id,

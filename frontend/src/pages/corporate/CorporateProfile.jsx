@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react"; //  Added useEffect
+﻿import React, { useState, useEffect } from "react"; //  Added useEffect
 import { useAuth } from "../../context/AuthContext";
 import axios from "axios";
 import DashboardLayout from "../../components/dashboard/DashboardLayout";
@@ -33,7 +33,7 @@ const CorporateProfile = () => {
           return;
         }
 
-        const res = await axios.get("http://localhost:5000/api/corporates/profile", {
+        const res = await axios.get("/api/corporates/profile", {
           headers: { "Authorization": `Bearer ${token}` }
         });
 
@@ -123,7 +123,7 @@ const CorporateProfile = () => {
       };
 
       const res = await axios.put(
-        "http://localhost:5000/api/corporates/profile", 
+        "/api/corporates/profile", 
         formData, 
         config
       );

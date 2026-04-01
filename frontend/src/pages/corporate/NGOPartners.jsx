@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import DashboardLayout from '../../components/dashboard/DashboardLayout';
@@ -26,7 +26,7 @@ const NGOPartners = () => {
   useEffect(() => {
     const fetchNGOs = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/api/ngos');
+        const response = await axios.get('/api/ngos');
         setNgos(response.data.data || response.data.ngos || []);
       } catch (error) {
         console.error("Error fetching NGOs:", error);

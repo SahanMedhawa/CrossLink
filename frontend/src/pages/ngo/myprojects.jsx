@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+﻿import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { SKILL_OPTIONS, FOCUS_AREA_OPTIONS } from '../../constants/skillsAndInterests';
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
@@ -55,8 +55,8 @@ const MyProjects = () => {
       }
       const token = localStorage.getItem('crosslink_token');
       const url = statusFilter
-        ? `http://localhost:5000/api/projects/ngo/my-projects?status=${statusFilter}`
-        : 'http://localhost:5000/api/projects/ngo/my-projects';
+        ? `/api/projects/ngo/my-projects?status=${statusFilter}`
+        : '/api/projects/ngo/my-projects';
 
       const response = await axios.get(url, {
         headers: { 'Authorization': `Bearer ${token}` }
@@ -113,7 +113,7 @@ const MyProjects = () => {
     if (!window.confirm('Are you sure you want to delete this project?')) return;
     try {
       const token = localStorage.getItem('crosslink_token');
-      await axios.delete(`http://localhost:5000/api/projects/${projectId}`, {
+      await axios.delete(`/api/projects/${projectId}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       alert('Project deleted successfully');
@@ -136,7 +136,7 @@ const MyProjects = () => {
     try {
       const token = localStorage.getItem('crosslink_token');
       await axios.put(
-        `http://localhost:5000/api/projects/${projectId}/status`,
+        `/api/projects/${projectId}/status`,
         { status: newStatus },
         { headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' } }
       );
@@ -472,7 +472,7 @@ const EditProjectModal = ({ project, onClose, onUpdate, commonSkills }) => {
       }
       if (imageFile) fd.append('image', imageFile);
 
-      await axios.put(`http://localhost:5000/api/projects/${project._id}`, fd, {
+      await axios.put(`/api/projects/${project._id}`, fd, {
         headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'multipart/form-data' }
       });
       alert('Project updated successfully');
