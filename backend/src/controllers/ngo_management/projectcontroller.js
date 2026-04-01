@@ -1,8 +1,26 @@
 const Project = require('../../models/project');
 const User = require('../../models/user.model');
 const Participation = require('../../models/participation.model');
+const Proposal = require('../../models/proposal');
+const Funding = require('../../models/funding');
+const Resource = require('../../models/resorce');
+const { calculateMatchScore } = require('../../services/volunteer_management/matchmaking.service');
+const { createNotification } = require('../../services/notification.service');
 const { syncProjectVolunteersCount } = require('../../services/volunteer_management/participation.service');
 const { emitProjectEvent, emitParticipationEvent } = require('../../socket/socket.service');
+
+const notifySafely = async (payload) => {
+  try {
+    await createNotification(payload);
+  } catch (error) {
+    console.error('Notification error:', error.message);
+  }
+};
+
+const notifyManySafely = async (items) => {
+  if (!Array.isArray(items) || items.length === 0) return;
+  await Promise.all(items.map((item) => notifySafely(item)));
+};
 
 // Create a new project
 exports.createProject = async (req, res) => {
@@ -87,6 +105,37 @@ exports.createProject = async (req, res) => {
 
     const project = new Project(projectData);
     await project.save();
+
+    if (project.status === 'active') {
+      const volunteers = await User.find({ userType: 'volunteer' }).select('name skills');
+      const ngoName = ngo.organizationName || ngo.name || 'An NGO';
+
+      const notifications = volunteers
+        .map((volunteer) => {
+          const { score } = calculateMatchScore(volunteer.skills || [], project.skills || []);
+          if (score <= 0) return null;
+
+          return {
+            recipient: volunteer._id,
+            recipientRole: 'volunteer',
+            actor: req.user.id,
+            actorRole: 'ngo',
+            type: 'project.created.match',
+            title: 'New matched project',
+            message: `${ngoName} posted ${project.title}. Match rate: ${score}%.`,
+            link: '/volunteer/projects',
+            uniqueKey: `project:created:match:${project._id}:${volunteer._id}`,
+            metadata: {
+              projectId: project._id,
+              ngoId: req.user.id,
+              matchScore: score,
+            },
+          };
+        })
+        .filter(Boolean);
+
+      await notifyManySafely(notifications);
+    }
 
     emitProjectEvent({
       action: 'created',
@@ -326,6 +375,14 @@ exports.updateProjectStatus = async (req, res) => {
       });
     }
 
+    const ngo = await User.findById(req.user.id).select('name organizationName');
+    const ngoName = ngo?.organizationName || ngo?.name || 'The NGO';
+
+    const relevantParticipations = await Participation.find({
+      projectId: project._id,
+      status: { $in: ['requested', 'approved', 'completed'] },
+    }).select('volunteerId status');
+
     project.status = status;
     await project.save();
 
@@ -389,6 +446,76 @@ exports.updateProjectStatus = async (req, res) => {
         participationSync,
       });
     }
+
+    const volunteerStatusById = new Map(
+      relevantParticipations.map((item) => [String(item.volunteerId), item.status])
+    );
+
+    const volunteerNotifications = Array.from(volunteerStatusById.entries()).map(
+      ([volunteerId, previousStatus]) => {
+        let message = `${ngoName} changed ${project.title} status to ${status}.`;
+
+        if (status === 'completed' && previousStatus === 'requested') {
+          message = `${ngoName} marked ${project.title} as completed. Your pending request was closed.`;
+        } else if (status === 'completed' && previousStatus === 'approved') {
+          message = `${ngoName} marked ${project.title} as completed. Your approved workload was marked completed.`;
+        } else if (status === 'cancelled') {
+          message = `${ngoName} cancelled ${project.title}. Please check your applications.`;
+        }
+
+        return {
+          recipient: volunteerId,
+          recipientRole: 'volunteer',
+          actor: req.user.id,
+          actorRole: 'ngo',
+          type: 'project.status-changed',
+          title: 'Project status updated',
+          message,
+          link: '/volunteer/applications',
+          uniqueKey: `project:status:${project._id}:${status}:volunteer:${volunteerId}`,
+          metadata: {
+            projectId: project._id,
+            ngoId: req.user.id,
+            status,
+            previousStatus,
+          },
+        };
+      }
+    );
+
+    await notifyManySafely(volunteerNotifications);
+
+    const [proposalCorporateIds, fundingCorporateIds, resourceCorporateIds] =
+      await Promise.all([
+        Proposal.find({ projectId: project._id }).distinct('corporateId'),
+        Funding.find({ projectId: project._id }).distinct('corporateId'),
+        Resource.find({ projectId: project._id }).distinct('donatedBy.corporateId'),
+      ]);
+
+    const corporateIds = new Set(
+      [...proposalCorporateIds, ...fundingCorporateIds, ...resourceCorporateIds]
+        .filter(Boolean)
+        .map((id) => String(id))
+    );
+
+    const corporateNotifications = Array.from(corporateIds).map((corporateId) => ({
+      recipient: corporateId,
+      recipientRole: 'corporate',
+      actor: req.user.id,
+      actorRole: 'ngo',
+      type: 'project.status-changed.corporate',
+      title: 'Project status updated',
+      message: `${ngoName} changed ${project.title} status to ${status}.`,
+      link: '/corporate/my-activities',
+      uniqueKey: `project:status:${project._id}:${status}:corporate:${corporateId}`,
+      metadata: {
+        projectId: project._id,
+        ngoId: req.user.id,
+        status,
+      },
+    }));
+
+    await notifyManySafely(corporateNotifications);
 
     res.status(200).json({
       success: true,

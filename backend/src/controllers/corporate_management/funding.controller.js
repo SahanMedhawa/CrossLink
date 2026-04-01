@@ -1,6 +1,16 @@
 const Funding = require('../../models/funding');
 const Project = require('../../models/project');
+const User = require('../../models/user.model');
 const sendEmail = require('../../utils/sendEmail');
+const { createNotification } = require('../../services/notification.service');
+
+const notifySafely = async (payload) => {
+  try {
+    await createNotification(payload);
+  } catch (error) {
+    console.error('Notification error:', error.message);
+  }
+};
 
 // @desc    Create a new Funding Record (Corporate)
 // @route   POST /api/funding
@@ -17,7 +27,8 @@ exports.createFunding = async (req, res) => {
     }
 
     const ngoUser = project.ngoId;
-    const corporateUser = req.user;
+    const corporateUser = await User.findById(corporateId).select('name companyName');
+    const actorName = corporateUser?.companyName || corporateUser?.name || 'A corporate partner';
 
     // 2. Create Funding Record
     const newFunding = new Funding({
@@ -33,6 +44,38 @@ exports.createFunding = async (req, res) => {
     });
 
     await newFunding.save();
+
+    await notifySafely({
+      recipient: ngoUser._id,
+      recipientRole: 'ngo',
+      actor: corporateId,
+      actorRole: 'corporate',
+      type: 'funding.created',
+      title: 'New funding received',
+      message: `${actorName} funded ${project.title} with LKR ${Number(amount).toLocaleString()}.`,
+      link: '/ngo/proposals-fundings',
+      uniqueKey: `funding:created:${newFunding._id}`,
+      metadata: {
+        fundingId: newFunding._id,
+        projectId: project._id,
+      },
+    });
+
+    await notifySafely({
+      recipient: corporateId,
+      recipientRole: 'corporate',
+      actor: ngoUser._id,
+      actorRole: 'ngo',
+      type: 'funding.confirmed',
+      title: 'Funding recorded',
+      message: `Your funding for ${project.title} was recorded successfully.`,
+      link: '/corporate/my-activities',
+      uniqueKey: `funding:confirmed:${newFunding._id}`,
+      metadata: {
+        fundingId: newFunding._id,
+        projectId: project._id,
+      },
+    });
 
     // 3. Send Email Notifications
     try {

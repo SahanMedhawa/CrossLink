@@ -2,6 +2,15 @@ const User = require("../../models/user.model");
 const Resource = require("../../models/resorce");
 const Project = require("../../models/project");
 const {sendDonationConfirmation, sendNgoNotification} = require("../../utils/emailService");
+const { createNotification } = require('../../services/notification.service');
+
+const notifySafely = async (payload) => {
+  try {
+    await createNotification(payload);
+  } catch (error) {
+    console.error('Notification error:', error.message);
+  }
+};
 
 // Corporate donates 
 exports.donateResource = async (req, res) => {
@@ -75,6 +84,47 @@ exports.donateResource = async (req, res) => {
     }
 
     const isFullyFunded = resource.remainingQuantity === 0;
+
+    const donorId = corporateId || req.user?.id;
+    const donorUser = donorId
+      ? await User.findById(donorId).select('name companyName')
+      : null;
+    const donorName = donorUser?.companyName || donorUser?.name || 'A corporate partner';
+
+    await notifySafely({
+      recipient: project.ngoId,
+      recipientRole: 'ngo',
+      actor: donorId,
+      actorRole: 'corporate',
+      type: 'resource.donated',
+      title: 'New resource donation',
+      message: `${donorName} donated ${quantity} ${name} for ${project.title}.`,
+      link: '/ngo/ProjectDonations',
+      uniqueKey: `resource:donated:${resource._id}`,
+      metadata: {
+        projectId: project._id,
+        resourceId: resource._id,
+        quantity,
+      },
+    });
+
+    await notifySafely({
+      recipient: donorId,
+      recipientRole: 'corporate',
+      actor: project.ngoId,
+      actorRole: 'ngo',
+      type: 'resource.donation-recorded',
+      title: 'Donation submitted',
+      message: `Your ${name} donation for ${project.title} was recorded successfully.`,
+      link: '/corporate/resourcehManage',
+      uniqueKey: `resource:recorded:${resource._id}:${donorId}`,
+      metadata: {
+        projectId: project._id,
+        resourceId: resource._id,
+        quantity,
+        isFullyFunded,
+      },
+    });
 
     try {
       // Fetch corporate user details

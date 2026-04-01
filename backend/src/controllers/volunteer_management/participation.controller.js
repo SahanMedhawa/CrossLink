@@ -1,5 +1,16 @@
 const participationService = require('../../services/volunteer_management/participation.service');
 const { emitParticipationEvent } = require('../../socket/socket.service');
+const { createNotification } = require('../../services/notification.service');
+const User = require('../../models/user.model');
+const Project = require('../../models/project');
+
+const notifySafely = async (payload) => {
+  try {
+    await createNotification(payload);
+  } catch (error) {
+    console.error('Notification error:', error.message);
+  }
+};
 
 /**
  * POST /api/participation/request
@@ -23,6 +34,14 @@ const requestParticipation = async (req, res) => {
       { message, experienceSummary, availabilityConfirmed, preferredRole, expectedHours }
     );
 
+    const [actorUser, project] = await Promise.all([
+      User.findById(req.user.id).select('name'),
+      Project.findById(participation.projectId).select('title'),
+    ]);
+
+    const actorName = actorUser?.name || 'A volunteer';
+    const projectTitle = project?.title || 'your project';
+
     emitParticipationEvent({
       action: 'requested',
       participationId: participation._id,
@@ -30,6 +49,22 @@ const requestParticipation = async (req, res) => {
       ngoId: participation.ngoId,
       volunteerId: participation.volunteerId,
       status: participation.status,
+    });
+
+    await notifySafely({
+      recipient: participation.ngoId,
+      recipientRole: 'ngo',
+      actor: req.user.id,
+      actorRole: 'volunteer',
+      type: 'participation.requested',
+      title: 'New volunteer application',
+      message: `${actorName} requested to join ${projectTitle}.`,
+      link: '/ngo/volunteers',
+      uniqueKey: `participation:requested:${participation._id}`,
+      metadata: {
+        participationId: participation._id,
+        projectId: participation.projectId,
+      },
     });
 
     res.status(201).json({
@@ -68,6 +103,14 @@ const updateStatus = async (req, res) => {
       status
     );
 
+    const [actorUser, project] = await Promise.all([
+      User.findById(req.user.id).select('name organizationName'),
+      Project.findById(participation.projectId).select('title'),
+    ]);
+
+    const actorName = actorUser?.organizationName || actorUser?.name || 'The NGO';
+    const projectTitle = project?.title || 'your project';
+
     emitParticipationEvent({
       action: 'status-changed',
       participationId: participation._id,
@@ -75,6 +118,23 @@ const updateStatus = async (req, res) => {
       ngoId: participation.ngoId,
       volunteerId: participation.volunteerId,
       status: participation.status,
+    });
+
+    await notifySafely({
+      recipient: participation.volunteerId,
+      recipientRole: 'volunteer',
+      actor: req.user.id,
+      actorRole: 'ngo',
+      type: 'participation.status-changed',
+      title: 'Application status updated',
+      message: `${actorName} marked your ${projectTitle} application as ${participation.status}.`,
+      link: '/volunteer/applications',
+      uniqueKey: `participation:status:${participation._id}:${participation.status}`,
+      metadata: {
+        participationId: participation._id,
+        projectId: participation.projectId,
+        status: participation.status,
+      },
     });
 
     res.status(200).json({
@@ -199,6 +259,14 @@ const updateRequest = async (req, res) => {
       req.body
     );
 
+    const [actorUser, project] = await Promise.all([
+      User.findById(req.user.id).select('name'),
+      Project.findById(participation.projectId).select('title'),
+    ]);
+
+    const actorName = actorUser?.name || 'A volunteer';
+    const projectTitle = project?.title || 'your project';
+
     emitParticipationEvent({
       action: 'request-updated',
       participationId: participation._id,
@@ -206,6 +274,22 @@ const updateRequest = async (req, res) => {
       ngoId: participation.ngoId,
       volunteerId: participation.volunteerId,
       status: participation.status,
+    });
+
+    await notifySafely({
+      recipient: participation.ngoId,
+      recipientRole: 'ngo',
+      actor: req.user.id,
+      actorRole: 'volunteer',
+      type: 'participation.request-updated',
+      title: 'Volunteer application updated',
+      message: `${actorName} updated their pending application for ${projectTitle}.`,
+      link: '/ngo/volunteers',
+      uniqueKey: `participation:updated:${participation._id}`,
+      metadata: {
+        participationId: participation._id,
+        projectId: participation.projectId,
+      },
     });
 
     res.status(200).json({
@@ -233,6 +317,14 @@ const deleteRequest = async (req, res) => {
       req.user.id
     );
 
+    const [actorUser, project] = await Promise.all([
+      User.findById(req.user.id).select('name'),
+      Project.findById(result.projectId).select('title'),
+    ]);
+
+    const actorName = actorUser?.name || 'A volunteer';
+    const projectTitle = project?.title || 'your project';
+
     emitParticipationEvent({
       action: 'request-deleted',
       participationId: result.participationId,
@@ -240,6 +332,22 @@ const deleteRequest = async (req, res) => {
       ngoId: result.ngoId,
       volunteerId: result.volunteerId,
       status: 'requested',
+    });
+
+    await notifySafely({
+      recipient: result.ngoId,
+      recipientRole: 'ngo',
+      actor: req.user.id,
+      actorRole: 'volunteer',
+      type: 'participation.request-deleted',
+      title: 'Volunteer application withdrawn',
+      message: `${actorName} withdrew their application from ${projectTitle}.`,
+      link: '/ngo/volunteers',
+      uniqueKey: `participation:deleted:${result.participationId}`,
+      metadata: {
+        participationId: result.participationId,
+        projectId: result.projectId,
+      },
     });
 
     res.status(200).json({

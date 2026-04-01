@@ -1,6 +1,16 @@
 const Proposal = require('../../models/proposal');
 const Project = require('../../models/project');
+const User = require('../../models/user.model');
 const sendEmail = require('../../utils/sendEmail');
+const { createNotification } = require('../../services/notification.service');
+
+const notifySafely = async (payload) => {
+  try {
+    await createNotification(payload);
+  } catch (error) {
+    console.error('Notification error:', error.message);
+  }
+};
 
 // @desc    Create a new Proposal (Corporate)
 // @route   POST /api/proposals
@@ -21,7 +31,8 @@ exports.createProposal = async (req, res) => {
     }
 
     const ngoUser = project.ngoId;
-    const corporateUser = req.user;
+    const corporateUser = await User.findById(corporateId).select('name companyName');
+    const actorName = corporateUser?.companyName || corporateUser?.name || 'A corporate partner';
 
     // 2. Create Proposal Document
     const newProposal = new Proposal({
@@ -39,6 +50,38 @@ exports.createProposal = async (req, res) => {
     });
 
     await newProposal.save();
+
+    await notifySafely({
+      recipient: ngoUser._id,
+      recipientRole: 'ngo',
+      actor: corporateId,
+      actorRole: 'corporate',
+      type: 'proposal.created',
+      title: 'New collaboration proposal',
+      message: `${actorName} sent a new proposal for ${project.title}.`,
+      link: '/ngo/proposals-fundings',
+      uniqueKey: `proposal:created:${newProposal._id}`,
+      metadata: {
+        proposalId: newProposal._id,
+        projectId: project._id,
+      },
+    });
+
+    await notifySafely({
+      recipient: corporateId,
+      recipientRole: 'corporate',
+      actor: ngoUser._id,
+      actorRole: 'ngo',
+      type: 'proposal.submitted',
+      title: 'Proposal submitted',
+      message: `Your proposal for ${project.title} was submitted successfully.`,
+      link: '/corporate/my-activities',
+      uniqueKey: `proposal:submitted:${newProposal._id}`,
+      metadata: {
+        proposalId: newProposal._id,
+        projectId: project._id,
+      },
+    });
 
     // 3. Send Email Notifications
     try {
@@ -233,6 +276,23 @@ exports.updateProposalStatus = async (req, res) => {
     if (!proposal) {
       return res.status(404).json({ success: false, message: 'Proposal not found' });
     }
+
+    await notifySafely({
+      recipient: proposal.corporateId?._id || proposal.corporateId,
+      recipientRole: 'corporate',
+      actor: req.user.id,
+      actorRole: 'ngo',
+      type: 'proposal.status-updated',
+      title: 'Proposal reviewed',
+      message: `Your proposal for ${proposal.projectId?.title || 'a project'} was marked as ${status}.`,
+      link: '/corporate/my-activities',
+      uniqueKey: `proposal:status:${proposal._id}:${status}`,
+      metadata: {
+        proposalId: proposal._id,
+        projectId: proposal.projectId?._id || proposal.projectId,
+        status,
+      },
+    });
 
     res.json({ 
       success: true, 
