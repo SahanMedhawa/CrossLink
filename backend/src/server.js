@@ -5,7 +5,7 @@ const app = require('./app');
 const { initSocket } = require('./socket/socket.service');
 
 const PORT = process.env.PORT || 5000;
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/crosslink';
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/crosslink';
 
 // Connect to MongoDB
 mongoose
@@ -28,7 +28,7 @@ mongoose
 
     httpServer.listen(PORT, () => {
       console.log(`🚀 CrossLink server running on port ${PORT}`);
-      console.log(`📡 API available at http://localhost:${PORT}/api`);
+      console.log(`📡 API route prefix: /api`);
     });
   })
   .catch((error) => {

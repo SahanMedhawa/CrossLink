@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import {
   Container, Paper, Typography, TextField, Button, Grid, Avatar,
   Chip, Box, Alert, CircularProgress, Divider, Fade, InputAdornment
@@ -46,7 +46,7 @@ const NGOProfile = () => {
       const token = localStorage.getItem('crosslink_token');
       if (!token) return navigate('/login');
 
-      const response = await axios.get('http://localhost:5000/api/auth/profile', {
+      const response = await axios.get('/api/auth/profile', {
         headers: { Authorization: `Bearer ${token}` }
       });
       
@@ -81,7 +81,7 @@ const NGOProfile = () => {
     
     try {
       const token = localStorage.getItem('crosslink_token');
-      const response = await axios.put('http://localhost:5000/api/auth/profile', formData, {
+      const response = await axios.put('/api/auth/profile', formData, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setUser(response.data.data);

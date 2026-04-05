@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+﻿import React, { useState, useEffect, useMemo, useRef } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
@@ -62,7 +62,7 @@ const fetchNgoProjects = async () => {
     }
 
     const response = await axios.get(
-      'http://localhost:5000/api/projects/ngo/my-projects?status=active',
+      '/api/projects/ngo/my-projects?status=active',
       {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -123,13 +123,13 @@ const fetchNgoProjects = async () => {
       setLoadingDonations(true);
       
       const [resourcesResponse, statusResponse] = await Promise.all([
-        axios.get(`http://localhost:5000/api/resources/project/${projectId}`, {
+        axios.get(`/api/resources/project/${projectId}`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
           }
         }),
-        axios.get(`http://localhost:5000/api/resources/project/${projectId}/status`, {
+        axios.get(`/api/resources/project/${projectId}/status`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'

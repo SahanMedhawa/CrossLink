@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+﻿import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { SKILL_OPTIONS, FOCUS_AREA_OPTIONS } from '../../constants/skillsAndInterests';
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
@@ -164,7 +164,7 @@ const CreateProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
 
       if (imageFile) data.append('image', imageFile);
 
-      await axios.post('http://localhost:5000/api/projects', data, {
+      await axios.post('/api/projects', data, {
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'multipart/form-data'

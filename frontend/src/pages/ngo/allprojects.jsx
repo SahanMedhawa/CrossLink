@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+﻿import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import Header from '../../components/user/Navbar';
 import ResourceForm from '../resource/ResourceForm';
@@ -517,7 +517,7 @@ const AllProjects = () => {
     try {
       setCheckingFunding(true);
       const response = await axios.get(
-        `http://localhost:5000/api/resources/project/${projectId}/status`
+        `/api/resources/project/${projectId}/status`
       );
       
       console.log("Funding status response:", response.data);
@@ -580,7 +580,7 @@ const AllProjects = () => {
     try {
       setLoading(true);
       const query = new URLSearchParams(filters).toString();
-      const response = await axios.get(`http://localhost:5000/api/projects/all?${query}`);
+      const response = await axios.get(`/api/projects/all?${query}`);
       setProjects(response.data.projects);
       setError('');
     } catch (err) { 
@@ -644,7 +644,7 @@ const AllProjects = () => {
 
     try {
       const response = await axios.post(
-        `http://localhost:5000/api/projects/${selectedProject._id}/volunteer`,
+        `/api/projects/${selectedProject._id}/volunteer`,
         {
           ...volunteerApplication,
           projectId: selectedProject._id,

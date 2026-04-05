@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+﻿import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import DashboardLayout from '../../components/dashboard/DashboardLayout';
@@ -24,7 +24,7 @@ const NgoProjectView = () => {
     const fetchData = useCallback(async () => {
         try {
             setLoading(true);
-            const res = await axios.get('http://localhost:5000/api/projects/all');
+            const res = await axios.get('/api/projects/all');
             const projects = res.data.projects || res.data.data || [];
 
             const filtered = projects.filter(p => p.ngoId && p.ngoId._id === ngoId);

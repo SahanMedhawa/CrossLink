@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useSearchParams } from 'react-router-dom';
 import DashboardLayout from '../../components/dashboard/DashboardLayout';
@@ -38,8 +38,8 @@ const ProposalsAndFundings = () => {
 
       // Fetch both once to avoid repeated endpoint calls when switching tabs.
       const [proposalRes, fundingRes] = await Promise.all([
-        axios.get(`http://localhost:5000/api/proposals/ngo/${ngoId}`, config),
-        axios.get(`http://localhost:5000/api/funding/ngo/${ngoId}`, config),
+        axios.get(`/api/proposals/ngo/${ngoId}`, config),
+        axios.get(`/api/funding/ngo/${ngoId}`, config),
       ]);
 
       setProposals(proposalRes.data.data || []);
@@ -66,7 +66,7 @@ const ProposalsAndFundings = () => {
       };
 
       await axios.patch(
-        `http://localhost:5000/api/proposals/${id}/status`, 
+        `/api/proposals/${id}/status`, 
         { status: newStatus }, 
         config
       );

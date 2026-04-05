@@ -2,6 +2,7 @@ const nodemailer = require('nodemailer');
 
 const MAIL_USER = process.env.GMAIL_USER || process.env.EMAIL_USER;
 const MAIL_PASS = process.env.GMAIL_APP_PASSWORD || process.env.EMAIL_PASS;
+const FRONTEND_BASE_URL = process.env.FRONTEND_URL || '#';
 const isEmailConfigured = () => Boolean(MAIL_USER && MAIL_PASS);
 let hasWarnedMissingGmailConfig = false;
 
@@ -204,7 +205,7 @@ const sendDonationConfirmation = async (donation, project, corporate) => {
             
             <!-- CTA Button -->
             <div style="text-align: center; margin: 30px 0;">
-              <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}/projects/${project._id}" 
+              <a href="${FRONTEND_BASE_URL}/projects/${project._id}" 
                  style="${emailStyles.button}">
                 👉 View Project Progress
               </a>
@@ -358,7 +359,7 @@ const sendNgoNotification = async (donation, project, corporate) => {
             
             <!-- CTA Button -->
             <div style="text-align: center; margin: 30px 0;">
-              <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}/ngo/project-donations/${project._id}" 
+              <a href="${FRONTEND_BASE_URL}/ngo/project-donations/${project._id}" 
                  style="display: inline-block; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 14px 32px; text-decoration: none; border-radius: 40px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 6px rgba(16, 185, 129, 0.3);">
                 👉 View All Donations
               </a>

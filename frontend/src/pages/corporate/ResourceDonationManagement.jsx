@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+﻿import React, { useEffect, useMemo, useState } from 'react';
 import axios from 'axios';
 import { useLocation, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
@@ -22,7 +22,7 @@ const ResourceDonationManagement = () => {
   const fetchProjects = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('http://localhost:5000/api/projects/all');
+      const response = await axios.get('/api/projects/all');
       const allProjects = response.data?.projects || response.data?.data || [];
 
       const donationEligible = allProjects.filter(

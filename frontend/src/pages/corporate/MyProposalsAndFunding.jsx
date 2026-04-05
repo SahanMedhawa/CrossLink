@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import DashboardLayout from '../../components/dashboard/DashboardLayout';
@@ -65,11 +65,11 @@ const MyProposalsAndFunding = () => {
       // ✅ Send search query to backend
       const searchQuery = searchTerm ? `?search=${encodeURIComponent(searchTerm)}` : '';
       
-      const propRes = await axios.get(`http://localhost:5000/api/proposals/my${searchQuery}`, config);
+      const propRes = await axios.get(`/api/proposals/my${searchQuery}`, config);
       setProposals(propRes.data.data || propRes.data.proposals || []);
 
       // Note: Funding search can be added similarly if needed
-      const fundRes = await axios.get('http://localhost:5000/api/funding/my', config);
+      const fundRes = await axios.get('/api/funding/my', config);
       setFunding(fundRes.data.data || fundRes.data.funding || []);
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -82,7 +82,7 @@ const MyProposalsAndFunding = () => {
     if (!window.confirm("Are you sure you want to delete this proposal?")) return;
     try {
       const token = localStorage.getItem('crosslink_token');
-      await axios.delete(`http://localhost:5000/api/proposals/${id}`, {
+      await axios.delete(`/api/proposals/${id}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       alert("Proposal deleted!");
@@ -104,7 +104,7 @@ const MyProposalsAndFunding = () => {
       const config = { headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' } };
 
       if (editingProposal) {
-        await axios.put(`http://localhost:5000/api/proposals/${editingProposal._id}`, formData, config);
+        await axios.put(`/api/proposals/${editingProposal._id}`, formData, config);
         alert("Proposal updated!");
       }
       

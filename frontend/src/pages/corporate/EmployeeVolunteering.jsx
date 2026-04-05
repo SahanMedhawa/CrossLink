@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+﻿import React, { useEffect, useMemo, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
@@ -14,7 +14,7 @@ const EmployeeVolunteering = () => {
   const fetchProjects = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('http://localhost:5000/api/projects/all');
+      const response = await axios.get('/api/projects/all');
       const allProjects = response.data?.projects || response.data?.data || [];
 
       const activeProjects = allProjects.filter((project) => project?.status === 'active');

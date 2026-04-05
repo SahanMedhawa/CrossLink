@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import DashboardLayout from '../../components/dashboard/DashboardLayout';
 
@@ -29,8 +29,8 @@ const CsrInitiatives = () => {
       const config = { headers: { 'Authorization': `Bearer ${token}` } };
 
       const [propRes, fundRes] = await Promise.all([
-        axios.get('http://localhost:5000/api/proposals/my', config),
-        axios.get('http://localhost:5000/api/funding/my', config)
+        axios.get('/api/proposals/my', config),
+        axios.get('/api/funding/my', config)
       ]);
 
       const proposals = propRes.data.data || [];
@@ -65,7 +65,7 @@ const CsrInitiatives = () => {
   const fetchNews = async () => {
     try {
       // Call our own backend endpoint which holds the secret key securely
-      const res = await axios.get('http://localhost:5000/api/corporate/news/csr');
+      const res = await axios.get('/api/corporate/news/csr');
       setNews(res.data.data || []);
     } catch (error) {
       console.error("Error fetching news from proxy:", error);

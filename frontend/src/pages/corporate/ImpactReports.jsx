@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import jsPDF from 'jspdf';
@@ -19,7 +19,7 @@ const ImpactReports = () => {
     try {
       const token = localStorage.getItem('crosslink_token');
       const config = { headers: { 'Authorization': `Bearer ${token}` } };
-      const res = await axios.get('http://localhost:5000/api/corporate/reports/impact', config);
+      const res = await axios.get('/api/corporate/reports/impact', config);
       
       // Ensure data structure is correct
       if (res.data && res.data.data) {

@@ -13,6 +13,7 @@ const resourceRoutes = require('./routes/resource_management/resourceRoutes');
 const volunteerRoutes = require('./routes/volunteer_management/volunteer.routes');
 const matchmakingRoutes = require('./routes/volunteer_management/matchmaking.routes');
 const participationRoutes = require('./routes/volunteer_management/participation.routes');
+const notificationRoutes = require('./routes/notifications.routes');
 const sdgRoutes = require('./routes/ngo_management/sdgRoutes');
 
 
@@ -29,7 +30,9 @@ app.use(helmet());
 
 // Middleware
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  origin: process.env.FRONTEND_URL
+    ? process.env.FRONTEND_URL.split(',').map((origin) => origin.trim())
+    : true,
   credentials: true,
 }));
 
@@ -90,6 +93,7 @@ app.use('/api/sdg', sdgRoutes);
 app.use('/api/volunteer', volunteerRoutes);
 app.use('/api/matchmaking', matchmakingRoutes);
 app.use('/api/participation', participationRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import DashboardLayout from '../../components/dashboard/DashboardLayout';
@@ -28,7 +28,7 @@ const NgoProjectView = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await axios.get('http://localhost:5000/api/projects/all');
+        const res = await axios.get('/api/projects/all');
         const projects = res.data.projects || res.data.data || [];
         setAllProjects(projects);
 
@@ -62,10 +62,10 @@ const NgoProjectView = () => {
       const config = { headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' } };
 
       if (editingProposal) {
-        await axios.put(`http://localhost:5000/api/proposals/${editingProposal._id}`, formData, config);
+        await axios.put(`/api/proposals/${editingProposal._id}`, formData, config);
         alert('Proposal updated!');
       } else {
-        await axios.post('http://localhost:5000/api/proposals', formData, config);
+        await axios.post('/api/proposals', formData, config);
         alert('Proposal sent!');
       }
 
@@ -92,11 +92,11 @@ const NgoProjectView = () => {
 
       if (editingFunding) {
         // Update (if you implement edit logic later)
-        await axios.put(`http://localhost:5000/api/funding/${editingFunding._id}`, formData, config);
+        await axios.put(`/api/funding/${editingFunding._id}`, formData, config);
         alert('Funding record updated!');
       } else {
         // Create New
-        await axios.post('http://localhost:5000/api/funding', formData, config);
+        await axios.post('/api/funding', formData, config);
         alert('Funding recorded successfully!');
       }
 

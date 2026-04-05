@@ -9,8 +9,11 @@ const normalizeId = (value) => {
 };
 
 const resolveAllowedOrigins = () => {
-  const fallback = 'http://localhost:5173';
-  const rawOrigins = process.env.FRONTEND_URL || fallback;
+  const rawOrigins = process.env.FRONTEND_URL;
+  if (!rawOrigins) {
+    return true;
+  }
+
   return rawOrigins
     .split(',')
     .map((origin) => origin.trim())
@@ -115,9 +118,19 @@ const emitParticipationEvent = (payload) => {
   });
 };
 
+const emitNotificationEvent = (recipientUserId, payload) => {
+  if (!ioInstance || !recipientUserId) return;
+
+  ioInstance.to(`user:${normalizeId(recipientUserId)}`).emit('notification:new', {
+    ...payload,
+    timestamp: new Date().toISOString(),
+  });
+};
+
 module.exports = {
   initSocket,
   getIO,
   emitProjectEvent,
   emitParticipationEvent,
+  emitNotificationEvent,
 };
