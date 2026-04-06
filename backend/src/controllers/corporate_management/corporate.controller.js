@@ -127,3 +127,83 @@ exports.getMyProfile = async (req, res) => {
     res.status(500).json({ success: false, message: 'Server Error', error: error.message });
   }
 };
+
+// @desc    Get Dashboard Stats for Corporate
+// @route   GET /api/corporates/dashboard-stats
+// @access  Private
+exports.getDashboardStats = async (req, res) => {
+  try {
+    const corporateId = req.user.id;
+    
+    // Import models
+    const Proposal = require('../../models/proposal');
+    const Funding = require('../../models/funding');
+    const Project = require('../../models/project');
+
+    // ✅ 1. Active Partnerships: Count UNIQUE NGOs (Not total proposals)
+    // We fetch all data and extract unique NGO IDs
+    const allProposals = await Proposal.find({ corporateId }).populate('projectId', 'ngoId');
+    const allFundings = await Funding.find({ corporateId }).populate('projectId', 'ngoId');
+
+    const ngoIds = new Set();
+
+    // Add NGO IDs from Proposals
+    allProposals.forEach(p => {
+      if (p.projectId && p.projectId.ngoId) {
+        ngoIds.add(p.projectId.ngoId.toString());
+      }
+    });
+
+    // Add NGO IDs from Fundings
+    allFundings.forEach(f => {
+      if (f.projectId && f.projectId.ngoId) {
+        ngoIds.add(f.projectId.ngoId.toString());
+      }
+    });
+
+    const activePartnerships = ngoIds.size; // This will now be 4
+
+    // ✅ 2. Projects Funded: Count ALL funding records (Keep as 22)
+    const totalFundings = await Funding.countDocuments({ corporateId });
+
+    // ✅ 3. Lives Impacted: Sum beneficiaries from ALL associated projects
+    const projectIds = [
+      ...allProposals.map(p => p.projectId?._id),
+      ...allFundings.map(f => f.projectId?._id)
+    ];
+
+    let livesImpacted = 0;
+    if (projectIds.length > 0) {
+      const uniqueProjectIds = [...new Set(projectIds.map(id => id ? id.toString() : null))].filter(id => id);
+      
+      if (uniqueProjectIds.length > 0) {
+        const projects = await Project.find({ _id: { $in: uniqueProjectIds } });
+        projects.forEach(proj => {
+          livesImpacted += (proj.estimatedBeneficiaries || proj.targetBeneficiaries || 0); 
+        });
+      }
+    }
+
+    // ✅ 4. CSR Rating: Mock based on total volume
+    let csrRating = "-";
+    const totalActions = activePartnerships + totalFundings; // Updated to use unique partnerships
+    if (totalActions > 20) csrRating = "5.0";
+    else if (totalActions > 10) csrRating = "4.5";
+    else if (totalActions > 5) csrRating = "4.0";
+    else if (totalActions > 0) csrRating = "3.5";
+
+    res.json({
+      success: true,
+      data: {
+        activePartnerships, // Now shows UNIQUE partners (4)
+        projectsFunded: totalFundings,       // Shows TOTAL fundings (22)
+        livesImpacted,
+        csrRating
+      }
+    });
+
+  } catch (error) {
+    console.error("Dashboard Stats Error:", error);
+    res.status(500).json({ success: false, message: "Server Error", error: error.message });
+  }
+};
