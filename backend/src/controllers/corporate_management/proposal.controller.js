@@ -344,7 +344,7 @@ exports.getMyProposals = async (req, res) => {
   }
 };
 
-// ✅ NEW: Get all proposals received by a specific NGO
+//  NEW: Get all proposals received by a specific NGO
 // @route   GET /api/proposals/ngo/:ngoId
 // @access  Private (NGO)
 exports.getProposalsForNgo = async (req, res) => {

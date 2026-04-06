@@ -172,7 +172,7 @@ exports.getMyFunding = async (req, res) => {
 // @desc    Get all fundings received by a specific NGO
 // @route   GET /api/fundings/ngo/:ngoId
 // @access  Private (NGO)
-// ✅ UPDATED: Get all fundings received by a specific NGO
+//  UPDATED: Get all fundings received by a specific NGO
 exports.getFundingsForNgo = async (req, res) => {
   try {
     const { ngoId } = req.params;

@@ -64,7 +64,7 @@ exports.getCorporateById = async (req, res) => {
   }
 };
 
-// ✅ DELETE THE DUPLICATE 'const User...' LINE THAT WAS HERE
+//  DELETE THE DUPLICATE 'const User...' LINE THAT WAS HERE
 // The function below can still use 'User' because it's imported at the top!
 
 // @desc    Update Corporate Profile
@@ -140,7 +140,7 @@ exports.getDashboardStats = async (req, res) => {
     const Funding = require('../../models/funding');
     const Project = require('../../models/project');
 
-    // ✅ 1. Active Partnerships: Count UNIQUE NGOs (Not total proposals)
+    // 1. Active Partnerships: Count UNIQUE NGOs 
     // We fetch all data and extract unique NGO IDs
     const allProposals = await Proposal.find({ corporateId }).populate('projectId', 'ngoId');
     const allFundings = await Funding.find({ corporateId }).populate('projectId', 'ngoId');
@@ -161,12 +161,12 @@ exports.getDashboardStats = async (req, res) => {
       }
     });
 
-    const activePartnerships = ngoIds.size; // This will now be 4
+    const activePartnerships = ngoIds.size; 
 
-    // ✅ 2. Projects Funded: Count ALL funding records (Keep as 22)
+    //  2. Projects Funded: Count ALL funding records 
     const totalFundings = await Funding.countDocuments({ corporateId });
 
-    // ✅ 3. Lives Impacted: Sum beneficiaries from ALL associated projects
+    //  3. Lives Impacted: Sum beneficiaries from ALL associated projects
     const projectIds = [
       ...allProposals.map(p => p.projectId?._id),
       ...allFundings.map(f => f.projectId?._id)
@@ -184,7 +184,7 @@ exports.getDashboardStats = async (req, res) => {
       }
     }
 
-    // ✅ 4. CSR Rating: Mock based on total volume
+    //  4. CSR Rating: Mock based on total volume
     let csrRating = "-";
     const totalActions = activePartnerships + totalFundings; // Updated to use unique partnerships
     if (totalActions > 20) csrRating = "5.0";
@@ -195,8 +195,8 @@ exports.getDashboardStats = async (req, res) => {
     res.json({
       success: true,
       data: {
-        activePartnerships, // Now shows UNIQUE partners (4)
-        projectsFunded: totalFundings,       // Shows TOTAL fundings (22)
+        activePartnerships, // Now shows UNIQUE partners 
+        projectsFunded: totalFundings,// Shows TOTAL fundings 
         livesImpacted,
         csrRating
       }

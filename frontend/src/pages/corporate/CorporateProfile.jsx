@@ -150,7 +150,7 @@ const CorporateProfile = () => {
 
   const cancelEdit = () => {
     // Reset form to current formData (which holds fresh DB data)
-    // We don't reset to 'user' because 'user' might be stale
+    // don't reset to 'user' because 'user' might be stale
     setIsEditing(false);
     // Optionally re-fetch to be absolutely sure, but current formData is fine since it came from DB on mount
   };
