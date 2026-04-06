@@ -59,7 +59,7 @@ const proposalSchema = new mongoose.Schema({
   },
   documentUrl: {
     type: String,
-    default: null // For future file upload implementation
+    default: null // Reserved for future file upload implementation (If required by corporate partners)
   },
 
   // --- STATUS WORKFLOW ---
