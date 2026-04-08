@@ -6,7 +6,8 @@ const {
   updateProposalStatus,
   getMyProposals,
   updateProposal,
-  deleteProposal 
+  deleteProposal,
+  getProposalsForNgo
 } = require('../../controllers/corporate_management/proposal.controller');
 
 // Import Auth Middleware
@@ -34,5 +35,8 @@ router.get('/project/:projectId', getProposalsByProject);
 
 // Accept or Reject a specific proposal
 router.patch('/:id/status', updateProposalStatus);
+
+// ✅ NEW ROUTE: Get proposals for a specific NGO
+router.get('/ngo/:ngoId', getProposalsForNgo);
 
 module.exports = router;

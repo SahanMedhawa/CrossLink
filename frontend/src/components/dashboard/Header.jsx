@@ -10,14 +10,79 @@ import {
   HomeIcon,
 } from "@heroicons/react/24/outline";
 import { useAuth } from "../../context/AuthContext";
+import { resolveImageUrl } from "../../utils/imageUrl";
+import { getProfile } from "../../services/api";
+import { getSocket } from "../../services/socket";
+import {
+  fetchNotifications,
+  markNotificationRead,
+  markAllNotificationsRead,
+} from "../../services/notificationApi";
 
 const Header = ({ setSidebarOpen, userType }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [notificationsLoading, setNotificationsLoading] = useState(false);
   const dropdownRef = useRef(null);
   const notificationsRef = useRef(null);
-  const { user, logout } = useAuth();
+  const { user, logout, setUser } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const refreshUserProfile = async () => {
+      if (!user) return;
+
+      try {
+        const response = await getProfile();
+        if (response?.success && response?.data) {
+          setUser(response.data);
+        }
+      } catch (error) {
+        // Ignore profile sync errors in header; existing auth state remains usable.
+      }
+    };
+
+    refreshUserProfile();
+  }, []);
+
+  const loadNotifications = async () => {
+    if (!user) return;
+
+    setNotificationsLoading(true);
+    try {
+      const response = await fetchNotifications({ page: 1, limit: 20 });
+      if (response?.success) {
+        setNotifications(Array.isArray(response.data) ? response.data : []);
+      }
+    } catch (error) {
+      // keep UI usable even if notifications fail
+    } finally {
+      setNotificationsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadNotifications();
+  }, [user?.id, user?._id]);
+
+  useEffect(() => {
+    const socket = getSocket();
+    if (!socket) return undefined;
+
+    const handleIncomingNotification = (incoming) => {
+      setNotifications((prev) => {
+        const exists = prev.some((item) => item._id === incoming._id);
+        if (exists) return prev;
+        return [incoming, ...prev].slice(0, 30);
+      });
+    };
+
+    socket.on("notification:new", handleIncomingNotification);
+    return () => {
+      socket.off("notification:new", handleIncomingNotification);
+    };
+  }, [user?.id, user?._id]);
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -39,6 +104,23 @@ const Header = ({ setSidebarOpen, userType }) => {
   const handleLogout = () => {
     logout();
     navigate("/login");
+  };
+
+  const formatTimeAgo = (dateValue) => {
+    if (!dateValue) return "Just now";
+    const date = new Date(dateValue);
+    if (Number.isNaN(date.getTime())) return "Just now";
+
+    const diffMs = Date.now() - date.getTime();
+    const minutes = Math.floor(diffMs / 60000);
+    if (minutes < 1) return "Just now";
+    if (minutes < 60) return `${minutes}m ago`;
+
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours}h ago`;
+
+    const days = Math.floor(hours / 24);
+    return `${days}d ago`;
   };
 
   const getGreeting = () => {
@@ -105,32 +187,43 @@ const Header = ({ setSidebarOpen, userType }) => {
 
   const roleValue = user?.userType || userType;
 
-  // Mock notifications
-  const notifications = [
-    {
-      id: 1,
-      title: "New opportunity available",
-      message: "A new volunteer opportunity matches your interests",
-      time: "5 min ago",
-      unread: true,
-    },
-    {
-      id: 2,
-      title: "Application accepted",
-      message: "Your application has been approved",
-      time: "1 hour ago",
-      unread: true,
-    },
-    {
-      id: 3,
-      title: "Reminder",
-      message: "Don't forget your upcoming event",
-      time: "2 hours ago",
-      unread: false,
-    },
-  ];
+  const unreadCount = notifications.filter((n) => !n.isRead).length;
 
-  const unreadCount = notifications.filter((n) => n.unread).length;
+  const handleNotificationClick = async (notification) => {
+    if (!notification?.isRead) {
+      try {
+        await markNotificationRead(notification._id);
+      } catch (error) {
+        // best effort
+      }
+
+      setNotifications((prev) =>
+        prev.map((item) =>
+          item._id === notification._id
+            ? { ...item, isRead: true, readAt: new Date().toISOString() }
+            : item
+        )
+      );
+    }
+
+    setIsNotificationsOpen(false);
+    if (notification?.link) {
+      navigate(notification.link);
+    }
+  };
+
+  const handleMarkAllRead = async () => {
+    try {
+      await markAllNotificationsRead();
+      setNotifications((prev) =>
+        prev.map((item) =>
+          item.isRead ? item : { ...item, isRead: true, readAt: new Date().toISOString() }
+        )
+      );
+    } catch (error) {
+      // best effort
+    }
+  };
 
   return (
     <header className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-30">
@@ -144,12 +237,12 @@ const Header = ({ setSidebarOpen, userType }) => {
           >
             <Bars3Icon className="h-6 w-6" />
           </button>
-          <div className="hidden sm:block">
+          <div className="hidden sm:block text-left">
             <h1 className="text-lg font-semibold text-gray-800">
               {getGreeting()},{" "}
               <span className="text-blue-600">{user?.name || "User"}</span>
             </h1>
-            <p className="text-sm text-gray-500">{getCurrentDate()}</p>
+            <p className="text-sm text-gray-500 text-left">{getCurrentDate()}</p>
           </div>
         </div>
 
@@ -158,7 +251,12 @@ const Header = ({ setSidebarOpen, userType }) => {
           {/* Notifications */}
           <div className="relative" ref={notificationsRef}>
             <button
-              onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
+              onClick={() => {
+                setIsNotificationsOpen(!isNotificationsOpen);
+                if (!isNotificationsOpen) {
+                  loadNotifications();
+                }
+              }}
               className="relative p-2 rounded-lg hover:bg-gray-100 text-gray-600 transition-colors"
               aria-label="Notifications"
             >
@@ -174,40 +272,51 @@ const Header = ({ setSidebarOpen, userType }) => {
             {isNotificationsOpen && (
               <div className="absolute right-0 mt-2 w-72 sm:w-80 bg-white rounded-xl shadow-lg ring-1 ring-gray-200 overflow-hidden">
                 <div className="px-4 py-3 border-b border-gray-100 bg-gray-50">
-                  <h3 className="text-sm font-semibold text-gray-800">
-                    Notifications
-                  </h3>
+                  <div className="flex items-center justify-between gap-3">
+                    <h3 className="text-sm font-semibold text-gray-800">Notifications</h3>
+                    {unreadCount > 0 && (
+                      <button
+                        type="button"
+                        onClick={handleMarkAllRead}
+                        className="text-xs text-blue-600 hover:text-blue-700 font-semibold"
+                      >
+                        Mark all read
+                      </button>
+                    )}
+                  </div>
                 </div>
                 <div className="max-h-80 overflow-y-auto">
-                  {notifications.map((notification) => (
-                    <div
-                      key={notification.id}
-                      className={`px-4 py-3 border-b border-gray-50 hover:bg-gray-50 cursor-pointer ${
-                        notification.unread ? "bg-blue-50/50" : ""
-                      }`}
-                    >
-                      <div className="flex items-start">
-                        {notification.unread && (
-                          <span className="w-2 h-2 mt-1.5 mr-2 bg-blue-500 rounded-full flex-shrink-0" />
-                        )}
-                        <div className={notification.unread ? "" : "ml-4"}>
-                          <p className="text-sm font-medium text-gray-800">
-                            {notification.title}
-                          </p>
-                          <p className="text-sm text-gray-500 mt-0.5">
-                            {notification.message}
-                          </p>
-                          <p className="text-xs text-gray-400 mt-1">
-                            {notification.time}
-                          </p>
+                  {notificationsLoading ? (
+                    <div className="px-4 py-8 text-center text-sm text-gray-500">Loading notifications...</div>
+                  ) : notifications.length === 0 ? (
+                    <div className="px-4 py-8 text-center text-sm text-gray-500">No notifications yet.</div>
+                  ) : (
+                    notifications.map((notification) => (
+                      <button
+                        type="button"
+                        key={notification._id}
+                        onClick={() => handleNotificationClick(notification)}
+                        className={`w-full text-left px-4 py-3 border-b border-gray-50 hover:bg-gray-50 cursor-pointer ${
+                          !notification.isRead ? "bg-blue-50/50" : ""
+                        }`}
+                      >
+                        <div className="flex items-start">
+                          {!notification.isRead && (
+                            <span className="w-2 h-2 mt-1.5 mr-2 bg-blue-500 rounded-full flex-shrink-0" />
+                          )}
+                          <div className={!notification.isRead ? "" : "ml-4"}>
+                            <p className="text-sm font-medium text-gray-800">{notification.title}</p>
+                            <p className="text-sm text-gray-500 mt-0.5">{notification.message}</p>
+                            <p className="text-xs text-gray-400 mt-1">{formatTimeAgo(notification.createdAt)}</p>
+                          </div>
                         </div>
-                      </div>
-                    </div>
-                  ))}
+                      </button>
+                    ))
+                  )}
                 </div>
                 <div className="px-4 py-3 border-t border-gray-100 bg-gray-50">
-                  <button className="text-sm text-blue-600 hover:text-blue-700 font-medium w-full text-center">
-                    View all notifications
+                  <button onClick={loadNotifications} className="text-sm text-blue-600 hover:text-blue-700 font-medium w-full text-center">
+                    Refresh notifications
                   </button>
                 </div>
               </div>
@@ -224,9 +333,17 @@ const Header = ({ setSidebarOpen, userType }) => {
               <div
                 className={`w-9 h-9 rounded-full bg-gradient-to-r ${getRoleColor(
                   roleValue
-                )} flex items-center justify-center text-white font-semibold text-sm shadow-sm`}
+                )} flex items-center justify-center text-white font-semibold text-sm shadow-sm overflow-hidden`}
               >
-                {user?.name?.charAt(0).toUpperCase() || "U"}
+                {user?.photoURL ? (
+                  <img
+                    src={resolveImageUrl(user.photoURL)}
+                    alt={user?.name || 'User'}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  user?.name?.charAt(0).toUpperCase() || "U"
+                )}
               </div>
               <div className="hidden md:block text-left">
                 <p className="text-sm font-medium text-gray-800">
@@ -251,7 +368,15 @@ const Header = ({ setSidebarOpen, userType }) => {
                 >
                   <div className="flex flex-col items-center text-center space-y-2">
                     <div className="h-12 w-12 rounded-full bg-white/20 flex items-center justify-center text-white text-lg">
-                      {user?.name?.charAt(0).toUpperCase() || "U"}
+                      {user?.photoURL ? (
+                        <img
+                          src={resolveImageUrl(user.photoURL)}
+                          alt={user?.name || 'User'}
+                          className="w-full h-full rounded-full object-cover"
+                        />
+                      ) : (
+                        user?.name?.charAt(0).toUpperCase() || "U"
+                      )}
                     </div>
                     <div>
                       <p className="text-sm font-semibold">

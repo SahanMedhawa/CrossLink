@@ -85,11 +85,46 @@ const getMatchedProjects = async (volunteerId) => {
       ? volunteer.coordinates.coordinates
       : null;
 
-  // Fetch all active projects that still need volunteers
-  const projects = await Project.find({
-    status: 'active',
-    $expr: { $lt: ['$volunteersCount', '$volunteersNeeded'] },
-  }).populate('ngoId', 'organizationName email location focusAreas photoURL');
+  // Fetch all active projects first. Capacity filtering is done with live participation counts below.
+  const projects = await Project.find({ status: 'active' })
+    .populate('ngoId', 'organizationName email location focusAreas photoURL')
+    .lean();
+
+  const projectIds = projects.map((project) => project._id);
+
+  // Build live participant counts from participation records so card counts stay accurate.
+  const participationCounts = projectIds.length
+    ? await Participation.aggregate([
+        {
+          $match: {
+            projectId: { $in: projectIds },
+            status: { $in: ['requested', 'approved', 'completed'] },
+          },
+        },
+        {
+          $group: {
+            _id: {
+              projectId: '$projectId',
+              status: '$status',
+            },
+            count: { $sum: 1 },
+          },
+        },
+      ])
+    : [];
+
+  const participationCountMap = new Map();
+  participationCounts.forEach((row) => {
+    const projectId = row._id.projectId.toString();
+    const status = row._id.status;
+    const existing = participationCountMap.get(projectId) || {
+      requested: 0,
+      approved: 0,
+      completed: 0,
+    };
+    existing[status] = row.count;
+    participationCountMap.set(projectId, existing);
+  });
 
   // Get volunteer's existing participation records to filter out already-applied/completed projects
   const existingParticipations = await Participation.find({
@@ -108,11 +143,29 @@ const getMatchedProjects = async (volunteerId) => {
   // Calculate match scores for each project — exclude completed & rejected
   const matchedProjects = projects
     .filter((project) => {
+      const liveCounts = participationCountMap.get(project._id.toString()) || {
+        approved: 0,
+        completed: 0,
+      };
+      const activeVolunteers = liveCounts.approved + liveCounts.completed;
+
+      // Keep only projects that still have capacity based on live counts.
+      if (activeVolunteers >= (project.volunteersNeeded || 0)) {
+        return false;
+      }
+
       const entry = participationMap[project._id.toString()];
       const participationStatus = entry?.status;
       return participationStatus !== 'completed' && participationStatus !== 'rejected';
     })
     .map((project) => {
+      const liveCounts = participationCountMap.get(project._id.toString()) || {
+        requested: 0,
+        approved: 0,
+        completed: 0,
+      };
+      const activeVolunteers = liveCounts.approved + liveCounts.completed;
+
       const { score, matchedSkills, missingSkills } = calculateMatchScore(
         volunteerSkills,
         project.skills || []
@@ -138,7 +191,12 @@ const getMatchedProjects = async (volunteerId) => {
           status: project.status,
           image: project.image,
           volunteersNeeded: project.volunteersNeeded,
-          volunteersCount: project.volunteersCount,
+          volunteersCount: activeVolunteers,
+          volunteerRequests: {
+            requested: liveCounts.requested,
+            approved: liveCounts.approved,
+            completed: liveCounts.completed,
+          },
           ngo: project.ngoId,
           createdAt: project.createdAt,
           coordinates: project.coordinates,

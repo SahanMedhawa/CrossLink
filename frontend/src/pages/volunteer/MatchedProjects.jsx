@@ -9,6 +9,7 @@ import {
 } from "../../services/volunteerApi";
 import ParticipationFormModal from "../../components/volunteer/ParticipationFormModal";
 import toast from "react-hot-toast";
+import { resolveImageUrl } from "../../utils/imageUrl";
 
 const MatchedProjects = () => {
   const [projects, setProjects] = useState([]);
@@ -211,7 +212,7 @@ const MatchedProjects = () => {
                 <div className="relative h-56 w-full overflow-hidden bg-gray-100">
                   {project.image ? (
                     <img
-                      src={`http://localhost:5000${project.image}`}
+                      src={resolveImageUrl(project.image)}
                       alt={project.title}
                       className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700"
                     />
@@ -236,7 +237,15 @@ const MatchedProjects = () => {
                   <div className="absolute bottom-4 left-4 right-4 text-white">
                     <h3 className="text-2xl font-extrabold line-clamp-1 drop-shadow-md mb-1">{project.title}</h3>
                     <p className="text-sm font-medium flex items-center gap-2 text-gray-200 drop-shadow-sm line-clamp-1">
-                      <svg className="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clipRule="evenodd" /></svg>
+                      {project.ngo?.photoURL ? (
+                        <img
+                          src={resolveImageUrl(project.ngo.photoURL)}
+                          alt={project.ngo?.organizationName || 'NGO'}
+                          className="w-5 h-5 rounded-full object-cover border border-white/30"
+                        />
+                      ) : (
+                        <svg className="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clipRule="evenodd" /></svg>
+                      )}
                       {project.ngo?.organizationName || "Unknown NGO"}
                     </p>
                   </div>

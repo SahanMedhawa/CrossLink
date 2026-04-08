@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import {
   Container, Paper, Typography, TextField, Button, Grid, Avatar,
   Chip, Box, Alert, CircularProgress, Divider, Fade, InputAdornment
@@ -15,9 +15,12 @@ import {
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import DashboardLayout from '../../components/dashboard/DashboardLayout';
+import { useAuth } from '../../context/AuthContext';
+import { resolveImageUrl } from '../../utils/imageUrl';
 
 const NGOProfile = () => {
   const navigate = useNavigate();
+  const { setUser } = useAuth();
   
   const [formData, setFormData] = useState({
     organizationName: '', registrationNumber: '', phone: '',
@@ -43,11 +46,12 @@ const NGOProfile = () => {
       const token = localStorage.getItem('crosslink_token');
       if (!token) return navigate('/login');
 
-      const response = await axios.get('http://localhost:5000/api/auth/profile', {
+      const response = await axios.get('/api/auth/profile', {
         headers: { Authorization: `Bearer ${token}` }
       });
       
       const userData = response.data.data;
+      setUser(userData);
       setFormData({
         organizationName: userData.organizationName || '',
         registrationNumber: userData.registrationNumber || '',
@@ -77,9 +81,10 @@ const NGOProfile = () => {
     
     try {
       const token = localStorage.getItem('crosslink_token');
-      await axios.put('http://localhost:5000/api/auth/profile', formData, {
+      const response = await axios.put('/api/auth/profile', formData, {
         headers: { Authorization: `Bearer ${token}` },
       });
+      setUser(response.data.data);
       setSuccess('Profile updated successfully');
       setTimeout(() => setSuccess(''), 3000);
     } catch (err) {
@@ -123,7 +128,7 @@ const NGOProfile = () => {
               <Box sx={{ p: 4, bgcolor: headerBlue, color: 'white', position: 'relative' }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
                   <Avatar
-                    src={formData.photoURL}
+                    src={formData.photoURL ? resolveImageUrl(formData.photoURL) : ''}
                     sx={{ 
                       width: 90, height: 90, 
                       bgcolor: 'rgba(255,255,255,0.2)', 

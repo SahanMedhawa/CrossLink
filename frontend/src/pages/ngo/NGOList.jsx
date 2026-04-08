@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import NGOCard from '../../components/ngo/ngo_card';
 import Footer from '../../components/Footer';
@@ -18,7 +18,7 @@ const NGOList = () => {
       setLoading(true);
       try {
         const response = await fetch(
-          `http://localhost:5000/api/ngos?page=${page}&limit=9`
+          `/api/ngos?page=${page}&limit=9`
         );
         const data = await response.json();
         if (data.success) {
@@ -141,7 +141,7 @@ const NGOList = () => {
     },
     gridContainer: {
       display: 'grid',
-      gridTemplateColumns: 'repeat(auto-fill, minmax(380px, 1fr))',
+      gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
       gap: '1.5rem',
       marginBottom: '2rem',
     },

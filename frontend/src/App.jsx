@@ -19,17 +19,22 @@ import CreateProject from "./pages/ngo/createproject";
 import CorporateDashboard from "./pages/corporate/CorporateDashboard";
 import NGOProjects from "./pages/ngo/myprojects";
 import ResourceForm from "./pages/resource/ResourceForm";
-import ResourceManage from "./pages/resource/resourceManage";
+import ResourceDonationManagement from "./pages/corporate/ResourceDonationManagement";
 import ProjectDonations from "./pages/resource/ProjectDonations";
 import NGOPartners from './pages/corporate/NGOPartners';
 import NgoProjectView from './pages/corporate/NgoProjectView';
 import ImpactReports from './pages/corporate/ImpactReports';
 import MyProposalsAndFunding from './pages/corporate/MyProposalsAndFunding';
 import CsrInitiatives from './pages/corporate/CsrInitiatives';
+import EmployeeVolunteering from './pages/corporate/EmployeeVolunteering';
 import NgoVolunteerManagement from './pages/ngo/NgoVolunteerManagement';
 import NGOProfile from "./pages/ngo/ngoprofile";
 import NGOSPECIFICPROJECTS from "./pages/ngo/ngoprojects";
 import SDGDashboard from "./pages/ngo/sdggoals";
+import ProposalsAndFundings from './pages/ngo/ProposalsAndFundings';
+
+import CorporateProfile from './pages/corporate/CorporateProfile';
+import CorporatePartners from './pages/ngo/CorporatePartners';
 import "./App.css";
 
 
@@ -144,6 +149,20 @@ function AppRoutes() {
         }
       />
 
+      <Route 
+           path="/ngo/proposals-fundings" 
+          element={<ProposalsAndFundings />} 
+       />
+
+      <Route
+        path="/ngo/partners"
+        element={
+          <ProtectedRoute allowedRoles={["ngo"]}>
+            <CorporatePartners />
+          </ProtectedRoute>
+        }
+      />
+       
       {/* Volunteer Routes - Protected */}
       <Route
         path="/volunteer/dashboard"
@@ -250,6 +269,15 @@ function AppRoutes() {
         }
       />
 
+      <Route
+        path="/corporate/volunteering"
+        element={
+          <ProtectedRoute allowedRoles={["corporate"]}>
+            <EmployeeVolunteering />
+          </ProtectedRoute>
+        }
+      />
+
 
 
       <Route
@@ -261,7 +289,16 @@ function AppRoutes() {
         }
       />
 
+      <Route 
+          path="/corporate/profile" 
+          element={
+             <ProtectedRoute allowedRoles={['corporate']}>
+           <CorporateProfile />
+      </ProtectedRoute>
+      } 
+      />
 
+      
       {/* Resource Routes - Protected */}
       <Route
         path="/corporate/projects/:projectId/resources"
@@ -277,7 +314,7 @@ function AppRoutes() {
         path="/corporate/resourcehManage"
         element={
           <ProtectedRoute allowedRoles={["corporate"]}>
-            < ResourceManage />
+            <ResourceDonationManagement />
           </ProtectedRoute>
         }
       />

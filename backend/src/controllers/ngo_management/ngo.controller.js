@@ -22,7 +22,7 @@ const getAllNGOs = async (req, res) => {
     }
 
     // ✅ IMPORTANT: include ALL profile fields
-    const ngos = await User.find(filter)
+    const ngos = await User.find(filter).lean()
       .select(`
         _id
         organizationName

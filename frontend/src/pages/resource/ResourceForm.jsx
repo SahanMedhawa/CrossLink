@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import axios from "axios";
 import { useAuth } from "../../context/AuthContext";
 import toast from 'react-hot-toast';
@@ -52,7 +52,7 @@ const ResourceForm = ({ project, onClose }) => {
       const token = localStorage.getItem('crosslink_token') || localStorage.getItem('token');
       
       const response = await axios.get(
-        `http://localhost:5000/api/resources/project/${project._id}/status`,
+        `/api/resources/project/${project._id}/status`,
         {
           headers: {
             'Authorization': `Bearer ${token}` // Explicitly add token
@@ -190,7 +190,7 @@ const ResourceForm = ({ project, onClose }) => {
         };
         
         return axios.post(
-          `http://localhost:5000/api/resources/${project._id}/donate`,
+          `/api/resources/${project._id}/donate`,
           requestBody,
           {
             headers: {

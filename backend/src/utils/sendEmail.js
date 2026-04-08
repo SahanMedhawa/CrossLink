@@ -1,21 +1,33 @@
 const nodemailer = require('nodemailer');
 
+let hasWarnedMissingEmailConfig = false;
+
 const sendEmail = async (options) => {
-  // 1. Create the transporter (the service that sends the email)
+  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+    if (!hasWarnedMissingEmailConfig) {
+      console.warn('⚠️ Email is not configured (EMAIL_USER/EMAIL_PASS missing). Skipping email sends.');
+      hasWarnedMissingEmailConfig = true;
+    }
+    return;
+  }
+
+  // 1. Create the transporter
   const transporter = nodemailer.createTransport({
-    service: 'gmail', // Using Gmail service
+    service: 'gmail', 
     auth: {
-      user: process.env.EMAIL_USER, // Your email from .env
-      pass: process.env.EMAIL_PASS, // Your App Password from .env
+      user: process.env.EMAIL_USER, 
+      pass: process.env.EMAIL_PASS, 
     },
   });
 
-  // 2. Define the email options (who, what, subject)
+  // 2. Define the email options
   const mailOptions = {
     from: `CrossLink Platform <${process.env.EMAIL_USER}>`,
     to: options.to,
     subject: options.subject,
-    html: options.message, // We use HTML for nice formatting
+    // ✅ FIX: Change 'options.message' to 'options.html'
+    // This matches the key we are sending from the controller
+    html: options.html, 
   };
 
   // 3. Send the email

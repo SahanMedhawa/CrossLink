@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import DashboardLayout from '../../components/dashboard/DashboardLayout';
@@ -30,12 +30,21 @@ const LockIcon = () => (
   </svg>
 );
 
+const SearchIcon = () => (
+  <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+  </svg>
+);
+
 const MyProposalsAndFunding = () => {
   const [activeTab, setActiveTab] = useState('proposals');
   const [proposals, setProposals] = useState([]);
   const [funding, setFunding] = useState([]);
   const [loading, setLoading] = useState(true);
   
+  // ✅ NEW: Search State
+  const [searchTerm, setSearchTerm] = useState('');
+
   // Modal States
   const [showForm, setShowForm] = useState(false);
   const [editingProposal, setEditingProposal] = useState(null);
@@ -43,19 +52,24 @@ const MyProposalsAndFunding = () => {
 
   const navigate = useNavigate();
 
+  // ✅ UPDATED: Fetch data depends on searchTerm
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [searchTerm]); // Re-run whenever search term changes
 
   const fetchData = async () => {
     try {
       const token = localStorage.getItem('crosslink_token');
       const config = { headers: { 'Authorization': `Bearer ${token}` } };
 
-      const propRes = await axios.get('http://localhost:5000/api/proposals/my', config);
+      // ✅ Send search query to backend
+      const searchQuery = searchTerm ? `?search=${encodeURIComponent(searchTerm)}` : '';
+      
+      const propRes = await axios.get(`/api/proposals/my${searchQuery}`, config);
       setProposals(propRes.data.data || propRes.data.proposals || []);
 
-      const fundRes = await axios.get('http://localhost:5000/api/funding/my', config);
+      // Note: Funding search can be added similarly if needed
+      const fundRes = await axios.get('/api/funding/my', config);
       setFunding(fundRes.data.data || fundRes.data.funding || []);
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -68,7 +82,7 @@ const MyProposalsAndFunding = () => {
     if (!window.confirm("Are you sure you want to delete this proposal?")) return;
     try {
       const token = localStorage.getItem('crosslink_token');
-      await axios.delete(`http://localhost:5000/api/proposals/${id}`, {
+      await axios.delete(`/api/proposals/${id}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       alert("Proposal deleted!");
@@ -90,7 +104,7 @@ const MyProposalsAndFunding = () => {
       const config = { headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' } };
 
       if (editingProposal) {
-        await axios.put(`http://localhost:5000/api/proposals/${editingProposal._id}`, formData, config);
+        await axios.put(`/api/proposals/${editingProposal._id}`, formData, config);
         alert("Proposal updated!");
       }
       
@@ -116,18 +130,44 @@ const MyProposalsAndFunding = () => {
       <div className="p-6 bg-gray-50 min-h-screen">
         
         {/* Header */}
-        <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
-          <div>
-            <h2 className="text-3xl font-bold text-gray-800">My CSR Activities</h2>
-            <p className="text-gray-500 mt-1">Manage your proposals and funding records.</p>
+        <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl p-8 mb-8 shadow-lg text-white">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+              <h2 className="text-3xl font-bold">My CSR Activities</h2>
+              <p className="text-blue-100 mt-2 font-medium">Manage your proposals and funding records.</p>
+            </div>
+            <button 
+              onClick={() => navigate('/corporate/ngo-partners')}
+              className="px-6 py-3 bg-white text-blue-600 rounded-xl font-semibold hover:bg-blue-50 transition shadow-md flex items-center gap-2"
+            >
+              <span>+ New Proposal</span>
+            </button>
           </div>
-          <button 
-            onClick={() => navigate('/corporate/ngo-partners')}
-            className="px-6 py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition shadow-lg hover:shadow-blue-500/30 flex items-center gap-2"
-          >
-            <span>+ New Proposal</span>
-          </button>
         </div>
+
+        {/* ✅ NEW: Search Bar */}
+        {activeTab === 'proposals' && (
+          <div className="mb-6 relative max-w-md">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <SearchIcon />
+            </div>
+            <input
+              type="text"
+              placeholder="Search proposals by title..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 pr-4 py-3 w-full border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition shadow-sm"
+            />
+            {searchTerm && (
+              <button 
+                onClick={() => setSearchTerm('')}
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+              >
+                ✕
+              </button>
+            )}
+          </div>
+        )}
 
         {/* Tabs */}
         <div className="flex gap-2 mb-8 bg-white p-1.5 rounded-xl shadow-sm border border-gray-200 w-fit">
@@ -163,8 +203,17 @@ const MyProposalsAndFunding = () => {
                 {proposals.length === 0 ? (
                   <div className="col-span-full text-center py-20 bg-white rounded-2xl border-2 border-dashed border-gray-300">
                     <div className="text-gray-400 mb-4 text-5xl">📄</div>
-                    <p className="text-gray-500 text-lg font-medium">No proposals sent yet.</p>
-                    <button onClick={() => navigate('/corporate/ngo-partners')} className="mt-4 text-blue-600 font-semibold hover:underline">Browse NGOs to send one</button>
+                    {searchTerm ? (
+                      <>
+                        <p className="text-gray-500 text-lg font-medium">No proposals found for "<strong>{searchTerm}</strong>".</p>
+                        <button onClick={() => setSearchTerm('')} className="mt-4 text-blue-600 font-semibold hover:underline">Clear Search</button>
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-gray-500 text-lg font-medium">No proposals sent yet.</p>
+                        <button onClick={() => navigate('/corporate/ngo-partners')} className="mt-4 text-blue-600 font-semibold hover:underline">Browse NGOs to send one</button>
+                      </>
+                    )}
                   </div>
                 ) : (
                   proposals.map((p) => (
@@ -184,12 +233,11 @@ const MyProposalsAndFunding = () => {
                         <p className="text-gray-600 text-sm line-clamp-3 leading-relaxed">{p.description}</p>
                       </div>
 
-                        {/* Card Body Stats */}
+                      {/* Card Body Stats */}
                       <div className="px-5 py-3 bg-gray-50 border-y border-gray-100 flex items-center justify-between">
                         <div className="flex items-center text-gray-500 text-xs">
                           <MapPinIcon />
                           <span className="truncate max-w-[150px]">
-                            {/* ✅ FIX: Check multiple possible field names */}
                             {p.deliveryLocation?.address || 
                              p.deliveryAddress || 
                              p.location || 
@@ -239,7 +287,6 @@ const MyProposalsAndFunding = () => {
                   </div>
                 ) : (
                   funding.map((f) => {
-                    // Safe navigation
                     const ngoName = f.projectId?.ngoId?.organizationName || 'NGO Partner';
                     const projectTitle = f.projectId?.title || 'Unknown Project';
 

@@ -1,35 +1,13 @@
 const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
+const cloudinary = require('cloudinary').v2;
 
-// Get the correct path relative to this file's location
-// This file is in: backend/middleware/upload.js
-// We want: backend/uploads/projects
-const uploadPath = path.join(__dirname, '../uploads/projects');
-
-console.log('📁 Upload path:', uploadPath);
-
-// Ensure the folder exists
-if (!fs.existsSync(uploadPath)) {
-  fs.mkdirSync(uploadPath, { recursive: true });
-  console.log('✅ Created uploads directory');
-} else {
-  console.log('✅ Uploads directory exists');
-}
-
-// Configure storage
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    console.log('💾 Saving file to:', uploadPath);
-    cb(null, uploadPath);
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-    const filename = 'project-' + uniqueSuffix + path.extname(file.originalname);
-    console.log('📸 Generated filename:', filename);
-    cb(null, filename);
-  }
+cloudinary.config({
+  cloud_name: process.env.CLOUD_NAME,
+  api_key: process.env.CLOUD_API_KEY,
+  api_secret: process.env.CLOUD_API_SECRET
 });
+
+const storage = multer.memoryStorage();
 
 // File filter - ONLY allow image files
 const fileFilter = (req, file, cb) => {
@@ -65,4 +43,58 @@ const upload = multer({
   fileFilter
 });
 
-module.exports = upload;
+const uploadToCloudinary = async (req, res, next) => {
+  if (!req.file?.buffer) {
+    return next();
+  }
+
+  try {
+    const publicId = `project-${Date.now()}-${Math.round(Math.random() * 1e9)}`;
+
+    const result = await new Promise((resolve, reject) => {
+      const stream = cloudinary.uploader.upload_stream(
+        {
+          folder: 'crosslink/projects',
+          resource_type: 'image',
+          public_id: publicId,
+          format: 'webp',
+          transformation: [
+            {
+              width: 1000,
+              crop: 'limit',
+              fetch_format: 'webp',
+              quality: 'auto'
+            }
+          ]
+        },
+        (error, uploadResult) => {
+          if (error) return reject(error);
+          resolve(uploadResult);
+        }
+      );
+
+      stream.end(req.file.buffer);
+    });
+
+    req.file.path = result.secure_url;
+    req.file.filename = result.public_id;
+    return next();
+  } catch (error) {
+    return next(error);
+  }
+};
+
+const uploadMiddleware = {
+  single(fieldName) {
+    return (req, res, next) => {
+      upload.single(fieldName)(req, res, (error) => {
+        if (error) {
+          return next(error);
+        }
+        return uploadToCloudinary(req, res, next);
+      });
+    };
+  }
+};
+
+module.exports = uploadMiddleware;

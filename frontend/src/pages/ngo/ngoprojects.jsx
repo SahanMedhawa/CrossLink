@@ -1,8 +1,10 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useParams } from 'react-router-dom';
 import Header from '../../components/user/Navbar';
 import ResourceForm from '../resource/ResourceForm';
+import { resolveImageUrl } from '../../utils/imageUrl';
+import { getSocket } from '../../services/socket';
 
 const AllProjects = () => {
   const { ngoId } = useParams(); // from route: /ngo/:ngoId/projects
@@ -128,7 +130,7 @@ const AllProjects = () => {
     },
     projectGrid: {
       display: 'grid',
-      gridTemplateColumns: 'repeat(auto-fill, minmax(380px, 1fr))',
+      gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
       gap: '1.75rem'
     },
     card: {
@@ -513,7 +515,7 @@ const AllProjects = () => {
     }
   };
 
-  const fetchProjects = async () => {
+  const fetchProjects = useCallback(async () => {
     if (!ngoId) return;
     try {
       setLoading(true);
@@ -522,7 +524,7 @@ const AllProjects = () => {
       if (filters.location) params.location = filters.location;
       if (filters.skills) params.skills = filters.skills;
 
-      const response = await axios.get(`http://localhost:5000/api/projects/ngoprojects/${ngoId}`, { params });
+      const response = await axios.get(`/api/projects/ngoprojects/${ngoId}`, { params });
       setProjects(response.data.projects || response.data);
       setError('');
     } catch (err) {
@@ -531,11 +533,34 @@ const AllProjects = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [ngoId, filters]);
 
   useEffect(() => { 
     fetchProjects(); 
-  }, [ngoId]);
+  }, [fetchProjects]);
+
+  useEffect(() => {
+    const socket = getSocket();
+    if (!socket) return undefined;
+
+    let refreshTimer;
+    const handleProjectEvent = (event) => {
+      if (event?.ngoId && ngoId && event.ngoId !== ngoId) {
+        return;
+      }
+
+      clearTimeout(refreshTimer);
+      refreshTimer = setTimeout(() => {
+        fetchProjects();
+      }, 250);
+    };
+
+    socket.on('project:updated', handleProjectEvent);
+    return () => {
+      clearTimeout(refreshTimer);
+      socket.off('project:updated', handleProjectEvent);
+    };
+  }, [ngoId, fetchProjects]);
 
   // Function to check project funding status
   const checkProjectFunding = async (projectId) => {
@@ -544,7 +569,7 @@ const AllProjects = () => {
     try {
       setCheckingFunding(true);
       const response = await axios.get(
-        `http://localhost:5000/api/resources/project/${projectId}/status`
+        `/api/resources/project/${projectId}/status`
       );
       
       console.log("Funding status response:", response.data);
@@ -634,7 +659,7 @@ const AllProjects = () => {
 
     try {
       const response = await axios.post(
-        `http://localhost:5000/api/projects/${selectedProject._id}/volunteer`,
+        `/api/projects/${selectedProject._id}/volunteer`,
         {
           ...volunteerApplication,
           projectId: selectedProject._id,
@@ -791,7 +816,7 @@ const AllProjects = () => {
                 >
                   {project.image ? (
                     <img 
-                      src={`http://localhost:5000${project.image}`} 
+                      src={resolveImageUrl(project.image)} 
                       style={styles.cardImage} 
                       alt={project.title}
                     />

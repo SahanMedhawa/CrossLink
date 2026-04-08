@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+﻿import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
@@ -59,7 +59,7 @@ const ResourceManage = () => {
     try {
       setLoading(true);
       const response = await axios.get(
-        'http://localhost:5000/api/resources/all'
+        '/api/resources/all'
       );
       
       // Handle different response formats
@@ -221,7 +221,7 @@ const ResourceManage = () => {
       }
 
       await axios.put(
-        `http://localhost:5000/api/resources/${selectedResource._id}`,
+        `/api/resources/${selectedResource._id}`,
         {
           name: updateForm.name,
           totalQuantity: Number(updateForm.totalQuantity),
@@ -253,7 +253,7 @@ const ResourceManage = () => {
   const handleDeleteConfirm = async () => {
     try {
       await axios.delete(
-        `http://localhost:5000/api/resources/${selectedResource._id}`
+        `/api/resources/${selectedResource._id}`
       );
 
       toast.success('Resource deleted successfully!');
