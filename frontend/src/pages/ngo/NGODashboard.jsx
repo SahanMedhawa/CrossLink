@@ -1,45 +1,103 @@
-import React, { useState } from "react"; // Added useState
+import React, { useState, useEffect } from "react"; // Added useState and useEffect
 import { Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import DashboardLayout from "../../components/dashboard/DashboardLayout";
 import CreateProjectModal from "./createproject"; // Import your new modal
 
 const NGODashboard = () => {
-  const { user } = useAuth();
+  const { user, token } = useAuth();
+  
+  // Get the actual user ID (could be 'id' or '_id')
+  const userId = user?.id || user?._id;
+  
+  // Calculate days active
+  const daysActive = user?.createdAt 
+    ? Math.floor((new Date() - new Date(user.createdAt)) / (1000 * 60 * 60 * 24))
+    : 0;
   
   // State to control modal visibility
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [activeProjectsCount, setActiveProjectsCount] = useState(0);
 
-  // Optional: Function to refresh data after project creation
+  // Debug: Log state changes
+  useEffect(() => {
+    console.log('Active Projects Updated:', activeProjectsCount);
+  }, [activeProjectsCount]);
+
+  // Fetch active projects count
+  useEffect(() => {
+    const fetchProjects = async () => {
+      if (!token || !userId) return;
+
+      try {
+        const response = await fetch('/api/projects/ngo/my-projects', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        const data = await response.json();
+        if (data.success && Array.isArray(data.projects)) {
+          setActiveProjectsCount(data.projects.length);
+        }
+      } catch (error) {
+        console.error('Error fetching projects:', error);
+      }
+    };
+
+    fetchProjects();
+  }, [token, userId]);
+
+  // Refresh data after project creation
   const handleProjectCreated = () => {
-    console.log("Project created! Refreshing dashboard stats...");
-    // You could trigger a fetch request here to update the 'Active Projects' count
+    const fetchProjects = async () => {
+      if (!token || !userId) return;
+
+      try {
+        const response = await fetch('/api/projects/ngo/my-projects', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        const data = await response.json();
+        if (data.success && Array.isArray(data.projects)) {
+          setActiveProjectsCount(data.projects.length);
+        }
+      } catch (error) {
+        console.error('Error fetching projects:', error);
+      }
+    };
+    
+    fetchProjects();
   };
 
   const quickStats = [
     {
       label: "Active Projects",
-      value: 0,
+      value: activeProjectsCount,
       icon: "M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2",
       tone: "blue",
     },
     {
-      label: "Volunteers",
-      value: 0,
-      icon: "M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197",
+      label: "Last Active",
+      value: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+      icon: "M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z",
       tone: "emerald",
     },
     {
-      label: "Corporate Partners",
-      value: 0,
-      icon: "M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5",
-      tone: "indigo",
+      label: "Days Active",
+      value: daysActive,
+      icon: "M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z",
+      tone: "violet",
     },
     {
-      label: "Impact Score",
-      value: 0,
-      icon: "M13 10V3L4 14h7v7l9-11h-7z",
-      tone: "violet",
+      label: "Member Since",
+      value: user?.createdAt ? new Date(user.createdAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : 'N/A',
+      icon: "M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z",
+      tone: "indigo",
     },
   ];
 
