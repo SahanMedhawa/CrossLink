@@ -29,7 +29,7 @@ module.exports = defineConfig({
     baseURL: 'http://localhost:5000',
 
     // Collect traces on failure for debugging
-    trace: 'on-first-retry',
+    trace: 'on',
 
     // Extra HTTP headers sent with every request
     extraHTTPHeaders: {
