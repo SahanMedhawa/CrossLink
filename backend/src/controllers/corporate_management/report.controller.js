@@ -24,7 +24,7 @@ exports.getImpactReport = async (req, res) => {
       : 0;
 
     // 3. Prepare Chart Data (Example: By Focus Area/Category)
-    // Note: You might need to map 'focusArea' from the populated NGO/Project data
+    // Note: need to map 'focusArea' from the populated NGO/Project data
     const categoryData = {}; 
     // ... logic to group amounts by category ...
 

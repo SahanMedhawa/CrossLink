@@ -42,7 +42,7 @@ const MyProposalsAndFunding = () => {
   const [funding, setFunding] = useState([]);
   const [loading, setLoading] = useState(true);
   
-  // ✅ NEW: Search State
+  //  NEW: Search State
   const [searchTerm, setSearchTerm] = useState('');
 
   // Modal States
@@ -52,7 +52,7 @@ const MyProposalsAndFunding = () => {
 
   const navigate = useNavigate();
 
-  // ✅ UPDATED: Fetch data depends on searchTerm
+  //  UPDATED: Fetch data depends on searchTerm
   useEffect(() => {
     fetchData();
   }, [searchTerm]); // Re-run whenever search term changes
@@ -62,7 +62,7 @@ const MyProposalsAndFunding = () => {
       const token = localStorage.getItem('crosslink_token');
       const config = { headers: { 'Authorization': `Bearer ${token}` } };
 
-      // ✅ Send search query to backend
+      // Send search query to backend
       const searchQuery = searchTerm ? `?search=${encodeURIComponent(searchTerm)}` : '';
       
       const propRes = await axios.get(`/api/proposals/my${searchQuery}`, config);
@@ -145,7 +145,7 @@ const MyProposalsAndFunding = () => {
           </div>
         </div>
 
-        {/* ✅ NEW: Search Bar */}
+        {/*  NEW: Search Bar */}
         {activeTab === 'proposals' && (
           <div className="mb-6 relative max-w-md">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">

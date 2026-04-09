@@ -31,7 +31,7 @@ exports.createProposal = async (req, res) => {
     }
 
     const ngoUser = project.ngoId;
-    const corporateUser = await User.findById(corporateId).select('name companyName');
+    const corporateUser = await User.findById(corporateId).select('name companyName email');
     const actorName = corporateUser?.companyName || corporateUser?.name || 'A corporate partner';
 
     // 2. Create Proposal Document
@@ -344,7 +344,7 @@ exports.getMyProposals = async (req, res) => {
   }
 };
 
-// ✅ NEW: Get all proposals received by a specific NGO
+//  NEW: Get all proposals received by a specific NGO
 // @route   GET /api/proposals/ngo/:ngoId
 // @access  Private (NGO)
 exports.getProposalsForNgo = async (req, res) => {

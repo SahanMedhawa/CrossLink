@@ -20,7 +20,7 @@ const NgoProjectView = () => {
   const [selectedProjectForProposal, setSelectedProjectForProposal] = useState(null);
   const [editingProposal, setEditingProposal] = useState(null);
 
-  // ✅ Funding States
+  //  Funding States
   const [showFundingForm, setShowFundingForm] = useState(false);
   const [selectedProjectForFunding, setSelectedProjectForFunding] = useState(null);
   const [editingFunding, setEditingFunding] = useState(null);
@@ -78,7 +78,7 @@ const NgoProjectView = () => {
     }
   };
 
-  // ✅ --- Funding Handlers ---
+  //  --- Funding Handlers ---
   const handleFund = (project, existingFund = null) => {
     setSelectedProjectForFunding(project);
     setEditingFunding(existingFund || null);
@@ -150,7 +150,7 @@ const NgoProjectView = () => {
         />
       )}
 
-      {/* ✅ Funding Modal */}
+      {/*  Funding Modal */}
       {showFundingForm && selectedProjectForFunding && (
         <FundingForm 
           project={selectedProjectForFunding}

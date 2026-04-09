@@ -65,7 +65,7 @@ const ProposalForm = ({ project, existingData, onClose, onSubmit }) => {
       projectId: project._id
     };
 
-    console.log("Sending to API:", finalData); // Check console to verify 'address' is there!
+    console.log("Sending to API:", finalData); 
     
     onSubmit(finalData);
   };
@@ -124,7 +124,7 @@ const ProposalForm = ({ project, existingData, onClose, onSubmit }) => {
             />
           </div>
 
-          {/* ✅ NEW: Expected Impact (Specific Field) */}
+          {/*  NEW: Expected Impact (Specific Field) */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Expected Impact Summary</label>
             <input
@@ -137,7 +137,7 @@ const ProposalForm = ({ project, existingData, onClose, onSubmit }) => {
             />
           </div>
 
-          {/* ✅ NEW: Message to NGO */}
+          {/*  NEW: Message to NGO */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Message to NGO</label>
             <textarea
@@ -150,7 +150,7 @@ const ProposalForm = ({ project, existingData, onClose, onSubmit }) => {
             />
           </div>
 
-          {/* ✅ NEW: Priority Level */}
+          {/*  NEW: Priority Level */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Priority Level</label>
             <select
