@@ -47,7 +47,7 @@ const fundingSchema = new mongoose.Schema({
   },
   receiptUrl: {
     type: String,
-    default: null // For future file upload of proof
+    default: null // Reserved for future file upload of proof (if required by corporate partners)
   },
   status: {
     type: String,

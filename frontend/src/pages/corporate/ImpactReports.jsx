@@ -46,7 +46,7 @@ const ImpactReports = () => {
       doc.setFontSize(11);
       doc.text(`Generated: ${new Date().toLocaleDateString()}`, 14, 28);
 
-      // ✅ SAFETY CHECK: Ensure reportData and transactions exist
+      // SAFETY CHECK: Ensure reportData and transactions exist
       if (!reportData || !reportData.transactions || reportData.transactions.length === 0) {
         doc.text("No transaction data available for this report.", 14, 40);
         doc.save('CSR_Report_Empty.pdf');

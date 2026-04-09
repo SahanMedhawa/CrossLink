@@ -2,15 +2,13 @@
 import axios from 'axios';
 import DashboardLayout from '../../components/dashboard/DashboardLayout';
 
-// REMOVED: No longer importing NEWS_API_KEY here for security.
-// The key is now safely stored in the backend .env file.
-
 const CsrInitiatives = () => {
   const [stats, setStats] = useState({
     totalProposals: 0,
     acceptedCount: 0,
     totalFundingRecords: 0,
     totalValue: 0,
+    activePartners: 0, 
     recentActivities: []
   });
   
@@ -28,6 +26,17 @@ const CsrInitiatives = () => {
       const token = localStorage.getItem('crosslink_token');
       const config = { headers: { 'Authorization': `Bearer ${token}` } };
 
+      // STEP 1: Fetch the robust stats from our backend endpoint
+      // This ensures 'activePartners' matches the Dashboard exactly
+      const statsRes = await axios.get('/api/corporates/dashboard-stats', config);
+      
+      let backendActivePartners = 0;
+
+      if (statsRes.data && statsRes.data.success) {
+        backendActivePartners = statsRes.data.data.activePartnerships;
+      }
+
+      //  STEP 2: Fetch raw data for Total Value and Recent Activities
       const [propRes, fundRes] = await Promise.all([
         axios.get('/api/proposals/my', config),
         axios.get('/api/funding/my', config)
@@ -36,11 +45,13 @@ const CsrInitiatives = () => {
       const proposals = propRes.data.data || [];
       const funding = fundRes.data.data || [];
 
+      // Calculate Total Value (Proposals + Fundings)
       const totalVal = proposals.reduce((sum, p) => sum + (p.amount || 0), 0) + 
                        funding.reduce((sum, f) => sum + (f.amount || 0), 0);
       
       const accepted = proposals.filter(p => p.status === 'Accepted').length;
 
+      // Recent Activities
       const recent = [
         ...proposals.slice(0, 2).map(p => ({ type: 'Proposal', title: p.proposalTitle, amount: p.amount, status: p.status })),
         ...funding.slice(0, 2).map(f => ({ type: 'Funding', title: `Funded: ${f.projectId?.title || 'Project'}`, amount: f.amount, status: 'Completed' }))
@@ -51,6 +62,7 @@ const CsrInitiatives = () => {
         acceptedCount: accepted,
         totalFundingRecords: funding.length,
         totalValue: totalVal,
+        activePartners: backendActivePartners, //  Use the reliable backend count
         recentActivities: recent
       });
 
@@ -61,15 +73,12 @@ const CsrInitiatives = () => {
     }
   };
 
-  //  UPDATED: Fetch news from OUR backend (Secure Proxy Pattern)
   const fetchNews = async () => {
     try {
-      // Call our own backend endpoint which holds the secret key securely
       const res = await axios.get('/api/corporate/news/csr');
       setNews(res.data.data || []);
     } catch (error) {
       console.error("Error fetching news from proxy:", error);
-      // Fallback data if our backend fails or API is down
       setNews([
         { title: "Global CSR Trends for 2026", description: "Companies are shifting focus to direct community impact...", source: { name: "CSR World" }, url: "#", publishedAt: new Date().toISOString(), urlToImage: "https://via.placeholder.com/400x200?text=CSR+News" },
         { title: "Climate Action: Corporate Pledges", description: "New initiatives launched to reduce carbon footprint...", source: { name: "Green Business" }, url: "#", publishedAt: new Date().toISOString(), urlToImage: "https://via.placeholder.com/400x200?text=Climate+News" }
@@ -108,7 +117,8 @@ const CsrInitiatives = () => {
           </div>
           <div className="bg-white p-6 rounded-xl shadow-sm border-l-4 border-orange-600">
             <p className="text-xs font-bold text-gray-400 uppercase">Active Partners</p>
-            <p className="text-2xl font-bold text-gray-900 mt-1">{new Set(stats.recentActivities.map(i => i.title)).size}</p>
+            {/*  Displays the value from backend */}
+            <p className="text-2xl font-bold text-gray-900 mt-1">{stats.activePartners}</p>
           </div>
         </div>
 
