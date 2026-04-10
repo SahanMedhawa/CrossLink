@@ -1,3 +1,4 @@
+
 // backend/playwright-tests/tests/proposal_test/funding_fixtures.spec.js
 // IMPORT FROM FIXTURE FILE
 const { test, expect } = require('../../fixtures/fundingFixtures');
