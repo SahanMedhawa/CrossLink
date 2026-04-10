@@ -25,9 +25,15 @@ coverage
 *.sw?
 
 # Environment files
-backend/.env
+.env
 
 # Ignore Playwright test results and reports
 test-results/
 playwright-report/
+
+# Ignore generated Artillery performance outputs
+performance/*.json
+performance/*.html
+performance/*.csv
+performance/artillery-participation.generated.yml
 

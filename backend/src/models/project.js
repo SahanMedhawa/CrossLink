@@ -86,6 +86,7 @@ const projectSchema = new mongoose.Schema({
 
 // Index for faster querying
 projectSchema.index({ ngoId: 1, status: 1 });
+projectSchema.index({ status: 1, createdAt: -1 });
 projectSchema.index({ skills: 1 });
 projectSchema.index({ focusArea: 1 });
 projectSchema.index({ coordinates: '2dsphere' });
