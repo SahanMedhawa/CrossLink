@@ -4,7 +4,8 @@ const {
   getAllCorporates, 
   getCorporateById,
   updateProfile,
-  getMyProfile // ✅ 1. Ensure this is imported
+  getMyProfile,
+   getDashboardStats 
 } = require('../../controllers/corporate_management/corporate.controller');
 
 // Import Auth Middleware
@@ -29,7 +30,11 @@ router.get('/profile', getMyProfile);
 // Access: Private
 router.put('/profile', updateProfile); 
 
-// 4. Dynamic ID Route (Must be LAST)
+router.get('/dashboard-stats', requireAuth, getDashboardStats); 
+
+
+
+// Dynamic ID Route 
 // Method: GET
 // URL: /api/corporates/:id
 router.route('/:id')

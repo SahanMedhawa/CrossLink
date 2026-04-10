@@ -27,7 +27,7 @@ exports.createFunding = async (req, res) => {
     }
 
     const ngoUser = project.ngoId;
-    const corporateUser = await User.findById(corporateId).select('name companyName');
+    const corporateUser = await User.findById(corporateId).select('name companyName email');
     const actorName = corporateUser?.companyName || corporateUser?.name || 'A corporate partner';
 
     // 2. Create Funding Record
@@ -172,7 +172,7 @@ exports.getMyFunding = async (req, res) => {
 // @desc    Get all fundings received by a specific NGO
 // @route   GET /api/fundings/ngo/:ngoId
 // @access  Private (NGO)
-// ✅ UPDATED: Get all fundings received by a specific NGO
+//  UPDATED: Get all fundings received by a specific NGO
 exports.getFundingsForNgo = async (req, res) => {
   try {
     const { ngoId } = req.params;

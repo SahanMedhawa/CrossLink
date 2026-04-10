@@ -36,7 +36,7 @@ router.get('/project/:projectId', getProposalsByProject);
 // Accept or Reject a specific proposal
 router.patch('/:id/status', updateProposalStatus);
 
-// ✅ NEW ROUTE: Get proposals for a specific NGO
+// NEW ROUTE: Get proposals for a specific NGO
 router.get('/ngo/:ngoId', getProposalsForNgo);
 
 module.exports = router;
