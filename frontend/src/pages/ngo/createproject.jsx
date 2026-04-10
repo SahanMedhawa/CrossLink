@@ -44,6 +44,7 @@ const CreateProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
   const [mapPosition, setMapPosition] = useState(null); // [lat, lng] or null
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
+  const [dateError, setDateError] = useState(''); // NEW: Track date validation errors
 
   // --- Ref for scrolling ---
   const bodyRef = useRef(null);
@@ -72,6 +73,19 @@ const CreateProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+    
+    // Real-time date validation
+    if (name === 'startDate' || name === 'endDate') {
+      const updatedData = { ...formData, [name]: value };
+      const start = new Date(updatedData.startDate);
+      const end = new Date(updatedData.endDate);
+      
+      if (updatedData.startDate && updatedData.endDate && end < start) {
+        setDateError('⚠️ End date cannot be earlier than start date');
+      } else {
+        setDateError('');
+      }
+    }
   };
 
   const addSkill = (skill) => {
@@ -135,7 +149,8 @@ const CreateProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
     const start = new Date(formData.startDate);
     const end = new Date(formData.endDate);
     if (end < start) {
-      setMessage({ type: 'error', text: 'End date cannot be earlier than start date' });
+      setMessage({ type: 'error', text: '❌ End date cannot be earlier than start date. Please correct the dates.' });
+      setDateError('⚠️ End date cannot be earlier than start date');
       return;
     }
 
@@ -191,6 +206,7 @@ const CreateProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
       setImageFile(null);
       setImagePreview(null);
       setMapPosition(null);
+      setDateError('');
 
       // Close modal and trigger parent callback
       setTimeout(() => {
@@ -383,13 +399,67 @@ const CreateProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem', marginBottom: '1.25rem' }}>
               <div>
                 <label style={s.label}>Start Date *</label>
-                <input type="date" style={s.input} name="startDate" value={formData.startDate} onChange={handleInputChange} required />
+                <input 
+                  type="date" 
+                  style={{ 
+                    ...s.input, 
+                    borderWidth: '2px',
+                    borderColor: dateError ? '#ef4444' : '#3b82f6',
+                    backgroundColor: dateError ? '#fef2f2' : '#ffffff',
+                    padding: '12px 14px',
+                    fontSize: '16px',
+                    fontWeight: '600',
+                    color: '#1e293b',
+                    accentColor: '#3b82f6',
+                    cursor: 'pointer'
+                  }} 
+                  name="startDate" 
+                  value={formData.startDate} 
+                  onChange={handleInputChange} 
+                  required 
+                />
               </div>
               <div>
                 <label style={s.label}>End Date *</label>
-                <input type="date" style={s.input} name="endDate" value={formData.endDate} onChange={handleInputChange} required />
+                <input 
+                  type="date" 
+                  style={{ 
+                    ...s.input, 
+                    borderWidth: '2px',
+                    borderColor: dateError ? '#ef4444' : '#3b82f6',
+                    backgroundColor: dateError ? '#fef2f2' : '#ffffff',
+                    padding: '12px 14px',
+                    fontSize: '16px',
+                    fontWeight: '600',
+                    color: '#1e293b',
+                    accentColor: '#3b82f6',
+                    cursor: 'pointer'
+                  }} 
+                  name="endDate" 
+                  value={formData.endDate} 
+                  onChange={handleInputChange} 
+                  required 
+                />
               </div>
             </div>
+
+            {dateError && (
+              <div style={{
+                padding: '10px 12px',
+                backgroundColor: '#fef2f2',
+                border: '1px solid #fecaca',
+                borderRadius: '8px',
+                color: '#991b1b',
+                fontSize: '13px',
+                fontWeight: '500',
+                marginBottom: '1.25rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
+              }}>
+                {dateError}
+              </div>
+            )}
 
             <div style={{ marginBottom: '1.5rem' }}>
                 <label style={s.label}>Cover Image</label>
