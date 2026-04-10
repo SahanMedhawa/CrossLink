@@ -1,7 +1,7 @@
 ﻿import { useState, useEffect } from "react";
 import DashboardLayout from "../../components/dashboard/DashboardLayout";
 
-const API_BASE = "/api/sdg";
+const API_BASE = import.meta.env.VITE_SDG_API_PATH || "/api/sdg";
 
 const SDG_COLORS = [
   "#E5243B","#DDA63A","#4C9F38","#C5192D","#FF3A21",
@@ -105,6 +105,28 @@ export default function SDGDashboard() {
           </div>
         </div>
 
+        {/* Metrics Section */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl border border-blue-200 shadow-sm p-6">
+            <p className="text-blue-700 text-sm font-semibold mb-1">Global Goals</p>
+            <p className="text-3xl font-bold text-blue-900">{goals.length}</p>
+          </div>
+          <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl border border-green-200 shadow-sm p-6">
+            <p className="text-green-700 text-sm font-semibold mb-1">Total Targets</p>
+            <p className="text-3xl font-bold text-green-900">
+              {sriLankaGoals.reduce((sum, goal) => sum + (goal.targets?.length || 0), 0)}
+            </p>
+          </div>
+          <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl border border-purple-200 shadow-sm p-6">
+            <p className="text-purple-700 text-sm font-semibold mb-1">Avg. Targets/Goal</p>
+            <p className="text-3xl font-bold text-purple-900">
+              {sriLankaGoals.length > 0
+                ? (sriLankaGoals.reduce((sum, goal) => sum + (goal.targets?.length || 0), 0) / sriLankaGoals.length).toFixed(1)
+                : 0}
+            </p>
+          </div>
+        </div>
+
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-2">
           <nav className="flex flex-wrap gap-2">
             {[
@@ -128,35 +150,51 @@ export default function SDGDashboard() {
         </div>
 
         {activeTab === "goals" && (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-            {goals.map((goal, idx) => {
-              const { num, color, icon } = getGoalMeta(goal, idx);
-              return (
-                <button
-                  key={goal.code || idx}
-                  type="button"
-                  onClick={() => fetchTargets(goal.code)}
-                  className="text-left bg-white border border-gray-100 rounded-xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all overflow-hidden"
-                >
-                  <div className="px-5 py-4 text-white" style={{ backgroundColor: color }}>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-semibold">SDG {num}</span>
-                      <span className="text-xl" aria-hidden="true">{icon}</span>
+          <div className="space-y-6">
+            <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 rounded-2xl p-8 text-white shadow-lg">
+              <h3 className="text-3xl font-bold mb-2">Explore All 17 Goals</h3>
+              <p className="text-blue-100 text-base">The United Nations Sustainable Development Goals are a universal call to action to end poverty, protect the planet, and ensure peace and prosperity by 2030.</p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {goals.map((goal, idx) => {
+                const { num, color, icon } = getGoalMeta(goal, idx);
+                return (
+                  <button
+                    key={goal.code || idx}
+                    type="button"
+                    onClick={() => fetchTargets(goal.code)}
+                    className="text-left group relative bg-white border border-gray-200 rounded-2xl shadow-md hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 overflow-hidden"
+                  >
+                    {/* Background glow effect */}
+                    <div className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-300" style={{ backgroundColor: color }} />
+                    
+                    {/* Header with gradient */}
+                    <div className="relative px-6 py-6 text-white" style={{ background: `linear-gradient(135deg, ${color} 0%, ${color}dd 100%)` }}>
+                      <div className="flex items-start justify-between mb-3">
+                        <span className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-white/20 text-2xl">
+                          {icon}
+                        </span>
+                        <span className="text-xs font-bold bg-white/20 px-3 py-1 rounded-full">SDG {num}</span>
+                      </div>
                     </div>
-                  </div>
-                  <div className="p-5">
-                    <h3 className="text-base font-bold text-gray-900 mb-2 line-clamp-2">{goal.title}</h3>
-                    <p className="text-sm text-gray-500 leading-relaxed mb-4">{truncate(goal.description)}</p>
-                    <span
-                      className="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold text-white"
-                      style={{ backgroundColor: color }}
-                    >
-                      View targets
-                    </span>
-                  </div>
-                </button>
-              );
-            })}
+                    
+                    {/* Content */}
+                    <div className="relative p-6">
+                      <h3 className="text-lg font-bold text-gray-900 mb-3 line-clamp-2 group-hover:text-gray-800 transition-colors">
+                        {goal.title}
+                      </h3>
+                      <p className="text-sm text-gray-600 leading-relaxed mb-5 line-clamp-3">
+                        {truncate(goal.description, 80)}
+                      </p>
+                      <div className="flex items-center gap-2 text-sm font-semibold text-white py-2 px-4 rounded-lg transition-all" style={{ backgroundColor: color }}>
+                        View Details
+                        <span className="group-hover:translate-x-1 transition-transform">→</span>
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
           </div>
         )}
 
@@ -184,15 +222,9 @@ export default function SDGDashboard() {
                       >
                         SDG {num}
                       </span>
-                      <span className="text-xs font-semibold text-gray-600">{targetCount} targets</span>
+                      <span className="text-sm font-bold text-gray-800">{targetCount}</span>
                     </div>
                     <p className="text-sm font-semibold text-gray-800 mb-3 line-clamp-2">{goal.title}</p>
-                    <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                      <div
-                        className="h-full rounded-full"
-                        style={{ width: `${Math.min(targetCount * 10, 100)}%`, backgroundColor: color }}
-                      />
-                    </div>
                   </button>
                 );
               })}
