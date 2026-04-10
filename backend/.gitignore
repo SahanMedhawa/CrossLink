@@ -31,3 +31,13 @@ backend/.env
 test-results/
 playwright-report/
 
+# Ignore Artillery Performance Test Results
+result.json
+performance-result.json
+report.html
+report.json.html
+report-*.html
+result.json.html
+report.html
+report-*.json
+
