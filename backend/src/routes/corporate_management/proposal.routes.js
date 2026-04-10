@@ -7,7 +7,8 @@ const {
   getMyProposals,
   updateProposal,
   deleteProposal,
-  getProposalsForNgo
+  getProposalsForNgo,
+  getProposalById
 } = require('../../controllers/corporate_management/proposal.controller');
 
 // Import Auth Middleware
@@ -22,6 +23,10 @@ router.post('/', createProposal);
 
 // Get my own sent proposals
 router.get('/my', getMyProposals);
+
+// Get a single proposal by ID
+router.get('/:id', getProposalById);
+
 
 //Update my own proposals
 router.put('/:id', updateProposal);
@@ -38,5 +43,6 @@ router.patch('/:id/status', updateProposalStatus);
 
 // NEW ROUTE: Get proposals for a specific NGO
 router.get('/ngo/:ngoId', getProposalsForNgo);
+
 
 module.exports = router;
