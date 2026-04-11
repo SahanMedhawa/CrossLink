@@ -1,9 +1,11 @@
-﻿import React, { useState, useEffect, useCallback } from 'react';
+﻿import React, { useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
 import Header from '../../components/user/Navbar';
 import ResourceForm from '../resource/ResourceForm';
 import { resolveImageUrl } from '../../utils/imageUrl';
 import { getSocket } from '../../services/socket';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 
 const AllProjects = () => {
   const [projects, setProjects] = useState([]);
@@ -35,6 +37,10 @@ const AllProjects = () => {
 
   // Map view state
   const [showMap, setShowMap] = useState(false);
+
+  // Map reference
+  const mapRef = useRef(null);
+  const mapInstanceRef = useRef(null);
 
   const styles = {
     container: {
@@ -282,7 +288,11 @@ const AllProjects = () => {
       boxShadow: '0 8px 32px rgba(9, 30, 66, 0.25)',
       position: 'relative',
       display: 'flex',
-      flexDirection: 'column'
+      flexDirection: 'column',
+      '@media (max-width: 768px)': {
+        maxHeight: '95vh',
+        borderRadius: '8px'
+      }
     },
     modalHeader: {
       padding: '1.75rem 2rem',
@@ -318,12 +328,19 @@ const AllProjects = () => {
     },
     modalBody: {
       padding: '2rem',
-      overflowY: 'auto'
+      overflowY: 'auto',
+      '@media (max-width: 768px)': {
+        padding: '1.25rem'
+      }
     },
     modalGrid: {
       display: 'grid',
       gridTemplateColumns: '2fr 1fr',
-      gap: '2rem'
+      gap: '2rem',
+      '@media (max-width: 768px)': {
+        gridTemplateColumns: '1fr',
+        gap: '1.5rem'
+      }
     },
     modalSidebar: {
       background: '#F8F9FA',
@@ -567,6 +584,16 @@ const AllProjects = () => {
     }
   }, [selectedProject]);
 
+  // Reset map state when switching projects
+  useEffect(() => {
+    setShowMap(false);
+    // Destroy previous map instance when switching projects
+    if (mapInstanceRef.current) {
+      mapInstanceRef.current.remove();
+      mapInstanceRef.current = null;
+    }
+  }, [selectedProject?._id]);
+
   // Also check funding when modal closes (after donation)
   const handleResourceFormClose = async () => {
     setShowResourceForm(false);
@@ -612,6 +639,57 @@ const AllProjects = () => {
       socket.off('project:updated', handleProjectEvent);
     };
   }, [fetchProjects]);
+
+  // Initialize Leaflet map
+  useEffect(() => {
+    if (!showMap || !selectedProject?.coordinates || !mapRef.current) return;
+
+    const [lng, lat] = selectedProject.coordinates.coordinates;
+
+    try {
+      // Initialize map - always create fresh map for each project to avoid conflicts
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove();
+      }
+
+      mapInstanceRef.current = L.map(mapRef.current).setView([lat, lng], 13);
+      
+      // Add tile layer
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors',
+        maxZoom: 19,
+      }).addTo(mapInstanceRef.current);
+
+      // Add marker for project location
+      L.marker([lat, lng])
+        .bindPopup(`<div style="font-weight: 600; color: #172B4D;">${selectedProject.title}</div><small>${selectedProject.location}</small>`)
+        .addTo(mapInstanceRef.current)
+        .openPopup();
+
+      // Ensure map is properly sized
+      const resizeTimer = setTimeout(() => {
+        if (mapInstanceRef.current) {
+          mapInstanceRef.current.invalidateSize();
+        }
+      }, 150);
+
+      // Add resize listener for responsive behavior
+      const handleResize = () => {
+        if (mapInstanceRef.current) {
+          mapInstanceRef.current.invalidateSize();
+        }
+      };
+
+      window.addEventListener('resize', handleResize);
+
+      return () => {
+        clearTimeout(resizeTimer);
+        window.removeEventListener('resize', handleResize);
+      };
+    } catch (error) {
+      console.error('Error initializing map:', error);
+    }
+  }, [showMap, selectedProject]);
 
   const handleFilterChange = (key, value) => {
     setFilters(prev => ({ ...prev, [key]: value }));
@@ -1017,14 +1095,18 @@ const AllProjects = () => {
                       
                       {showMap && (
                         <div style={styles.mapContainer}>
-                          <div style={styles.mapPlaceholder}>
-                            <div style={{ textAlign: 'center' }}>
-                              <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🗺️</div>
-                              <div>Map Integration Here</div>
-                              <div style={styles.coordinates}>
-                                {getCoordinatesDisplay(selectedProject)}
-                              </div>
-                            </div>
+                          <div 
+                            ref={mapRef}
+                            style={{
+                              height: 'calc(min(400px, 50vh))',
+                              borderRadius: '8px',
+                              border: '1px solid #E1E8ED',
+                              width: '100%'
+                            }}
+                            className="leaflet-height-responsive"
+                          ></div>
+                          <div style={styles.coordinates}>
+                            {getCoordinatesDisplay(selectedProject)}
                           </div>
                         </div>
                       )}
@@ -1219,6 +1301,117 @@ const AllProjects = () => {
         {`
           @keyframes spin {
             to { transform: rotate(360deg); }
+          }
+
+          /* Responsive Leaflet Map */
+          .leaflet-container {
+            border-radius: 8px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+          }
+
+          .leaflet-popup-content-wrapper {
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+          }
+
+          .leaflet-popup-content {
+            margin: 0;
+            font-size: 0.95rem;
+            line-height: 1.4;
+          }
+
+          /* Tablet and below */
+          @media (max-width: 1024px) {
+            .leaflet-container {
+              height: 350px;
+            }
+          }
+
+          /* Mobile Responsive */
+          @media (max-width: 768px) {
+            .leaflet-container {
+              height: 280px !important;
+            }
+
+            .leaflet-control-attribution {
+              font-size: 0.7rem;
+              padding: 2px 4px;
+            }
+
+            .leaflet-popup-content-wrapper {
+              font-size: 0.85rem;
+              padding: 8px;
+              border-radius: 6px;
+            }
+
+            .leaflet-popup-content {
+              margin: 4px;
+            }
+
+            .leaflet-control-zoom {
+              border-radius: 6px;
+              box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+            }
+
+            .leaflet-control-zoom-in,
+            .leaflet-control-zoom-out {
+              font-size: 1.2rem;
+              line-height: 1.8;
+              width: 36px;
+              height: 36px;
+            }
+
+            /* Modal adjustments for mobile */
+            div[style*="maxHeight: 90vh"] {
+              max-height: 95vh !important;
+            }
+          }
+
+          @media (max-width: 640px) {
+            .leaflet-container {
+              height: 240px !important;
+            }
+
+            .leaflet-popup-content-wrapper {
+              font-size: 0.8rem;
+              margin-top: -10px;
+            }
+
+            .leaflet-popup {
+              margin-bottom: 20px;
+            }
+
+            .leaflet-control-zoom {
+              margin: 6px !important;
+            }
+
+            .leaflet-control-zoom-in,
+            .leaflet-control-zoom-out {
+              width: 32px;
+              height: 32px;
+              font-size: 1rem;
+            }
+          }
+
+          @media (max-width: 480px) {
+            .leaflet-container {
+              height: 200px !important;
+            }
+
+            .leaflet-popup-content-wrapper {
+              font-size: 0.75rem;
+            }
+
+            .leaflet-control-zoom {
+              margin: 4px !important;
+            }
+
+            .leaflet-control-zoom-in,
+            .leaflet-control-zoom-out {
+              width: 30px;
+              height: 30px;
+              font-size: 0.9rem;
+            }
           }
         `}
       </style>
