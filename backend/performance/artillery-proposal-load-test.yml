@@ -1,0 +1,57 @@
+config:
+  target: "http://localhost:5000"
+
+  phases:
+    - duration: 30
+      arrivalRate: 3
+      name: "Warm up"
+
+    - duration: 60
+      arrivalRate: 5
+      rampTo: 10
+      name: "Ramp up"
+
+    - duration: 120
+      arrivalRate: 10
+      name: "Sustained load"
+
+    - duration: 30
+      arrivalRate: 3
+      name: "Cool down"
+
+  http:
+    timeout: 10
+
+  variables:
+    projectId: "69d8c8dba3f6f280f1027d18"   # ✅ EXISTING project ID
+    proposalId: "64f1c9a9e4b0c2a7d3f9b123"  # optional (if needed)
+
+scenarios:
+  - name: "Proposal API Performance Test"
+    flow:
+
+      # ------------------------
+      # CREATE PROPOSAL
+      # ------------------------
+      - post:
+          url: "/api/proposals"
+          json:
+            projectId: "{{ projectId }}"
+            proposalTitle: "Performance Test Proposal"
+            description: "Load testing proposal creation"
+            amount: 10000
+            expectedImpact: "Support 50 families"
+            message: "Artillery performance test"
+            priority: "High"
+
+      - think: 2
+
+      # ------------------------
+      # GET MY PROPOSALS
+      # ------------------------
+      - get:
+          url: "/api/proposals/my"
+          expect:
+            - statusCode: 200
+
+      - think: 1

@@ -37,3 +37,18 @@ performance/*.html
 performance/*.csv
 performance/artillery-participation.generated.yml
 
+
+# Ignore Artillery Performance Test Results
+result.json
+performance-result.json
+report.html
+report.json.html
+report-*.html
+result.json.html
+report.html
+report-*.json
+report-clean.json
+report.json
+proposal-load-report.json
+performance-report.json
+performance-report.json.html

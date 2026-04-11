@@ -23,7 +23,7 @@ const CorporateDashboard = () => {
         const token = localStorage.getItem("crosslink_token");
         if (!token) return;
 
-        const res = await axios.get("http://localhost:5000/api/corporates/dashboard-stats", {
+        const res = await axios.get("/api/corporates/dashboard-stats", {
           headers: { "Authorization": `Bearer ${token}` }
         });
         

@@ -26,6 +26,9 @@
   "author": "",
   "license": "ISC",
   "description": "CrossLink - Cross-sector collaboration platform API",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "dependencies": {
     "axios": "^1.13.5",
     "bcryptjs": "^3.0.2",

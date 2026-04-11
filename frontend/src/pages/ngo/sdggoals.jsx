@@ -24,15 +24,21 @@ export default function SDGDashboard() {
 
   useEffect(() => {
     Promise.all([
-      fetch(`${API_BASE}/goals`).then(r => r.json()),
-      fetch(`${API_BASE}/srilanka`).then(r => r.json()),
+      fetch(`${API_BASE}/goals`).then(r => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}: Failed to load goals`);
+        return r.json();
+      }),
+      fetch(`${API_BASE}/srilanka`).then(r => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}: Failed to load Sri Lanka data`);
+        return r.json();
+      }),
     ]).then(([goalsData, slData]) => {
       // API returns { success: true, goals: [...] }
       setGoals(Array.isArray(goalsData.goals) ? goalsData.goals : []);
       setSriLankaGoals(Array.isArray(slData.goals) ? slData.goals : []);
       setLoading(false);
     }).catch((err) => {
-      setError(err.message);
+      setError(err.message || 'Failed to load SDG data');
       setLoading(false);
     });
   }, []);
@@ -42,10 +48,13 @@ export default function SDGDashboard() {
     setSelectedGoal(goalCode);
     setActiveTab("targets");
     try {
-      const data = await fetch(`${API_BASE}/goals/${goalCode}/targets`).then(r => r.json());
+      const response = await fetch(`${API_BASE}/goals/${goalCode}/targets`);
+      if (!response.ok) throw new Error(`HTTP ${response.status}: Failed to load targets`);
+      const data = await response.json();
       // API returns { success: true, targets: [...] }
       setTargets(Array.isArray(data.targets) ? data.targets : []);
-    } catch {
+    } catch (err) {
+      console.error('Failed to fetch targets:', err);
       setTargets([]);
     }
     setTargetsLoading(false);
@@ -92,34 +101,34 @@ export default function SDGDashboard() {
   return (
     <DashboardLayout userType="ngo">
       <div className="space-y-6">
-        <div className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl p-8 text-white">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl p-4 sm:p-8 text-white">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
             <div>
-              <h2 className="text-2xl font-bold mb-1">SDG Goals</h2>
-              <p className="text-blue-100 text-sm">Sustainable Development Goals with Sri Lanka targets</p>
+              <h2 className="text-xl sm:text-2xl font-bold mb-1">SDG Goals</h2>
+              <p className="text-blue-100 text-xs sm:text-sm">Sustainable Development Goals with Sri Lanka targets</p>
             </div>
-            <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm border border-white/30 rounded-xl px-4 py-2">
-              <span className="text-white text-sm font-medium">Total Goals:</span>
-              <span className="text-white text-sm font-bold">{goals.length}</span>
+            <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm border border-white/30 rounded-xl px-3 sm:px-4 py-2">
+              <span className="text-white text-xs sm:text-sm font-medium whitespace-nowrap">Total Goals:</span>
+              <span className="text-white text-xs sm:text-sm font-bold">{goals.length}</span>
             </div>
           </div>
         </div>
 
         {/* Metrics Section */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl border border-blue-200 shadow-sm p-6">
-            <p className="text-blue-700 text-sm font-semibold mb-1">Global Goals</p>
-            <p className="text-3xl font-bold text-blue-900">{goals.length}</p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
+          <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl border border-blue-200 shadow-sm p-4 sm:p-6">
+            <p className="text-blue-700 text-xs sm:text-sm font-semibold mb-1">Global Goals</p>
+            <p className="text-2xl sm:text-3xl font-bold text-blue-900">{goals.length}</p>
           </div>
-          <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl border border-green-200 shadow-sm p-6">
-            <p className="text-green-700 text-sm font-semibold mb-1">Total Targets</p>
-            <p className="text-3xl font-bold text-green-900">
+          <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl border border-green-200 shadow-sm p-4 sm:p-6">
+            <p className="text-green-700 text-xs sm:text-sm font-semibold mb-1">Total Targets</p>
+            <p className="text-2xl sm:text-3xl font-bold text-green-900">
               {sriLankaGoals.reduce((sum, goal) => sum + (goal.targets?.length || 0), 0)}
             </p>
           </div>
-          <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl border border-purple-200 shadow-sm p-6">
-            <p className="text-purple-700 text-sm font-semibold mb-1">Avg. Targets/Goal</p>
-            <p className="text-3xl font-bold text-purple-900">
+          <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl border border-purple-200 shadow-sm p-4 sm:p-6">
+            <p className="text-purple-700 text-xs sm:text-sm font-semibold mb-1">Avg. Targets/Goal</p>
+            <p className="text-2xl sm:text-3xl font-bold text-purple-900">
               {sriLankaGoals.length > 0
                 ? (sriLankaGoals.reduce((sum, goal) => sum + (goal.targets?.length || 0), 0) / sriLankaGoals.length).toFixed(1)
                 : 0}
@@ -127,17 +136,17 @@ export default function SDGDashboard() {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-2">
-          <nav className="flex flex-wrap gap-2">
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-1 sm:p-2 overflow-x-auto">
+          <nav className="flex flex-wrap gap-1 sm:gap-2 min-w-min">
             {[
               { key: "goals", label: "All Goals" },
               { key: "srilanka", label: "Sri Lanka" },
-              ...(selectedGoal ? [{ key: "targets", label: `Goal ${selectedGoal} Targets` }] : []),
+              ...(selectedGoal ? [{ key: "targets", label: `Goal ${selectedGoal}` }] : []),
             ].map((tab) => (
               <button
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key)}
-                className={`px-4 py-2 text-sm font-semibold rounded-lg transition-colors ${
+                className={`px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold rounded-lg transition-colors whitespace-nowrap ${
                   activeTab === tab.key
                     ? "bg-blue-600 text-white"
                     : "bg-gray-50 text-gray-600 hover:bg-gray-100"
@@ -151,11 +160,11 @@ export default function SDGDashboard() {
 
         {activeTab === "goals" && (
           <div className="space-y-6">
-            <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 rounded-2xl p-8 text-white shadow-lg">
-              <h3 className="text-3xl font-bold mb-2">Explore All 17 Goals</h3>
-              <p className="text-blue-100 text-base">The United Nations Sustainable Development Goals are a universal call to action to end poverty, protect the planet, and ensure peace and prosperity by 2030.</p>
+            <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 rounded-2xl p-4 sm:p-8 text-white shadow-lg">
+              <h3 className="text-xl sm:text-3xl font-bold mb-2">Explore All 17 Goals</h3>
+              <p className="text-blue-100 text-sm sm:text-base">The United Nations Sustainable Development Goals are a universal call to action to end poverty, protect the planet, and ensure peace and prosperity by 2030.</p>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6">
               {goals.map((goal, idx) => {
                 const { num, color, icon } = getGoalMeta(goal, idx);
                 return (
@@ -169,24 +178,24 @@ export default function SDGDashboard() {
                     <div className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-300" style={{ backgroundColor: color }} />
                     
                     {/* Header with gradient */}
-                    <div className="relative px-6 py-6 text-white" style={{ background: `linear-gradient(135deg, ${color} 0%, ${color}dd 100%)` }}>
-                      <div className="flex items-start justify-between mb-3">
-                        <span className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-white/20 text-2xl">
+                    <div className="relative px-4 sm:px-6 py-4 sm:py-6 text-white" style={{ background: `linear-gradient(135deg, ${color} 0%, ${color}dd 100%)` }}>
+                      <div className="flex items-start justify-between mb-2 sm:mb-3">
+                        <span className="inline-flex items-center justify-center w-10 sm:w-12 h-10 sm:h-12 rounded-full bg-white/20 text-xl sm:text-2xl">
                           {icon}
                         </span>
-                        <span className="text-xs font-bold bg-white/20 px-3 py-1 rounded-full">SDG {num}</span>
+                        <span className="text-xs font-bold bg-white/20 px-2 sm:px-3 py-0.5 sm:py-1 rounded-full">SDG {num}</span>
                       </div>
                     </div>
                     
                     {/* Content */}
-                    <div className="relative p-6">
-                      <h3 className="text-lg font-bold text-gray-900 mb-3 line-clamp-2 group-hover:text-gray-800 transition-colors">
+                    <div className="relative p-4 sm:p-6">
+                      <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-2 sm:mb-3 line-clamp-2 group-hover:text-gray-800 transition-colors">
                         {goal.title}
                       </h3>
-                      <p className="text-sm text-gray-600 leading-relaxed mb-5 line-clamp-3">
+                      <p className="text-xs sm:text-sm text-gray-600 leading-relaxed mb-3 sm:mb-5 line-clamp-3">
                         {truncate(goal.description, 80)}
                       </p>
-                      <div className="flex items-center gap-2 text-sm font-semibold text-white py-2 px-4 rounded-lg transition-all" style={{ backgroundColor: color }}>
+                      <div className="flex items-center gap-2 text-xs sm:text-sm font-semibold text-white py-2 px-3 sm:px-4 rounded-lg transition-all" style={{ backgroundColor: color }}>
                         View Details
                         <span className="group-hover:translate-x-1 transition-transform">→</span>
                       </div>
@@ -200,11 +209,11 @@ export default function SDGDashboard() {
 
         {activeTab === "srilanka" && (
           <div className="space-y-5">
-            <div className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl p-8 text-white">
-              <h3 className="text-2xl font-bold mb-1">Sri Lanka SDG Overview</h3>
-              <p className="text-blue-100 text-sm">All 17 goals with target coverage</p>
+            <div className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl p-4 sm:p-8 text-white">
+              <h3 className="text-xl sm:text-2xl font-bold mb-1">Sri Lanka SDG Overview</h3>
+              <p className="text-blue-100 text-xs sm:text-sm">All 17 goals with target coverage</p>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
               {sriLankaGoals.map((goal, idx) => {
                 const { num, color } = getGoalMeta(goal, idx);
                 const targetCount = goal.targets?.length || 0;
@@ -213,18 +222,18 @@ export default function SDGDashboard() {
                     key={goal.code || idx}
                     type="button"
                     onClick={() => fetchTargets(goal.code)}
-                    className="text-left bg-white border border-gray-100 rounded-xl shadow-sm hover:shadow-md transition-all p-4"
+                    className="text-left bg-white border border-gray-100 rounded-xl shadow-sm hover:shadow-md transition-all p-3 sm:p-4"
                   >
-                    <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center justify-between mb-2 sm:mb-3">
                       <span
-                        className="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold text-white"
+                        className="inline-flex items-center rounded-full px-2 sm:px-3 py-0.5 sm:py-1 text-xs font-semibold text-white"
                         style={{ backgroundColor: color }}
                       >
                         SDG {num}
                       </span>
-                      <span className="text-sm font-bold text-gray-800">{targetCount}</span>
+                      <span className="text-xs sm:text-sm font-bold text-gray-800">{targetCount}</span>
                     </div>
-                    <p className="text-sm font-semibold text-gray-800 mb-3 line-clamp-2">{goal.title}</p>
+                    <p className="text-xs sm:text-sm font-semibold text-gray-800 mb-2 sm:mb-3 line-clamp-2">{goal.title}</p>
                   </button>
                 );
               })}
@@ -233,23 +242,23 @@ export default function SDGDashboard() {
         )}
 
         {activeTab === "targets" && (
-          <div className="space-y-4">
-            <div className="flex flex-wrap items-center gap-3">
+          <div className="space-y-3 sm:space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
               <button
                 type="button"
                 onClick={() => setActiveTab("goals")}
-                className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+                className="w-full sm:w-auto rounded-lg border border-gray-200 px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-gray-700 hover:bg-gray-50"
               >
                 Back to goals
               </button>
-              <h3 className="flex items-center gap-2 text-xl font-bold text-gray-900">
+              <h3 className="flex items-center gap-2 text-base sm:text-xl font-bold text-gray-900">
                 <span
-                  className="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold text-white"
+                  className="inline-flex items-center rounded-full px-2 sm:px-3 py-0.5 sm:py-1 text-xs font-semibold text-white whitespace-nowrap"
                   style={{ backgroundColor: SDG_COLORS[(Number(selectedGoal) || 1) - 1] }}
                 >
                   SDG {selectedGoal}
                 </span>
-                Targets
+                <span className="hidden sm:inline">Targets</span>
               </h3>
             </div>
 
@@ -270,16 +279,16 @@ export default function SDGDashboard() {
                   return (
                     <div
                       key={code}
-                      className="bg-white border border-gray-100 rounded-xl shadow-sm p-4 sm:p-5 flex flex-col sm:flex-row sm:items-start gap-3"
+                      className="bg-white border border-gray-100 rounded-xl shadow-sm p-3 sm:p-4 flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-3"
                     >
                       <div
-                        className="inline-flex items-center self-start rounded-lg px-3 py-1 text-sm font-bold text-white"
+                        className="inline-flex items-center self-start rounded-lg px-2 sm:px-3 py-0.5 sm:py-1 text-xs sm:text-sm font-bold text-white whitespace-nowrap"
                         style={{ backgroundColor: SDG_COLORS[(Number(selectedGoal) || 1) - 1] }}
                       >
                         {code}
                       </div>
                       <div className="flex-1">
-                        <p className="text-sm text-gray-700 leading-relaxed">{desc}</p>
+                        <p className="text-xs sm:text-sm text-gray-700 leading-relaxed">{desc}</p>
                       </div>
                     </div>
                   );
