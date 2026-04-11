@@ -14,9 +14,26 @@ const BrowseNGOs = () => {
         
         const fetchNGOs = async () => {
             try {
-                const response = await api.get('/ngos');
+                const limit = 50;
+                let page = 1;
+                let totalPages = 1;
+                const allNgos = [];
+
+                // Fetch every page so volunteers can browse all NGOs, not only the first 10.
+                while (page <= totalPages) {
+                    const response = await api.get('/ngos', {
+                        params: { page, limit },
+                    });
+
+                    const pageData = response.data?.data || response.data?.ngos || [];
+                    allNgos.push(...pageData);
+
+                    totalPages = Number(response.data?.totalPages) || 1;
+                    page += 1;
+                }
+
                 if (isMounted) {
-                    setNgos(response.data.data || response.data.ngos || []);
+                    setNgos(allNgos);
                 }
             } catch (error) {
                 if (isMounted) {
