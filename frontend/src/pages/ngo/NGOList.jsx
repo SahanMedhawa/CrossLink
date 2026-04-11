@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import NGOCard from '../../components/ngo/ngo_card';
 import Footer from '../../components/Footer';
@@ -13,12 +13,16 @@ const NGOList = () => {
   const [totalNGOs, setTotalNGOs] = useState(0);
   const navigate = useNavigate();
 
+  const API_BASE = import.meta.env.VITE_API_URL
+    ? import.meta.env.VITE_API_URL.replace(/\/+$/, '')
+    : '/api';
+
   useEffect(() => {
     const loadNGOs = async () => {
       setLoading(true);
       try {
         const response = await fetch(
-          `/api/ngos?page=${page}&limit=9`
+          `${API_BASE}/ngos?page=${page}&limit=9`
         );
         
         if (!response.ok) {

@@ -1,7 +1,10 @@
-﻿import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import DashboardLayout from "../../components/dashboard/DashboardLayout";
 
-const API_BASE = import.meta.env.VITE_SDG_API_PATH || "/api/sdg";
+const API_BASE = import.meta.env.VITE_API_URL
+  ? `${import.meta.env.VITE_API_URL.replace(/\/+$/, '')}/sdg`
+  : "/api/sdg";
+
 
 const SDG_COLORS = [
   "#E5243B","#DDA63A","#4C9F38","#C5192D","#FF3A21",

@@ -7,6 +7,10 @@ import { setActiveTab, selectActiveTab } from "../../store/slices/uiSlice";
 import DashboardLayout from "../../components/dashboard/DashboardLayout";
 import CreateProjectModal from "./createproject";
 
+const API_BASE = import.meta.env.VITE_API_URL
+  ? import.meta.env.VITE_API_URL.replace(/\/+$/, '')
+  : '/api';
+
 const NGODashboard = () => {
   const { user, token } = useAuth();
 
@@ -34,7 +38,7 @@ const NGODashboard = () => {
       if (!token || !userId) return;
 
       try {
-        const response = await fetch("/api/projects/ngo/my-projects", {
+        const response = await fetch(`${API_BASE}/projects/ngo/my-projects`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -68,7 +72,7 @@ const NGODashboard = () => {
   const handleProjectCreated = async () => {
     if (!token || !userId) return;
     try {
-      const response = await fetch("/api/projects/ngo/my-projects", {
+      const response = await fetch(`${API_BASE}/projects/ngo/my-projects`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
