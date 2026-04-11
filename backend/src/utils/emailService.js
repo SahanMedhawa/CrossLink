@@ -1,8 +1,9 @@
 const nodemailer = require('nodemailer');
+const { resolveFrontendBaseUrl } = require('./frontendBaseUrl');
 
 const MAIL_USER = process.env.GMAIL_USER || process.env.EMAIL_USER;
 const MAIL_PASS = process.env.GMAIL_APP_PASSWORD || process.env.EMAIL_PASS;
-const FRONTEND_BASE_URL = process.env.FRONTEND_URL || '#';
+const FRONTEND_BASE_URL = resolveFrontendBaseUrl();
 const isEmailConfigured = () => Boolean(MAIL_USER && MAIL_PASS);
 let hasWarnedMissingGmailConfig = false;
 
