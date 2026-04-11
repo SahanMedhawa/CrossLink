@@ -2,7 +2,10 @@ const Funding = require('../../models/funding');
 const Project = require('../../models/project');
 const User = require('../../models/user.model');
 const sendEmail = require('../../utils/sendEmail');
+const { resolveFrontendBaseUrl } = require('../../utils/frontendBaseUrl');
 const { createNotification } = require('../../services/notification.service');
+
+const FRONTEND_BASE_URL = resolveFrontendBaseUrl();
 
 const notifySafely = async (payload) => {
   try {
@@ -92,7 +95,7 @@ exports.createFunding = async (req, res) => {
             <p><strong>Type:</strong> ${fundingType}</p>
             <p><strong>Method:</strong> ${paymentMethod}</p>
             <br/>
-            <a href="${process.env.FRONTEND_URL}/ngo/dashboard" style="background:#28a745; color:white; padding:10px 20px; text-decoration:none; border-radius:5px;">View Funding</a>
+            <a href="${FRONTEND_BASE_URL}/ngo/dashboard" style="background:#28a745; color:white; padding:10px 20px; text-decoration:none; border-radius:5px;">View Funding</a>
           </div>
         `
       });

@@ -1,8 +1,12 @@
 const participationService = require('../../services/volunteer_management/participation.service');
 const { emitParticipationEvent } = require('../../socket/socket.service');
 const { createNotification } = require('../../services/notification.service');
+const sendEmail = require('../../utils/sendEmail');
+const { resolveFrontendBaseUrl } = require('../../utils/frontendBaseUrl');
 const User = require('../../models/user.model');
 const Project = require('../../models/project');
+
+const FRONTEND_BASE_URL = resolveFrontendBaseUrl();
 
 const notifySafely = async (payload) => {
   try {
@@ -34,9 +38,10 @@ const requestParticipation = async (req, res) => {
       { message, experienceSummary, availabilityConfirmed, preferredRole, expectedHours }
     );
 
-    const [actorUser, project] = await Promise.all([
-      User.findById(req.user.id).select('name'),
+    const [actorUser, project, ngoUser] = await Promise.all([
+      User.findById(req.user.id).select('name email'),
       Project.findById(participation.projectId).select('title'),
+      User.findById(participation.ngoId).select('organizationName name email'),
     ]);
 
     const actorName = actorUser?.name || 'A volunteer';
@@ -66,6 +71,29 @@ const requestParticipation = async (req, res) => {
         projectId: participation.projectId,
       },
     });
+
+    try {
+      if (ngoUser?.email) {
+        await sendEmail({
+          to: ngoUser.email,
+          subject: `🔔 New Volunteer Request: ${projectTitle}`,
+          html: `
+            <div style="font-family: Arial, sans-serif; color: #333;">
+              <h2 style="color: #2563eb;">New Volunteer Application</h2>
+              <p><strong>${actorName}</strong> has requested to join your project <strong>${projectTitle}</strong>.</p>
+              <p>Please review the volunteer request from your dashboard.</p>
+              <br/>
+                <a href="${FRONTEND_BASE_URL}/ngo/volunteers"
+                 style="background-color:#2563eb;color:#fff;padding:10px 18px;text-decoration:none;border-radius:6px;display:inline-block;font-weight:600;">
+                 Review Applications
+              </a>
+            </div>
+          `,
+        });
+      }
+    } catch (emailError) {
+      console.error('Participation request email failed:', emailError.message);
+    }
 
     res.status(201).json({
       success: true,
@@ -103,9 +131,10 @@ const updateStatus = async (req, res) => {
       status
     );
 
-    const [actorUser, project] = await Promise.all([
+    const [actorUser, project, volunteerUser] = await Promise.all([
       User.findById(req.user.id).select('name organizationName'),
       Project.findById(participation.projectId).select('title'),
+      User.findById(participation.volunteerId).select('name email'),
     ]);
 
     const actorName = actorUser?.organizationName || actorUser?.name || 'The NGO';
@@ -136,6 +165,34 @@ const updateStatus = async (req, res) => {
         status: participation.status,
       },
     });
+
+    if (['approved', 'rejected'].includes(participation.status)) {
+      try {
+        if (volunteerUser?.email) {
+          const statusLabel = participation.status === 'approved' ? 'Approved' : 'Rejected';
+          const accentColor = participation.status === 'approved' ? '#16a34a' : '#dc2626';
+
+          await sendEmail({
+            to: volunteerUser.email,
+            subject: `${participation.status === 'approved' ? '✅' : '❌'} Application ${statusLabel}: ${projectTitle}`,
+            html: `
+              <div style="font-family: Arial, sans-serif; color: #333;">
+                <h2 style="color: ${accentColor};">Application ${statusLabel}</h2>
+                <p>Hi ${volunteerUser.name || 'Volunteer'},</p>
+                <p>${actorName} has <strong>${statusLabel.toLowerCase()}</strong> your request to join <strong>${projectTitle}</strong>.</p>
+                <br/>
+                 <a href="${FRONTEND_BASE_URL}/volunteer/applications"
+                   style="background-color:${accentColor};color:#fff;padding:10px 18px;text-decoration:none;border-radius:6px;display:inline-block;font-weight:600;">
+                   View My Applications
+                </a>
+              </div>
+            `,
+          });
+        }
+      } catch (emailError) {
+        console.error('Participation status email failed:', emailError.message);
+      }
+    }
 
     res.status(200).json({
       success: true,

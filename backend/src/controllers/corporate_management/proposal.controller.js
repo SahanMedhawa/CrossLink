@@ -2,7 +2,10 @@ const Proposal = require('../../models/proposal');
 const Project = require('../../models/project');
 const User = require('../../models/user.model');
 const sendEmail = require('../../utils/sendEmail');
+const { resolveFrontendBaseUrl } = require('../../utils/frontendBaseUrl');
 const { createNotification } = require('../../services/notification.service');
+
+const FRONTEND_BASE_URL = resolveFrontendBaseUrl();
 
 const notifySafely = async (payload) => {
   try {
@@ -99,7 +102,7 @@ exports.createProposal = async (req, res) => {
             <p><strong>Message:</strong> ${message}</p>
             ${deliveryLocation?.address ? `<p><strong>Location:</strong> ${deliveryLocation.address}</p>` : ''}
             <br/>
-            <a href="${process.env.FRONTEND_URL}/ngo/dashboard" 
+            <a href="${FRONTEND_BASE_URL}/ngo/dashboard" 
                style="background-color: #6B46C1; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold;">
                View & Accept Proposal
             </a>
