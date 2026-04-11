@@ -25,6 +25,32 @@ const reportRoutes = require('./routes/corporate_management/report.routes');
 
 const app = express();
 
+const isLoopbackAddress = (value = '') => {
+  const normalized = String(value).trim();
+  return (
+    normalized === '127.0.0.1' ||
+    normalized === '::1' ||
+    normalized === '::ffff:127.0.0.1' ||
+    normalized === 'localhost'
+  );
+};
+
+const shouldSkipRateLimit = (req) => {
+  if (process.env.NODE_ENV === 'production') return false;
+
+  const forwardedFor = req.headers['x-forwarded-for'];
+  const firstForwardedIp = typeof forwardedFor === 'string'
+    ? forwardedFor.split(',')[0].trim()
+    : '';
+
+  return (
+    isLoopbackAddress(req.ip) ||
+    isLoopbackAddress(req.hostname) ||
+    isLoopbackAddress(req.socket?.remoteAddress) ||
+    isLoopbackAddress(firstForwardedIp)
+  );
+};
+
 // Security headers
 app.use(helmet());
 
@@ -47,6 +73,7 @@ app.use(mongoSanitize());
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 50, // limit each IP to 50 auth requests per window
+  skip: shouldSkipRateLimit,
   message: {
     success: false,
     message: 'Too many requests. Please try again after 15 minutes.',
@@ -59,6 +86,7 @@ const authLimiter = rateLimit({
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 3000, // Increased significantly: modern SPAs make many concurrent requests
+  skip: shouldSkipRateLimit,
   message: {
     success: false,
     message: 'Too many requests. Please try again later.',
