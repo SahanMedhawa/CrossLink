@@ -148,9 +148,14 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isMobile, userType }) => {
             icon: <ChartBarIcon className="w-5 h-5" />,
           }, {
             name: "Resource Managment",
-            href: "/corporate/resourcehManage",
+            href: "/corporate/resourceManage",
             icon: <WrenchScrewdriverIcon className="w-5 h-5" />,
           },
+          /*{
+            name: "Resource Managment",
+            href: "/corporate/resourcehManage",
+            icon: <WrenchScrewdriverIcon className="w-5 h-5" />,
+          },*/
 
           {
             name: "Profile",

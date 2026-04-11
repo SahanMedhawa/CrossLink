@@ -26,6 +26,11 @@ config:
     ngoId: '69d8c75fa08eb181667065fc'
     projectId: '69d8c8dba3f6f280f1027d18'
 
+    resourceId: 'mock-resource-001'
+    corporateId: 'mock-corporate-001'
+    corporateEmail: 'corporate@example.com'
+    corporatePassword: 'TestPass123!'
+
 scenarios:
   - name: "Public - Browse Projects"
     weight: 100
@@ -51,5 +56,132 @@ scenarios:
           expect:
             - statusCode: 200
             - contentType: json
+
+      - think: 2
+
+  - name: "Resource - View Resource Status"
+    weight: 30
+    flow:
+      - get:
+          url: "/api/resources/project/{{ projectId }}/status"
+          expect:
+            - statusCode: 200
+            - contentType: json
+            - max: 200
+
+      - think: 1
+
+      - get:
+          url: "/api/resources/project/{{ projectId }}"
+          expect:
+            - statusCode: 200
+            - contentType: json
+            - max: 200
+
+      - think: 1
+
+      - get:
+          url: "/api/resources/all?page=1&limit=10"
+          expect:
+            - statusCode: 200
+            - contentType: json
+            - max: 200
+
+      - think: 2
+
+  # Test 2: Get single resource by ID
+  - name: "Resource - Get Single Resource"
+    weight: 15
+    flow:
+      - get:
+          url: "/api/resources/{{ resourceId }}"
+          expect:
+            - statusCode: 200
+            - contentType: json
+            - max: 150
+
+      - think: 1
+
+  # Test 3: Corporate donation workflow
+  - name: "Resource - Corporate Donation"
+    weight: 15
+    flow:
+      # Login as corporate user
+      - post:
+          url: "/api/auth/login"
+          json:
+            email: "{{ corporateEmail }}"
+            password: "{{ corporatePassword }}"
+          capture:
+            - json: "$.token"
+              as: "authToken"
+          expect:
+            - statusCode: 200
+            - max: 300
+
+      - think: 1
+
+      # Make a donation
+      - post:
+          url: "/api/resources/{{ projectId }}/donate"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          json:
+            name: "Gloves"
+            quantity: 5
+            corporateId: "{{ corporateId }}"
+            description: "Performance test donation"
+          expect:
+            - statusCode: 200
+            - max: 400
+
+      - think: 1
+
+      # Verify donation updated status
+      - get:
+          url: "/api/resources/project/{{ projectId }}/status"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          expect:
+            - statusCode: 200
+            - max: 200
+
+      - think: 2
+
+  # Test 4: Error scenarios for resources
+  - name: "Resource - Error Handling"
+    weight: 10
+    flow:
+      # Try to donate more than available
+      - post:
+          url: "/api/resources/{{ projectId }}/donate"
+          json:
+            name: "Gloves"
+            quantity: 1000
+            corporateId: "{{ corporateId }}"
+          expect:
+            - statusCode: 400
+            - max: 200
+
+      - think: 1
+
+      # Try to get non-existent resource
+      - get:
+          url: "/api/resources/invalid-resource-id"
+          expect:
+            - statusCode: 404
+            - max: 150
+
+      - think: 1
+
+      # Try donation without authentication
+      - post:
+          url: "/api/resources/{{ projectId }}/donate"
+          json:
+            name: "Gloves"
+            quantity: 5
+          expect:
+            - statusCode: 401
+            - max: 200
 
       - think: 2
