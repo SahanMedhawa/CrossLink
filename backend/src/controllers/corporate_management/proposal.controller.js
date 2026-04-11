@@ -1,6 +1,7 @@
 const Proposal = require('../../models/proposal');
 const Project = require('../../models/project');
 const User = require('../../models/user.model');
+const mongoose = require('mongoose');
 const sendEmail = require('../../utils/sendEmail');
 const { resolveFrontendBaseUrl } = require('../../utils/frontendBaseUrl');
 const { createNotification } = require('../../services/notification.service');
@@ -316,10 +317,17 @@ exports.updateProposalStatus = async (req, res) => {
 // @access  Private (Corporate)
 exports.getMyProposals = async (req, res) => {
   try {
-    const corporateId = req.user.id;
+    const corporateId = req.user?.id;
     const { search } = req.query;
+
+    if (!corporateId || !mongoose.isValidObjectId(corporateId)) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid authentication context.',
+      });
+    }
     
-    let query = { corporateId };
+    let query = { corporateId: new mongoose.Types.ObjectId(corporateId) };
 
     if (search && search.trim() !== '') {
       query.proposalTitle = { 

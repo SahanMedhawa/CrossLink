@@ -23,6 +23,17 @@ router.post('/', createProposal);
 
 // Get my own sent proposals
 router.get('/my', getMyProposals);
+router.get('/me', getMyProposals);
+
+// --- NGO ROUTES ---
+// Get all proposals for a specific project (to review)
+router.get('/project/:projectId', getProposalsByProject);
+
+// NEW ROUTE: Get proposals for a specific NGO
+router.get('/ngo/:ngoId', getProposalsForNgo);
+
+// Accept or Reject a specific proposal
+router.patch('/:id/status', updateProposalStatus);
 
 // Get a single proposal by ID
 router.get('/:id', getProposalById);
@@ -33,16 +44,6 @@ router.put('/:id', updateProposal);
 
 //Delete my own proposal
 router.delete('/:id', deleteProposal);
-
-// --- NGO ROUTES ---
-// Get all proposals for a specific project (to review)
-router.get('/project/:projectId', getProposalsByProject);
-
-// Accept or Reject a specific proposal
-router.patch('/:id/status', updateProposalStatus);
-
-// NEW ROUTE: Get proposals for a specific NGO
-router.get('/ngo/:ngoId', getProposalsForNgo);
 
 
 module.exports = router;

@@ -30,7 +30,7 @@ test.describe('Integration — Proposal Lifecycle (FIXED)', () => {
   // ------------------------
   test('02. Get my proposals', async ({ request, corpAuthToken }) => {
 
-    const res = await request.get(`${BASE}/me`, {
+    const res = await request.get(`${BASE}/my`, {
       headers: {
         Authorization: `Bearer ${corpAuthToken}`,
       },
