@@ -217,6 +217,9 @@ const ResourceForm = ({ project, onClose }) => {
           <div style={{ fontSize: '0.9rem' }}>
             Resources: {donationsToSubmit.map(d => d.name).join(', ')}
           </div>
+          <div style={{ marginTop: '8px', fontSize: '0.9rem', color: 'white' }}>
+            📧 Confirmation email sent to your registered email address
+          </div>
         </div>,
         { duration: 5000 }
       );
