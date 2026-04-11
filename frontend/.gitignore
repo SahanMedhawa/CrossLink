@@ -24,4 +24,8 @@ dist-ssr
 *.sw?
 
 # Environment files
-frontend/.env
+.env
+!.env.example
+
+# Build artifacts
+build.log

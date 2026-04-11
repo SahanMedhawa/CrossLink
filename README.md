@@ -1,206 +1,801 @@
-# CrossLink - Cross-Sector Collaboration Platform
+# CrossLink — Cross-Sector Collaboration Platform
 
-A full-stack web application connecting NGOs, Volunteers, and Corporates for meaningful social impact.
+> A full-stack MERN application connecting **NGOs**, **Volunteers**, and **Corporates** for meaningful social impact through project collaboration, volunteer matching, corporate proposals, resource sharing, and real-time notifications.
+
+| Layer | Technology |
+|-------|-----------|
+| **Frontend** | React 19, Vite 7, TailwindCSS 4, Redux Toolkit, MUI, Recharts, Leaflet, Socket.IO Client |
+| **Backend** | Node.js, Express.js 4, Mongoose (MongoDB), JWT, Socket.IO, Cloudinary, Nodemailer |
+| **Database** | MongoDB Atlas |
+| **Deployment** | Vercel (frontend) · Render (backend) |
+
+---
+
+## Table of Contents
+
+1. [Features](#-features)
+2. [Project Structure](#-project-structure)
+3. [Prerequisites](#-prerequisites)
+4. [Setup Instructions](#-setup-instructions)
+5. [API Endpoint Documentation](#-api-endpoint-documentation)
+6. [Deployment](#-deployment)
+7. [Testing Instructions](#-testing-instructions)
+8. [Environment Variables Reference](#-environment-variables-reference)
+9. [Security](#-security)
+10. [Troubleshooting](#-troubleshooting)
+11. [License](#-license)
+
+---
 
 ## 🚀 Features
 
-- **Multi-Role Authentication** - Volunteer, NGO, and Corporate accounts
-- **Role-Based Dashboards** - Tailored experience for each user type
-- **JWT Authentication** - Secure login and registration
-- **Responsive Design** - Modern UI with TailwindCSS
-- **Role-Based Access Control** - Protected routes and features
+### Multi-Role System
+- **Volunteer** — Browse projects, skill-based matchmaking, apply to participate, track activity & impact points
+- **NGO** — Create/manage projects, manage volunteers, SDG goal tracking, view corporate proposals & funding
+- **Corporate** — Discover NGO partners, submit proposals, direct funding, resource donations, impact reports, CSR news feed
 
-## 🛠️ Tech Stack
+### Core Capabilities
+- JWT-based authentication with role-based access control
+- Real-time notifications via WebSocket (Socket.IO)
+- Cloudinary image uploads for projects & profile photos
+- Skill-based volunteer–project matchmaking engine
+- Email notifications (Gmail SMTP)
+- SDG (Sustainable Development Goals) integration via UN API
+- Interactive maps with Leaflet
+- Data visualisations with Recharts
+- Redux Toolkit for global UI state management
+- Responsive design with TailwindCSS
 
-### Backend
-- Node.js + Express
-- MongoDB + Mongoose
-- JWT Authentication
-- bcryptjs (password hashing)
-
-### Frontend
-- React
-- Vite
-- TailwindCSS
-- Formik + Yup (forms & validation)
-- Axios (API calls)
-- React Router
-
-## 📋 Prerequisites
-
-- Node.js (v16 or higher)
-- MongoDB (local or cloud)
-
-## ⚙️ Setup Instructions
-
-### 1. Clone and Install Dependencies
-
-```bash
-# Install all dependencies
-npm run install:all
-```
-
-### 2. Backend Configuration
-
-Create `backend/.env` file:
-
-```env
-# MongoDB Configuration
-MONGODB_URI=mongodb://localhost:27017/crosslink
-
-# Server Configuration
-PORT=5000
-
-# JWT Secret
-JWT_SECRET=your-super-secret-jwt-key-here
-
-# Frontend URL
-FRONTEND_URL=http://localhost:5173
-```
-
-### 3. Start the Application
-
-```bash
-# Start both backend and frontend
-npm run dev
-
-# Or start individually:
-npm run dev:backend  # Backend on http://localhost:5000
-npm run dev:frontend # Frontend on http://localhost:5173
-```
-
-## 🔗 API Endpoints
-
-### Authentication Routes (`/api/auth`)
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/signup` | Register new patient |
-| GET | `/verify/:token` | Verify email with token |
-| POST | `/login` | Login patient |
-| POST | `/resend-verification` | Resend verification email |
-
-### Example API Usage
-
-```javascript
-// Register Patient
-POST /api/auth/signup
-{
-  "name": "John Doe",
-  "email": "john@example.com",
-  "password": "SecurePass123"
-}
-
-// Verify Email
-GET /api/auth/verify/abc123token
-
-// Login
-POST /api/auth/login
-{
-  "email": "john@example.com",
-  "password": "SecurePass123"
-}
-```
+---
 
 ## 📁 Project Structure
 
 ```
-meditrack/
+CrossLink/
 ├── backend/
 │   ├── src/
-│   │   ├── config/
-│   │   │   └── mailer.ts
 │   │   ├── controllers/
-│   │   │   └── authController.ts
+│   │   │   ├── auth.controller.js
+│   │   │   ├── notification.controller.js
+│   │   │   ├── ngo_management/
+│   │   │   │   ├── ngo.controller.js
+│   │   │   │   ├── projectcontroller.js
+│   │   │   │   └── sdgController.js
+│   │   │   ├── corporate_management/
+│   │   │   │   ├── corporate.controller.js
+│   │   │   │   ├── proposal.controller.js
+│   │   │   │   ├── funding.controller.js
+│   │   │   │   ├── news.controller.js
+│   │   │   │   └── report.controller.js
+│   │   │   ├── volunteer_management/
+│   │   │   │   ├── volunteer.controller.js
+│   │   │   │   ├── matchmaking.controller.js
+│   │   │   │   └── participation.controller.js
+│   │   │   └── resource_management/
+│   │   │       └── resorceController.js
 │   │   ├── models/
-│   │   │   └── Patient.ts
+│   │   │   ├── user.model.js
+│   │   │   ├── project.js
+│   │   │   ├── proposal.js
+│   │   │   ├── funding.js
+│   │   │   ├── resorce.js
+│   │   │   ├── participation.model.js
+│   │   │   └── notification.model.js
 │   │   ├── routes/
-│   │   │   └── authRoutes.ts
-│   │   └── server.ts
+│   │   │   ├── auth.routes.js
+│   │   │   ├── notifications.routes.js
+│   │   │   ├── ngo_management/
+│   │   │   ├── corporate_management/
+│   │   │   ├── volunteer_management/
+│   │   │   └── resource_management/
+│   │   ├── middleware/
+│   │   │   ├── auth.middleware.js
+│   │   │   ├── upload.js
+│   │   │   └── profileUpload.js
+│   │   ├── services/
+│   │   │   ├── notification.service.js
+│   │   │   └── volunteer_management/
+│   │   ├── socket/
+│   │   │   └── socket.service.js
+│   │   ├── utils/
+│   │   │   ├── sendEmail.js
+│   │   │   └── emailService.js
+│   │   ├── app.js
+│   │   └── server.js
+│   ├── playwright-tests/          # API testing suite
+│   ├── performance/               # Artillery load tests
 │   ├── .env.example
 │   └── package.json
 ├── frontend/
 │   ├── src/
-│   │   ├── components/
+│   │   ├── components/            # Reusable UI components
 │   │   ├── pages/
-│   │   │   ├── Register.tsx
-│   │   │   ├── Login.tsx
-│   │   │   └── Verify.tsx
-│   │   ├── services/
-│   │   │   └── api.ts
-│   │   └── App.tsx
+│   │   │   ├── user/              # Login, Register
+│   │   │   ├── ngo/               # NGO dashboard, projects, SDG
+│   │   │   ├── corporate/         # Corporate dashboard, proposals
+│   │   │   ├── volunteer/         # Volunteer dashboard, applications
+│   │   │   └── resource/          # Resource forms & management
+│   │   ├── services/              # API client, Socket.IO, notification API
+│   │   ├── context/               # AuthContext (React Context)
+│   │   ├── store/                 # Redux Toolkit store & slices
+│   │   ├── utils/                 # Image URL resolver
+│   │   ├── constants/             # Skills & interests data
+│   │   ├── App.jsx
+│   │   └── main.jsx
+│   ├── vercel.json
+│   ├── vite.config.js
+│   ├── .env.example
 │   └── package.json
-└── package.json
+├── render.yaml                    # Render deployment blueprint
+└── package.json                   # Monorepo scripts
 ```
 
-## 🎯 User Flow
+---
 
-1. **Registration**: User fills form → Backend validates → Sends verification email
-2. **Email Verification**: User clicks email link → Backend verifies token → Account activated
-3. **Login**: User enters credentials → Backend checks verification status → Login success
+## 📋 Prerequisites
 
-## 🔒 Security Features
+- **Node.js** ≥ 18.0.0
+- **npm** ≥ 9
+- **MongoDB** — local instance or [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) cloud cluster
+- **Git**
 
-- Password hashing with bcryptjs (12 salt rounds)
-- Secure token generation with crypto
-- Email verification required before login
-- Input validation and sanitization
-- CORS protection
-- Error handling without sensitive data exposure
+Optional services (for full functionality):
+- [Cloudinary](https://cloudinary.com) account — image uploads
+- [NewsAPI](https://newsapi.org) key — CSR news feed
+- Gmail account with [App Password](https://support.google.com/accounts/answer/185833) — email notifications
 
-## 🧪 Testing the System
+---
 
-1. **Register**: Go to `/register` and create an account
-2. **Check Email**: Look for verification email in inbox
-3. **Verify**: Click the verification link
-4. **Login**: Use `/login` with verified credentials
+## ⚙️ Setup Instructions
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/<your-username>/CrossLink.git
+cd CrossLink
+```
+
+### 2. Install All Dependencies
+
+```bash
+npm run install:all
+```
+
+This installs root, backend, and frontend dependencies in one command.
+
+### 3. Configure Backend Environment
+
+Copy the example and fill in your values:
+
+```bash
+cd backend
+cp .env.example .env
+```
+
+Edit `backend/.env`:
+
+```env
+NODE_ENV=development
+PORT=5000
+MONGODB_URI=mongodb+srv://<user>:<password>@<cluster>/<db>?retryWrites=true&w=majority
+JWT_SECRET=replace-with-a-strong-secret
+FRONTEND_URL=http://localhost:5173
+
+# Optional integrations
+CLOUD_NAME=your-cloudinary-cloud-name
+CLOUD_API_KEY=your-cloudinary-api-key
+CLOUD_API_SECRET=your-cloudinary-api-secret
+NEWS_API_KEY=your-newsapi-key
+EMAIL_USER=your-email@gmail.com
+EMAIL_PASS=your-gmail-app-password
+```
+
+### 4. Configure Frontend Environment (optional for local dev)
+
+For local development, the Vite proxy handles API routing automatically. For production or custom backend URLs:
+
+```bash
+cd frontend
+cp .env.example .env
+```
+
+Edit `frontend/.env`:
+
+```env
+VITE_API_URL=http://localhost:5000/api
+```
+
+### 5. Start the Application
+
+```bash
+# From root — starts both backend and frontend concurrently
+npm run dev
+```
+
+Or start individually:
+
+```bash
+npm run dev:backend   # Backend on http://localhost:5000
+npm run dev:frontend  # Frontend on http://localhost:5173
+```
+
+### 6. Verify
+
+- **Backend health check**: `http://localhost:5000/api/health`
+- **Frontend**: `http://localhost:5173`
+- Register a new account and explore the dashboard for your role.
+
+---
+
+## 🔗 API Endpoint Documentation
+
+**Base URL**: `http://localhost:5000/api` (dev) or `https://<your-render-service>.onrender.com/api` (production)
+
+All protected routes require a JWT token in the `Authorization` header:
+```
+Authorization: Bearer <jwt_token>
+```
+
+---
+
+### 1. Authentication (`/api/auth`)
+
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| `POST` | `/auth/signup` | ✗ | Register a new user |
+| `POST` | `/auth/login` | ✗ | Login and receive JWT |
+| `GET` | `/auth/profile` | ✓ | Get current user's profile |
+| `PUT` | `/auth/profile` | ✓ | Update current user's profile |
+| `GET` | `/auth/user/:id` | ✗ | Get public user info by ID |
+
+#### POST `/api/auth/signup`
+
+**Request Body:**
+```json
+{
+  "name": "Jane Doe",
+  "email": "jane@example.com",
+  "password": "SecurePass123",
+  "userType": "volunteer",
+  "phone": "+94771234567",
+  "location": "Colombo",
+  "skills": ["Teaching", "Web Development"],
+  "interests": ["Education", "Environment"],
+  "availability": "weekends"
+}
+```
+
+> `userType` must be one of: `volunteer`, `ngo`, `corporate`.
+> Role-specific fields: volunteers send `skills/interests/availability`; NGOs send `organizationName/registrationNumber/focusAreas`; corporates send `companyName/industry/csrBudget`.
+
+**Response (201):**
+```json
+{
+  "success": true,
+  "message": "User registered successfully.",
+  "data": {
+    "user": { "_id": "...", "name": "Jane Doe", "userType": "volunteer", ... },
+    "token": "eyJhbGciOiJIUzI1NiIs...",
+    "redirectPath": "/volunteer/dashboard"
+  }
+}
+```
+
+#### POST `/api/auth/login`
+
+**Request Body:**
+```json
+{
+  "email": "jane@example.com",
+  "password": "SecurePass123",
+  "userType": "volunteer"
+}
+```
+
+**Response (200):**
+```json
+{
+  "success": true,
+  "message": "Login successful.",
+  "data": {
+    "user": { "_id": "...", "name": "Jane Doe", "userType": "volunteer", ... },
+    "token": "eyJhbGciOiJIUzI1NiIs...",
+    "redirectPath": "/volunteer/dashboard"
+  }
+}
+```
+
+---
+
+### 2. NGO Routes (`/api/ngos`)
+
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| `GET` | `/ngos` | ✗ | List all NGOs |
+
+---
+
+### 3. Projects (`/api/projects`)
+
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| `GET` | `/projects/all` | ✗ | Get all active projects (supports `?focusArea=&skills=&location=&status=` filters) |
+| `GET` | `/projects/:id` | ✗ | Get project by ID |
+| `GET` | `/projects/ngoprojects/:ngoId` | ✗ | Get projects by a specific NGO |
+| `POST` | `/projects` | ✓ (NGO) | Create new project (multipart/form-data with optional `image`) |
+| `GET` | `/projects/ngo/my-projects` | ✓ (NGO) | Get current NGO's projects |
+| `PUT` | `/projects/:id` | ✓ (NGO) | Update project (multipart/form-data) |
+| `PUT` | `/projects/:id/status` | ✓ (NGO) | Update project status (`draft|active|completed|cancelled`) |
+| `DELETE` | `/projects/:id` | ✓ (NGO) | Delete project |
+
+#### POST `/api/projects` (Create Project)
+
+**Request** (`multipart/form-data`):
+```
+title: "Clean Water Initiative"
+description: "Providing clean water access..."
+focusArea: "Environment"
+location: "Kandy"
+skills: '["Plumbing","Project Management"]'   // JSON string
+startDate: "2026-05-01"
+endDate: "2026-08-01"
+volunteersNeeded: 15
+image: <file>                                  // optional image file
+```
+
+**Response (201):**
+```json
+{
+  "success": true,
+  "message": "Project created successfully",
+  "project": { "_id": "...", "title": "Clean Water Initiative", ... }
+}
+```
+
+---
+
+### 4. SDG Goals (`/api/sdg`)
+
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| `GET` | `/sdg/goals` | ✗ | Get all 17 UN SDG goals |
+| `GET` | `/sdg/goals/:goalNumber/targets` | ✗ | Get targets for a specific goal |
+| `GET` | `/sdg/srilanka` | ✗ | Get Sri Lanka SDG data |
+
+---
+
+### 5. Corporates (`/api/corporates`)
+
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| `GET` | `/corporates` | ✓ | List all corporate users |
+| `GET` | `/corporates/profile` | ✓ | Get current corporate's profile |
+| `PUT` | `/corporates/profile` | ✓ | Update corporate profile |
+| `GET` | `/corporates/dashboard-stats` | ✓ | Get corporate dashboard statistics |
+| `GET` | `/corporates/:id` | ✓ | Get corporate by ID |
+
+---
+
+### 6. Proposals (`/api/proposals`)
+
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| `POST` | `/proposals` | ✓ (Corporate) | Create a new proposal |
+| `GET` | `/proposals/my` | ✓ (Corporate) | Get my sent proposals |
+| `GET` | `/proposals/:id` | ✓ | Get proposal by ID |
+| `PUT` | `/proposals/:id` | ✓ (Corporate) | Update my proposal |
+| `DELETE` | `/proposals/:id` | ✓ (Corporate) | Delete my proposal |
+| `GET` | `/proposals/project/:projectId` | ✓ (NGO) | Get proposals for a project |
+| `PATCH` | `/proposals/:id/status` | ✓ (NGO) | Accept/reject proposal |
+| `GET` | `/proposals/ngo/:ngoId` | ✓ | Get proposals for a specific NGO |
+
+#### POST `/api/proposals`
+
+**Request Body:**
+```json
+{
+  "projectId": "665abc123...",
+  "amount": 50000,
+  "message": "We'd like to support your education initiative.",
+  "type": "financial"
+}
+```
+
+**Response (201):**
+```json
+{
+  "success": true,
+  "message": "Proposal submitted successfully",
+  "proposal": { "_id": "...", "status": "Pending", ... }
+}
+```
+
+---
+
+### 7. Funding (`/api/funding`)
+
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| `POST` | `/funding` | ✓ (Corporate) | Create direct funding |
+| `GET` | `/funding/my` | ✓ (Corporate) | Get my funding records |
+| `GET` | `/funding/project/:projectId` | ✓ (NGO) | Get funding for a project |
+| `GET` | `/funding/ngo/:ngoId` | ✓ | Get all fundings for an NGO |
+
+---
+
+### 8. Resources (`/api/resources`)
+
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| `GET` | `/resources/all` | ✓ | Get all resources |
+| `GET` | `/resources/project/:projectId` | ✓ | Get resources for a project |
+| `GET` | `/resources/project/:projectId/status` | ✓ | Get resource status for a project |
+| `GET` | `/resources/:resourceId` | ✓ | Get single resource |
+| `POST` | `/resources/:projectId/donate` | ✓ (Corporate) | Donate resource to project |
+| `PUT` | `/resources/:resourceId` | ✓ | Update resource |
+| `DELETE` | `/resources/:resourceId` | ✓ | Delete resource |
+
+---
+
+### 9. Volunteer Management
+
+#### Volunteer Profile (`/api/volunteer`)
+
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| `GET` | `/volunteer/profile` | ✓ (Volunteer) | Get my volunteer profile |
+| `PUT` | `/volunteer/profile` | ✓ (Volunteer) | Update profile (supports photo upload) |
+| `DELETE` | `/volunteer/profile` | ✓ (Volunteer) | Delete my account |
+| `GET` | `/volunteer/:id` | ✓ | Get public volunteer profile |
+
+#### Matchmaking (`/api/matchmaking`)
+
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| `GET` | `/matchmaking/projects` | ✓ (Volunteer) | Get skill-matched projects |
+
+#### Participation (`/api/participation`)
+
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| `POST` | `/participation/request` | ✓ (Volunteer) | Apply to participate in a project |
+| `GET` | `/participation/my-applications` | ✓ (Volunteer) | Get my applications |
+| `GET` | `/participation/stats` | ✓ (Volunteer) | Get participation statistics |
+| `GET` | `/participation/:id` | ✓ (Volunteer) | Get application by ID |
+| `PATCH` | `/participation/:id` | ✓ (Volunteer) | Update application |
+| `DELETE` | `/participation/:id` | ✓ (Volunteer) | Withdraw application |
+| `PATCH` | `/participation/:id/status` | ✓ (NGO) | Approve/reject volunteer |
+| `GET` | `/participation/projects/:projectId/volunteers` | ✓ (NGO) | Get project's volunteers |
+| `GET` | `/participation/ngo/projects` | ✓ (NGO) | Get NGO projects with volunteer data |
+
+---
+
+### 10. Notifications (`/api/notifications`)
+
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| `GET` | `/notifications` | ✓ | Get my notifications (supports `?page=&limit=&unreadOnly=`) |
+| `GET` | `/notifications/unread-count` | ✓ | Get unread notification count |
+| `PATCH` | `/notifications/read-all` | ✓ | Mark all notifications as read |
+| `PATCH` | `/notifications/:id/read` | ✓ | Mark specific notification as read |
+
+---
+
+### 11. News (`/api/corporate/news`)
+
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| `GET` | `/corporate/news/csr` | ✗ | Get CSR-related news articles |
+
+### 12. Reports (`/api/corporate/reports`)
+
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| `GET` | `/corporate/reports/impact` | ✓ (Corporate) | Get corporate impact report |
+
+### 13. Health Check
+
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| `GET` | `/api/health` | ✗ | API health check |
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "CrossLink API is running",
+  "timestamp": "2026-04-11T06:00:00.000Z"
+}
+```
+
+---
+
+## 🚀 Deployment
+
+### Architecture
+
+```
+┌───────────────────────┐       ┌───────────────────────┐
+│      Vercel            │       │       Render           │
+│  (Frontend - React)    │──────▶│   (Backend - Express)  │
+│  https://crosslink-    │  API  │  https://crosslink-api │
+│    app.vercel.app      │  ───▶ │    .onrender.com       │
+└───────────────────────┘       └──────────┬────────────┘
+                                           │
+                                    ┌──────▼──────┐
+                                    │ MongoDB Atlas│
+                                    │  (Database)  │
+                                    └─────────────┘
+```
+
+### Backend Deployment (Render)
+
+1. Push the repository to GitHub.
+2. Go to [Render Dashboard](https://dashboard.render.com) → **New** → **Web Service**.
+3. Connect your GitHub repository.
+4. Configure:
+   - **Name**: `crosslink-api`
+   - **Region**: Oregon (or nearest)
+   - **Root Directory**: `backend`
+   - **Build Command**: `npm install`
+   - **Start Command**: `npm start`
+5. Go to **Environment** tab and add variables (see table below).
+6. Click **Deploy**.
+7. After deployment, verify health check:
+   ```
+   GET https://crosslink-api.onrender.com/api/health
+   ```
+
+### Frontend Deployment (Vercel)
+
+1. Go to [Vercel Dashboard](https://vercel.com/dashboard) → **Add New** → **Project**.
+2. Import the same GitHub repository.
+3. Configure:
+   - **Root Directory**: `frontend`
+   - **Framework Preset**: `Vite`
+   - **Build Command**: `npm run build`
+   - **Output Directory**: `dist`
+4. Go to **Environment Variables** and add variables (see table below).
+5. Click **Deploy**.
+6. After deployment, verify the app loads and API connectivity works.
+
+### Environment Variables (Deployment)
+
+**Backend (Render):**
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `NODE_ENV` | ✓ | Set to `production` |
+| `PORT` | ✓ | Render sets automatically, default `10000` |
+| `MONGODB_URI` | ✓ | MongoDB Atlas connection string |
+| `JWT_SECRET` | ✓ | Strong random secret (not the default) |
+| `FRONTEND_URL` | ✓ | Vercel app URL, e.g. `https://crosslink-app.vercel.app` |
+| `CLOUD_NAME` | ✓ | Cloudinary cloud name |
+| `CLOUD_API_KEY` | ✓ | Cloudinary API key |
+| `CLOUD_API_SECRET` | ✓ | Cloudinary API secret |
+| `NEWS_API_KEY` | Optional | NewsAPI.org API key |
+| `EMAIL_USER` | Optional | Gmail address for notifications |
+| `EMAIL_PASS` | Optional | Gmail app password |
+
+**Frontend (Vercel):**
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `VITE_API_URL` | ✓ | Render backend URL with `/api`, e.g. `https://crosslink-api.onrender.com/api` |
+| `VITE_SOCKET_URL` | Optional | WebSocket URL (defaults to API origin) |
+
+> **Important:** After deploying both platforms, update `FRONTEND_URL` on Render with your Vercel URL, and `VITE_API_URL` on Vercel with your Render URL. Both sides need to know about each other for CORS and API calls to work.
+
+### Live URLs
+
+| Service | URL |
+|---------|-----|
+| **Backend API** | `https://crosslink-api.onrender.com` |
+| **Frontend App** | `https://crosslink-app.vercel.app` |
+
+> *Replace the above with your actual deployed URLs.*
+
+### Deployment Evidence
+
+Screenshots to include in your submission:
+1. Render dashboard showing service status as **Live**
+2. Successful `/api/health` response in browser
+3. Vercel deployment status showing **Ready**  
+4. Frontend app loaded from Vercel URL
+5. Browser DevTools Network tab showing successful API calls from frontend to backend
+
+---
+
+## 🧪 Testing Instructions
+
+### Testing Environment Configuration
+
+| Component | Tool | Config File |
+|-----------|------|-------------|
+| Unit & Integration Tests | Playwright Test | `backend/playwright-tests/playwright.config.js` |
+| Performance/Load Tests | Artillery | `backend/performance/artillery-load-test.yml` |
+| API Base URL (testing) | — | `http://localhost:5000` |
+
+**Prerequisites for running tests:**
+```bash
+cd backend
+npm install
+npx playwright install    # Install Playwright browsers (first time only)
+```
+
+Ensure the backend server is running before executing tests:
+```bash
+npm run dev    # In one terminal
+```
+
+### Unit Tests
+
+Unit tests validate individual service functions (e.g., matchmaking algorithm) in isolation.
+
+**Location:** `backend/playwright-tests/tests/unit/`
+
+```bash
+cd backend
+npx playwright test --config=playwright-tests/playwright.config.js playwright-tests/tests/unit/
+```
+
+**Test files:**
+- `matchmaking.unit.spec.js` — Tests the skill-matching scoring algorithm
+
+### Integration Tests
+
+Integration tests verify end-to-end API workflows across multiple endpoints.
+
+**Location:** `backend/playwright-tests/tests/integration/`
+
+```bash
+cd backend
+npx playwright test --config=playwright-tests/playwright.config.js playwright-tests/tests/integration/
+```
+
+**Test files:**
+- `participation.integration.spec.js` — Volunteer participation lifecycle
+- `volunteer.integration.spec.js` — Volunteer profile and endpoint integration
+
+### Module-Specific Tests
+
+Each domain has dedicated test suites covering BDD, assertions, fixtures, mocking, and integration:
+
+```bash
+# Project tests
+npx playwright test --config=playwright-tests/playwright.config.js playwright-tests/tests/project_test/
+
+# Proposal & Funding tests
+npx playwright test --config=playwright-tests/playwright.config.js playwright-tests/tests/proposal_test/
+
+# Volunteer tests
+npx playwright test --config=playwright-tests/playwright.config.js playwright-tests/tests/volunteer_test/
+
+# Resource tests
+npx playwright test --config=playwright-tests/playwright.config.js playwright-tests/tests/resource_test/
+```
+
+### Run All Tests At Once
+
+```bash
+cd backend
+npm test
+```
+
+This runs the full Playwright test suite. Results are output to:
+- Console (list reporter)
+- `backend/playwright-tests/playwright-report/` (HTML report)
+- `backend/playwright-tests/test-results/results.json` (JSON report)
+
+### Performance / Load Testing
+
+Performance tests are conducted using [Artillery](https://www.artillery.io/) to simulate concurrent API load.
+
+**Setup:**
+```bash
+cd backend
+npm install    # Artillery is in devDependencies
+```
+
+**Run public-endpoint load test:**
+```bash
+npm run perf:public
+```
+
+This runs a 4-phase load test:
+1. **Warm up** (30s) — 3 requests/sec
+2. **Ramp up** (60s) — 5→10 requests/sec
+3. **Sustained load** (120s) — 10 requests/sec
+4. **Cool down** (30s) — 3 requests/sec
+
+**Generate HTML report:**
+```bash
+npm run perf:public:report
+```
+
+**Run participation-endpoint load test (authenticated):**
+```bash
+npm run perf:participation:all
+```
+
+**Performance test configurations:**
+| File | Endpoints Tested |
+|------|-----------------|
+| `performance/artillery-load-test.yml` | Public project browsing |
+| `performance/artillery-participation-load-test.yml` | Volunteer participation workflows |
+| `performance/artillery-proposal-load-test.yml` | Corporate proposal endpoints |
+| `performance/artillery-resource.yml` | Resource management endpoints |
+
+---
+
+## 🔐 Environment Variables Reference
+
+### Backend (`backend/.env`)
+
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `NODE_ENV` | Yes | `development` | Environment mode |
+| `PORT` | Yes | `5000` | Server port |
+| `MONGODB_URI` | Yes | `mongodb://127.0.0.1:27017/crosslink` | MongoDB connection string |
+| `JWT_SECRET` | Yes | — | JWT signing secret |
+| `FRONTEND_URL` | Yes | `http://localhost:5173` | Allowed CORS origin(s), comma-separated |
+| `CLOUD_NAME` | No | — | Cloudinary cloud name |
+| `CLOUD_API_KEY` | No | — | Cloudinary API key |
+| `CLOUD_API_SECRET` | No | — | Cloudinary API secret |
+| `NEWS_API_KEY` | No | — | NewsAPI.org API key |
+| `EMAIL_USER` | No | — | Gmail address |
+| `EMAIL_PASS` | No | — | Gmail app password |
+
+### Frontend (`frontend/.env`)
+
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `VITE_API_URL` | No (dev proxy) | `/api` | Backend API base URL |
+| `VITE_SOCKET_URL` | No | Derived from API URL | WebSocket server URL |
+
+> **Note:** Secrets are never committed to the repository. The `.env` files are in `.gitignore` and only `.env.example` templates are committed.
+
+---
+
+## 🔒 Security
+
+- **Password hashing** — bcryptjs with 10 salt rounds
+- **JWT authentication** — 24-hour token expiry, production-enforced strong secret
+- **Input sanitization** — express-mongo-sanitize prevents NoSQL injection
+- **Rate limiting** — 50 requests/15min on auth endpoints, 3000/15min on API
+- **Security headers** — Helmet.js for HTTP headers
+- **CORS** — Configurable allowed origins via `FRONTEND_URL`
+- **Request size limits** — 2MB body limit to prevent abuse
+- **Profile update whitelist** — Only allowed fields can be updated (prevents privilege escalation)
+- **File upload validation** — Only image MIME types accepted
+
+---
 
 ## 🚨 Troubleshooting
 
-### Email Not Sending
-- Check Gmail app password is correct
-- Verify 2FA is enabled on Gmail
-- Check console for email service errors
+### CORS Errors After Deployment
+- Ensure `FRONTEND_URL` on Render matches your **exact** Vercel URL (no trailing slash)
+- Multiple origins: `FRONTEND_URL=https://crosslink.vercel.app,https://www.crosslink.vercel.app`
+
+### Render Free Tier Cold Starts
+- Free Render services spin down after 15 minutes of inactivity
+- First request after cold start takes ~30 seconds
+- Use the health check endpoint to "wake up" the service
 
 ### MongoDB Connection Issues
-- Ensure MongoDB is running locally
-- Check connection string in `.env`
-- Verify database permissions
+- Whitelist `0.0.0.0/0` in MongoDB Atlas Network Access for Render
+- Verify connection string includes database name and `retryWrites=true`
 
-### CORS Issues
-- Check frontend URL in backend CORS config
-- Ensure ports match (5173 for frontend, 5000 for backend)
+### Image Uploads Not Working
+- Verify all three Cloudinary env vars are set (`CLOUD_NAME`, `CLOUD_API_KEY`, `CLOUD_API_SECRET`)
+- Max file size: 50MB for project images, 10MB for profile photos
 
-## 📝 Environment Variables
+### Email Not Sending
+- Enable 2FA on Gmail and create an App Password
+- Set `EMAIL_USER` and `EMAIL_PASS` in environment variables
 
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `MONGO_URI` | MongoDB connection string | `mongodb://localhost:27017/meditrack` |
-| `PORT` | Backend server port | `5000` |
-| `EMAIL_USER` | Gmail address | `your-email@gmail.com` |
-| `EMAIL_PASS` | Gmail app password | `abcd efgh ijkl mnop` |
-| `BASE_URL` | Backend base URL | `http://localhost:5000` |
-| `JWT_SECRET` | JWT signing secret | `your-secret-key` |
-| `FRONTEND_URL` | Frontend URL for CORS | `http://localhost:5173` |
-
-## 🎨 UI Features
-
-- Responsive design for all screen sizes
-- Loading states and animations
-- Form validation with real-time feedback
-- Success/error message handling
-- Modern gradient backgrounds
-- Accessible form controls
-
-## 🔄 Next Steps
-
-- Add password reset functionality
-- Implement JWT-based authentication
-- Add user dashboard
-- Integrate appointment booking
-- Add admin panel
-- Implement role-based access control
+---
 
 ## 📄 License
 
-This project is licensed under the MIT License.
+This project is licensed under the ISC License.

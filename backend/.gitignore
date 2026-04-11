@@ -50,3 +50,5 @@ report-*.json
 report-clean.json
 report.json
 proposal-load-report.json
+performance-report.json
+performance-report.json.html

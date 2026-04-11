@@ -1,0 +1,35 @@
+# Render Blueprint – deploy with "New > Blueprint" pointing at this repo
+# https://docs.render.com/infrastructure-as-code
+
+services:
+  - type: web
+    name: crosslink-api
+    runtime: node
+    region: oregon
+    plan: free
+    buildCommand: cd backend && npm install
+    startCommand: cd backend && npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: MONGODB_URI
+        sync: false            # Set in Render dashboard
+      - key: JWT_SECRET
+        generateValue: true    # Auto-generate a strong secret
+      - key: FRONTEND_URL
+        sync: false            # Set to your Vercel domain, e.g. https://crosslink.vercel.app
+      - key: CLOUD_NAME
+        sync: false
+      - key: CLOUD_API_KEY
+        sync: false
+      - key: CLOUD_API_SECRET
+        sync: false
+      - key: NEWS_API_KEY
+        sync: false
+      - key: EMAIL_USER
+        sync: false
+      - key: EMAIL_PASS
+        sync: false
