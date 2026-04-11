@@ -20,6 +20,11 @@ const NGOList = () => {
         const response = await fetch(
           `/api/ngos?page=${page}&limit=9`
         );
+        
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
         const data = await response.json();
         if (data.success) {
           setNgos(data.data);
@@ -43,7 +48,7 @@ const NGOList = () => {
     },
     pageHeader: {
       background: 'linear-gradient(135deg, #0052CC 0%, #0747A6 100%)',
-      padding: '2.5rem 2rem',
+      padding: 'clamp(1.5rem, 5vw, 2.5rem) clamp(1rem, 4vw, 2rem)',
       boxShadow: '0 2px 8px rgba(0, 82, 204, 0.15)',
     },
     headerContent: {
@@ -57,17 +62,18 @@ const NGOList = () => {
     },
     titleSection: {
       flex: 1,
+      minWidth: '250px',
     },
     h1: {
       color: '#FFFFFF',
-      fontSize: '2.25rem',
+      fontSize: 'clamp(1.5rem, 5vw, 2.25rem)',
       fontWeight: '600',
       margin: '0 0 0.5rem 0',
       letterSpacing: '-0.02em',
     },
     subtitle: {
       color: 'rgba(255, 255, 255, 0.9)',
-      fontSize: '1rem',
+      fontSize: 'clamp(0.875rem, 3vw, 1rem)',
       margin: 0,
       fontWeight: '400',
     },
@@ -88,11 +94,11 @@ const NGOList = () => {
     mainContent: {
       maxWidth: '1600px',
       margin: '0 auto',
-      padding: '2rem 1.5rem',
+      padding: 'clamp(1rem, 4vw, 2rem) clamp(1rem, 4vw, 1.5rem)',
     },
     loadingContainer: {
       textAlign: 'center',
-      padding: '4rem 2rem',
+      padding: 'clamp(2rem, 8vw, 4rem) clamp(1rem, 4vw, 2rem)',
       background: 'white',
       borderRadius: '12px',
       boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
@@ -100,49 +106,51 @@ const NGOList = () => {
     },
     loadingText: {
       color: '#172B4D',
-      fontSize: '1rem',
+      fontSize: 'clamp(0.875rem, 2vw, 1rem)',
       fontWeight: '500',
     },
     noNGOsContainer: {
       textAlign: 'center',
-      padding: '4rem 2rem',
+      padding: 'clamp(2rem, 8vw, 4rem) clamp(1rem, 4vw, 2rem)',
       background: 'white',
       borderRadius: '12px',
       boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
       border: '1px solid #E1E8ED',
     },
     noNGOsTitle: {
-      fontSize: '1.5rem',
+      fontSize: 'clamp(1.2rem, 4vw, 1.5rem)',
       fontWeight: '600',
       color: '#172B4D',
       marginBottom: '0.75rem',
     },
     noNGOsText: {
       color: '#5E6C84',
-      fontSize: '1rem',
+      fontSize: 'clamp(0.875rem, 2vw, 1rem)',
       margin: '0.5rem 0',
     },
     statsBar: {
       background: 'white',
-      padding: '1rem 1.5rem',
+      padding: 'clamp(0.75rem, 3vw, 1rem) clamp(0.75rem, 3vw, 1.5rem)',
       borderRadius: '8px',
       marginBottom: '2rem',
       display: 'flex',
       justifyContent: 'space-between',
       alignItems: 'center',
+      flexWrap: 'wrap',
+      gap: '1rem',
       boxShadow: '0 1px 4px rgba(0, 0, 0, 0.08)',
       border: '1px solid #E1E8ED',
     },
     projectCount: {
       color: '#172B4D',
-      fontSize: '0.9rem',
+      fontSize: 'clamp(0.75rem, 2vw, 0.9rem)',
       fontWeight: '600',
       margin: 0,
     },
     gridContainer: {
       display: 'grid',
-      gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-      gap: '1.5rem',
+      gridTemplateColumns: 'repeat(auto-fill, minmax(min(280px, 100%), 1fr))',
+      gap: 'clamp(1rem, 3vw, 1.5rem)',
       marginBottom: '2rem',
     },
     card: {
@@ -160,9 +168,10 @@ const NGOList = () => {
       display: 'flex',
       justifyContent: 'center',
       alignItems: 'center',
-      gap: '0.5rem',
+      gap: 'clamp(0.25rem, 1vw, 0.5rem)',
       marginTop: '3rem',
       padding: '1rem',
+      flexWrap: 'wrap',
     },
     paginationButton: {
       padding: '0.625rem 1rem',
@@ -198,6 +207,7 @@ const NGOList = () => {
       fontSize: '0.875rem',
       fontWeight: '600',
       boxShadow: '0 2px 4px rgba(0, 82, 204, 0.2)',
+      whiteSpace: 'nowrap',
     },
     previousButton: {
       padding: '0.625rem 1rem',
@@ -208,6 +218,7 @@ const NGOList = () => {
       cursor: 'pointer',
       fontSize: '0.875rem',
       fontWeight: '500',
+      whiteSpace: 'nowrap',
     },
     filterSection: {
       display: 'flex',

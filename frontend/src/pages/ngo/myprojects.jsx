@@ -177,18 +177,18 @@ const MyProjects = () => {
       <div className="space-y-6">
 
         {/* Page Header */}
-        <div className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl p-8 text-white">
+        <div className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl p-4 sm:p-8 text-white">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h2 className="text-2xl font-bold mb-1">My Projects</h2>
-              <p className="text-blue-100 text-sm">Manage and track all your organisation's projects</p>
+              <h2 className="text-xl sm:text-2xl font-bold mb-1">My Projects</h2>
+              <p className="text-blue-100 text-xs sm:text-sm">Manage and track all your organisation's projects</p>
             </div>
-            <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm border border-white/30 rounded-xl px-4 py-2">
-              <label className="text-white text-sm font-medium whitespace-nowrap">Filter:</label>
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 bg-white/20 backdrop-blur-sm border border-white/30 rounded-xl px-3 sm:px-4 py-2">
+              <label className="text-white text-xs sm:text-sm font-medium whitespace-nowrap">Filter:</label>
               <select
                 value={statusFilter}
                 onChange={(e) => { setStatusFilter(e.target.value); setCurrentPage(1); }}
-                className="bg-white text-gray-800 text-sm font-medium rounded-lg px-3 py-1.5 border-0 outline-none cursor-pointer"
+                className="bg-white text-gray-800 text-xs sm:text-sm font-medium rounded-lg px-3 py-1.5 border-0 outline-none cursor-pointer w-full sm:w-auto"
               >
                 <option value="">All Projects</option>
                 <option value="active">Active</option>
@@ -225,13 +225,13 @@ const MyProjects = () => {
         {/* Projects grid */}
         {!loading && !error && projects.length > 0 && (
           <>
-            <div className="bg-white rounded-xl border border-gray-100 shadow-sm px-5 py-3 flex items-center">
-              <p className="text-sm font-semibold text-gray-800">
+            <div className="bg-white rounded-xl border border-gray-100 shadow-sm px-4 sm:px-5 py-2 sm:py-3 flex items-center">
+              <p className="text-xs sm:text-sm font-semibold text-gray-800">
                 Showing {indexOfFirstProject + 1}–{Math.min(indexOfLastProject, projects.length)} of {projects.length} project{projects.length !== 1 ? 's' : ''}
               </p>
             </div>
 
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4 sm:gap-5">
               {currentProjects.map(project => {
                 const statusColors = getStatusColor(project.status);
                 const canDelete = canDeleteProject(project.status);
@@ -242,11 +242,11 @@ const MyProjects = () => {
                 return (
                   <div
                     key={project._id}
-                    className="bg-white border border-gray-100 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden flex"
+                    className="bg-white border border-gray-100 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden flex flex-col sm:flex-row"
                     style={{ minHeight: '260px' }}
                   >
                     {/* Image */}
-                    <div className="w-44 shrink-0 bg-gradient-to-br from-blue-600 to-indigo-700 relative overflow-hidden">
+                    <div className="w-full sm:w-44 shrink-0 bg-gradient-to-br from-blue-600 to-indigo-700 relative overflow-hidden h-40 sm:h-auto">
                       {project.image && (
                         <img
                           src={resolveImageUrl(project.image)}
@@ -257,40 +257,40 @@ const MyProjects = () => {
                     </div>
 
                     {/* Content */}
-                    <div className="flex flex-col flex-1 p-5 overflow-hidden">
+                    <div className="flex flex-col flex-1 p-4 sm:p-5 overflow-hidden">
                       <div className="flex items-start justify-between gap-3 mb-2">
-                        <h3 className="font-semibold text-gray-900 text-base leading-snug truncate flex-1">
+                        <h3 className="font-semibold text-gray-900 text-sm sm:text-base leading-snug truncate flex-1">
                           {project.title}
                         </h3>
                         <span
-                          className="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded border shrink-0"
+                          className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded border shrink-0"
                           style={{ background: statusColors.bg, color: statusColors.text, borderColor: statusColors.border }}
                         >
                           {project.status}
                         </span>
                       </div>
 
-                      <p className="text-gray-500 text-xs leading-relaxed mb-3 line-clamp-2">{project.description}</p>
+                      <p className="text-gray-500 text-xs leading-relaxed mb-2 sm:mb-3 line-clamp-2">{project.description}</p>
 
-                      <div className="grid grid-cols-2 gap-x-4 gap-y-1 bg-gray-50 rounded-lg px-3 py-2 border border-gray-100 mb-3 text-xs">
-                        <div className="flex justify-between gap-1"><span className="font-semibold text-gray-700 shrink-0">Focus:</span><span className="text-gray-500 truncate">{project.focusArea}</span></div>
-                        <div className="flex justify-between gap-1"><span className="font-semibold text-gray-700 shrink-0">Location:</span><span className="text-gray-500 truncate">{project.location}</span></div>
-                        <div className="flex justify-between gap-1"><span className="font-semibold text-gray-700 shrink-0">Start:</span><span className="text-gray-500">{formatDate(project.startDate)}</span></div>
-                        <div className="flex justify-between gap-1"><span className="font-semibold text-gray-700 shrink-0">End:</span><span className="text-gray-500">{formatDate(project.endDate)}</span></div>
+                      <div className="grid grid-cols-2 gap-x-3 gap-y-1 bg-gray-50 rounded-lg px-2 sm:px-3 py-2 border border-gray-100 mb-2 sm:mb-3 text-xs">
+                        <div className="flex justify-between gap-1"><span className="font-semibold text-gray-700 shrink-0">Focus:</span><span className="text-gray-500 truncate text-[11px]">{project.focusArea}</span></div>
+                        <div className="flex justify-between gap-1"><span className="font-semibold text-gray-700 shrink-0">Location:</span><span className="text-gray-500 truncate text-[11px]">{project.location}</span></div>
+                        <div className="flex justify-between gap-1"><span className="font-semibold text-gray-700 shrink-0">Start:</span><span className="text-gray-500 text-[11px]">{formatDate(project.startDate)}</span></div>
+                        <div className="flex justify-between gap-1"><span className="font-semibold text-gray-700 shrink-0">End:</span><span className="text-gray-500 text-[11px]">{formatDate(project.endDate)}</span></div>
                       </div>
 
-                      <div className="flex flex-wrap gap-1 mb-3">
+                      <div className="flex flex-wrap gap-1 mb-2 sm:mb-3">
                         {project.skills.slice(0, 4).map(skill => (
-                          <span key={skill} className="px-2 py-0.5 bg-blue-50 text-blue-700 border border-blue-100 rounded text-[10px] font-semibold">{skill}</span>
+                          <span key={skill} className="px-2 py-0.5 bg-blue-50 text-blue-700 border border-blue-100 rounded text-[9px] sm:text-[10px] font-semibold">{skill}</span>
                         ))}
                         {project.skills.length > 4 && (
-                          <span className="px-2 py-0.5 bg-blue-50 text-blue-700 border border-blue-100 rounded text-[10px] font-semibold">+{project.skills.length - 4}</span>
+                          <span className="px-2 py-0.5 bg-blue-50 text-blue-700 border border-blue-100 rounded text-[9px] sm:text-[10px] font-semibold">+{project.skills.length - 4}</span>
                         )}
                       </div>
 
                       {project.resources?.length > 0 && (
-                        <div className="bg-orange-50 border border-orange-100 rounded-lg px-3 py-1.5 mb-3 text-[11px]">
-                          <span className="font-bold text-orange-800 uppercase tracking-wide text-[9px]">Resources · </span>
+                        <div className="bg-orange-50 border border-orange-100 rounded-lg px-2 sm:px-3 py-1.5 mb-2 sm:mb-3 text-[10px] sm:text-[11px]">
+                          <span className="font-bold text-orange-800 uppercase tracking-wide text-[8px] sm:text-[9px]">Resources · </span>
                           <span className="text-orange-700 font-medium">
                             {project.resources[0].name}: {project.resources[0].quantity}
                             {project.resources.length > 1 && ` +${project.resources.length - 1} more`}
@@ -298,14 +298,14 @@ const MyProjects = () => {
                         </div>
                       )}
 
-                      <div className="mt-auto pt-3 border-t border-gray-100 space-y-2">
-                        <div className="flex items-center gap-2">
+                      <div className="mt-auto pt-2 sm:pt-3 border-t border-gray-100 space-y-2">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                           <label className="text-xs font-semibold text-gray-700 whitespace-nowrap">Status:</label>
                           <select
                             value={project.status}
                             onChange={(e) => handleStatusChange(project._id, e.target.value, project.status)}
                             disabled={isLocked}
-                            className={`flex-1 text-xs border border-gray-200 rounded-md px-2 py-1.5 font-medium bg-white text-gray-800 outline-none
+                            className={`flex-1 text-xs border border-gray-200 rounded-md px-2 py-1.5 font-medium bg-white text-gray-800 outline-none w-full
                               ${isLocked ? 'opacity-50 cursor-not-allowed bg-gray-50' : 'cursor-pointer'}`}
                           >
                             {availableStatuses.map(s => (
@@ -315,7 +315,7 @@ const MyProjects = () => {
                             ))}
                           </select>
                           {isLocked && (
-                            <span className="text-[10px] text-gray-400 italic whitespace-nowrap">
+                            <span className="text-[9px] sm:text-[10px] text-gray-400 italic whitespace-nowrap">
                               {project.status === 'completed' ? 'Completed — locked' : 'Cancelled — locked'}
                             </span>
                           )}
@@ -352,11 +352,11 @@ const MyProjects = () => {
 
             {/* Pagination */}
             {totalPages > 1 && (
-              <div className="flex justify-center items-center gap-2 py-4">
+              <div className="flex justify-center items-center gap-1 sm:gap-2 py-4 overflow-x-auto px-2">
                 <button
                   onClick={prevPage}
                   disabled={currentPage === 1}
-                  className="px-4 py-2 text-sm font-medium border border-gray-200 rounded-lg bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  className="px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium border border-gray-200 rounded-lg bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors whitespace-nowrap"
                 >
                   Previous
                 </button>
@@ -372,7 +372,7 @@ const MyProjects = () => {
                       <button
                         key={pageNumber}
                         onClick={() => paginate(pageNumber)}
-                        className={`w-10 h-10 text-sm font-medium rounded-lg border transition-colors
+                        className={`w-8 h-8 sm:w-10 sm:h-10 text-xs sm:text-sm font-medium rounded-lg border transition-colors
                           ${currentPage === pageNumber
                             ? 'bg-blue-600 text-white border-blue-600'
                             : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'}`}
@@ -381,14 +381,14 @@ const MyProjects = () => {
                       </button>
                     );
                   }
-                  if (showEllipsis) return <span key={pageNumber} className="text-gray-400 text-sm px-1">…</span>;
+                  if (showEllipsis) return <span key={pageNumber} className="text-gray-400 text-xs sm:text-sm px-1">…</span>;
                   return null;
                 })}
 
                 <button
                   onClick={nextPage}
                   disabled={currentPage === totalPages}
-                  className="px-4 py-2 text-sm font-medium border border-gray-200 rounded-lg bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  className="px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium border border-gray-200 rounded-lg bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors whitespace-nowrap"
                 >
                   Next
                 </button>
@@ -487,17 +487,17 @@ const EditProjectModal = ({ project, onClose, onUpdate, commonSkills }) => {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-6"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6"
       style={{ background: 'rgba(9, 30, 66, 0.54)', backdropFilter: 'blur(3px)' }}
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
+        className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 sticky top-0 bg-white rounded-t-xl z-10">
-          <h2 className="text-lg font-semibold text-gray-900">Edit Project</h2>
+        <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200 sticky top-0 bg-white rounded-t-xl z-10">
+          <h2 className="text-base sm:text-lg font-semibold text-gray-900">Edit Project</h2>
           <button
             onClick={onClose}
             className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-500 text-xl leading-none transition-colors"
@@ -506,54 +506,54 @@ const EditProjectModal = ({ project, onClose, onUpdate, commonSkills }) => {
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="px-6 py-5 space-y-5">
+        <form onSubmit={handleSubmit} className="px-4 sm:px-6 py-4 sm:py-5 space-y-4 sm:space-y-5">
           <div className="space-y-1">
-            <label className="text-sm font-semibold text-gray-700">Project Title *</label>
+            <label className="text-xs sm:text-sm font-semibold text-gray-700">Project Title *</label>
             <input
               type="text" name="title" value={formData.title} onChange={handleInputChange} required
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 outline-none focus:border-blue-500 transition-colors"
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-xs sm:text-sm text-gray-800 outline-none focus:border-blue-500 transition-colors"
             />
           </div>
 
           <div className="space-y-1">
-            <label className="text-sm font-semibold text-gray-700">Description *</label>
+            <label className="text-xs sm:text-sm font-semibold text-gray-700">Description *</label>
             <textarea
               name="description" value={formData.description} onChange={handleInputChange} required rows={4}
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 outline-none focus:border-blue-500 resize-y transition-colors"
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-xs sm:text-sm text-gray-800 outline-none focus:border-blue-500 resize-y transition-colors"
             />
           </div>
 
           <div className="space-y-1">
-            <label className="text-sm font-semibold text-gray-700">Focus Area *</label>
+            <label className="text-xs sm:text-sm font-semibold text-gray-700">Focus Area *</label>
             <select
               name="focusArea" value={formData.focusArea} onChange={handleInputChange} required
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 outline-none focus:border-blue-500 bg-white transition-colors"
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-xs sm:text-sm text-gray-800 outline-none focus:border-blue-500 bg-white transition-colors"
             >
               {focusAreaOptions.map(area => <option key={area} value={area}>{area}</option>)}
             </select>
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-semibold text-gray-700">Skills *</label>
+            <label className="text-xs sm:text-sm font-semibold text-gray-700">Skills *</label>
             <input
               type="text" value={skillInput} onChange={(e) => setSkillInput(e.target.value)}
               onKeyPress={(e) => { if (e.key === 'Enter') { e.preventDefault(); addSkill(skillInput); } }}
               placeholder="Type a skill and press Enter"
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 outline-none focus:border-blue-500 transition-colors"
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-xs sm:text-sm text-gray-800 outline-none focus:border-blue-500 transition-colors"
             />
-            <div className="flex flex-wrap gap-1.5">
+            <div className="flex flex-wrap gap-1 sm:gap-1.5">
               {commonSkills.filter(s => !formData.skills.includes(s)).slice(0, 18).map(skill => (
                 <button
                   key={skill} type="button" onClick={() => addSkill(skill)}
-                  className="px-2.5 py-1 bg-blue-50 text-blue-600 border border-blue-100 rounded text-xs font-semibold hover:bg-blue-600 hover:text-white transition-colors"
+                  className="px-2 sm:px-2.5 py-0.5 sm:py-1 bg-blue-50 text-blue-600 border border-blue-100 rounded text-xs sm:text-xs font-semibold hover:bg-blue-600 hover:text-white transition-colors whitespace-nowrap"
                 >
                   + {skill}
                 </button>
               ))}
             </div>
-            <div className="flex flex-wrap gap-1.5">
+            <div className="flex flex-wrap gap-1 sm:gap-1.5">
               {formData.skills.map(skill => (
-                <span key={skill} className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-600 text-white rounded text-xs font-semibold">
+                <span key={skill} className="inline-flex items-center gap-1.5 px-2 sm:px-3 py-0.5 sm:py-1 bg-blue-600 text-white rounded text-xs font-semibold">
                   {skill}
                   <button type="button" onClick={() => removeSkill(skill)}
                     className="w-4 h-4 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/40 text-white text-sm leading-none transition-colors"
@@ -564,26 +564,26 @@ const EditProjectModal = ({ project, onClose, onUpdate, commonSkills }) => {
           </div>
 
           <div className="space-y-1">
-            <label className="text-sm font-semibold text-gray-700">Location *</label>
+            <label className="text-xs sm:text-sm font-semibold text-gray-700">Location *</label>
             <input
               type="text" name="location" value={formData.location} onChange={handleInputChange} required
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 outline-none focus:border-blue-500 transition-colors"
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-xs sm:text-sm text-gray-800 outline-none focus:border-blue-500 transition-colors"
             />
           </div>
 
           <div className="space-y-1">
-            <label className="text-sm font-semibold text-gray-700">Volunteers Needed</label>
+            <label className="text-xs sm:text-sm font-semibold text-gray-700">Volunteers Needed</label>
             <input
               type="number" name="volunteersNeeded" min="1" max="500" value={formData.volunteersNeeded}
               onChange={handleInputChange}
-              className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 outline-none focus:border-blue-500 transition-colors w-36"
+              className="border border-gray-200 rounded-lg px-3 py-2 text-xs sm:text-sm text-gray-800 outline-none focus:border-blue-500 transition-colors w-32 sm:w-36"
             />
             <p className="text-xs text-gray-400">How many volunteers does this project need?</p>
           </div>
 
           {/* Map */}
-          <div className="space-y-2 bg-gray-50 border border-gray-200 rounded-xl p-4">
-            <label className="text-sm font-semibold text-gray-700">
+          <div className="space-y-2 bg-gray-50 border border-gray-200 rounded-xl p-3 sm:p-4">
+            <label className="text-xs sm:text-sm font-semibold text-gray-700">
               📍 Pin Project Location on Map
               <span className="font-normal text-gray-400 text-xs ml-2">(optional)</span>
             </label>
@@ -602,10 +602,10 @@ const EditProjectModal = ({ project, onClose, onUpdate, commonSkills }) => {
               </MapContainer>
             </div>
             {mapPosition ? (
-              <div className="flex items-center gap-3 text-xs">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 text-xs">
                 <span className="text-gray-700">📌 Lat: {mapPosition[0].toFixed(5)}, Lng: {mapPosition[1].toFixed(5)}</span>
                 <button type="button" onClick={() => setMapPosition(null)}
-                  className="text-red-500 underline hover:text-red-700 transition-colors"
+                  className="text-red-500 underline hover:text-red-700 transition-colors text-left sm:text-auto"
                 >Clear pin</button>
               </div>
             ) : (
@@ -614,41 +614,41 @@ const EditProjectModal = ({ project, onClose, onUpdate, commonSkills }) => {
           </div>
 
           <div className="space-y-1">
-            <label className="text-sm font-semibold text-gray-700">Update Image (optional)</label>
+            <label className="text-xs sm:text-sm font-semibold text-gray-700">Update Image (optional)</label>
             <input
               type="file" accept="image/*" onChange={(e) => setImageFile(e.target.files[0])}
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-600"
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-xs sm:text-sm text-gray-600"
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div className="space-y-1">
-              <label className="text-sm font-semibold text-gray-700">Start Date *</label>
+              <label className="text-xs sm:text-sm font-semibold text-gray-700">Start Date *</label>
               <input
                 type="date" name="startDate" value={formData.startDate} onChange={handleInputChange} required
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 outline-none focus:border-blue-500 transition-colors"
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-xs sm:text-sm text-gray-800 outline-none focus:border-blue-500 transition-colors"
               />
             </div>
             <div className="space-y-1">
-              <label className="text-sm font-semibold text-gray-700">End Date *</label>
+              <label className="text-xs sm:text-sm font-semibold text-gray-700">End Date *</label>
               <input
                 type="date" name="endDate" value={formData.endDate} onChange={handleInputChange} required
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 outline-none focus:border-blue-500 transition-colors"
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-xs sm:text-sm text-gray-800 outline-none focus:border-blue-500 transition-colors"
               />
             </div>
           </div>
 
           {/* Footer */}
-          <div className="flex justify-end gap-3 pt-2 border-t border-gray-100 sticky bottom-0 bg-white pb-1">
+          <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-3 pt-2 sm:pt-4 border-t border-gray-100 sticky bottom-0 bg-white pb-1">
             <button
               type="button" onClick={onClose}
-              className="px-5 py-2 text-sm font-semibold text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+              className="px-4 sm:px-5 py-2 text-xs sm:text-sm font-semibold text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit" disabled={loading}
-              className="px-5 py-2 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-60 rounded-lg shadow-sm transition-colors"
+              className="px-4 sm:px-5 py-2 text-xs sm:text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-60 rounded-lg shadow-sm transition-colors"
             >
               {loading ? 'Saving…' : 'Save Changes'}
             </button>
