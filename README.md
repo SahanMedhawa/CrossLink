@@ -18,8 +18,8 @@
 3. [Prerequisites](#-prerequisites)
 4. [Setup Instructions](#-setup-instructions)
 5. [API Endpoint Documentation](#-api-endpoint-documentation)
-6. [Deployment](#-deployment)
-7. [Testing Instructions](#-testing-instructions)
+6. [Deployment](DEPLOYMENT.md)
+7. [Testing Instructions](TESTING.md)
 8. [Environment Variables Reference](#-environment-variables-reference)
 9. [Security](#-security)
 10. [Troubleshooting](#-troubleshooting)
@@ -512,219 +512,28 @@ image: <file>                                  // optional image file
 
 ## 🚀 Deployment
 
-### Architecture
+The backend is deployed on **Render** and the frontend on **Vercel**.
 
-```
-┌───────────────────────┐       ┌───────────────────────┐
-│      Vercel            │       │       Render           │
-│  (Frontend - React)    │──────▶│   (Backend - Express)  │
-│  https://crosslink-    │  API  │  https://crosslink-api │
-│    app.vercel.app      │  ───▶ │    .onrender.com       │
-└───────────────────────┘       └──────────┬────────────┘
-                                           │
-                                    ┌──────▼──────┐
-                                    │ MongoDB Atlas│
-                                    │  (Database)  │
-                                    └─────────────┘
-```
-
-### Backend Deployment (Render)
-
-1. Push the repository to GitHub.
-2. Go to [Render Dashboard](https://dashboard.render.com) → **New** → **Web Service**.
-3. Connect your GitHub repository.
-4. Configure:
-   - **Name**: `crosslink-api`
-   - **Region**: Oregon (or nearest)
-   - **Root Directory**: `backend`
-   - **Build Command**: `npm install`
-   - **Start Command**: `npm start`
-5. Go to **Environment** tab and add variables (see table below).
-6. Click **Deploy**.
-7. After deployment, verify health check:
-   ```
-   GET https://crosslink-api.onrender.com/api/health
-   ```
-
-### Frontend Deployment (Vercel)
-
-1. Go to [Vercel Dashboard](https://vercel.com/dashboard) → **Add New** → **Project**.
-2. Import the same GitHub repository.
-3. Configure:
-   - **Root Directory**: `frontend`
-   - **Framework Preset**: `Vite`
-   - **Build Command**: `npm run build`
-   - **Output Directory**: `dist`
-4. Go to **Environment Variables** and add variables (see table below).
-5. Click **Deploy**.
-6. After deployment, verify the app loads and API connectivity works.
-
-### Environment Variables (Deployment)
-
-**Backend (Render):**
-
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `NODE_ENV` | ✓ | Set to `production` |
-| `PORT` | ✓ | Render sets automatically, default `10000` |
-| `MONGODB_URI` | ✓ | MongoDB Atlas connection string |
-| `JWT_SECRET` | ✓ | Strong random secret (not the default) |
-| `FRONTEND_URL` | ✓ | Vercel app URL, e.g. `https://crosslink-app.vercel.app` |
-| `CLOUD_NAME` | ✓ | Cloudinary cloud name |
-| `CLOUD_API_KEY` | ✓ | Cloudinary API key |
-| `CLOUD_API_SECRET` | ✓ | Cloudinary API secret |
-| `NEWS_API_KEY` | Optional | NewsAPI.org API key |
-| `EMAIL_USER` | Optional | Gmail address for notifications |
-| `EMAIL_PASS` | Optional | Gmail app password |
-
-**Frontend (Vercel):**
-
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `VITE_API_URL` | ✓ | Render backend URL with `/api`, e.g. `https://crosslink-api.onrender.com/api` |
-| `VITE_SOCKET_URL` | Optional | WebSocket URL (defaults to API origin) |
-
-> **Important:** After deploying both platforms, update `FRONTEND_URL` on Render with your Vercel URL, and `VITE_API_URL` on Vercel with your Render URL. Both sides need to know about each other for CORS and API calls to work.
-
-### Live URLs
+📄 **[View full Deployment Guide →](DEPLOYMENT.md)**
 
 | Service | URL |
 |---------|-----|
-| **Backend API** | `https://crosslink-api.onrender.com` |
-| **Frontend App** | `https://crosslink-app.vercel.app` |
-
-> *Replace the above with your actual deployed URLs.*
-
-### Deployment Evidence
-
-Screenshots to include in your submission:
-1. Render dashboard showing service status as **Live**
-2. Successful `/api/health` response in browser
-3. Vercel deployment status showing **Ready**  
-4. Frontend app loaded from Vercel URL
-5. Browser DevTools Network tab showing successful API calls from frontend to backend
+| **Backend API** | `https://crosslink.onrender.com` |
+| **Frontend App** | `https://cross-link-rust.vercel.app` |
 
 ---
 
 ## 🧪 Testing Instructions
 
-### Testing Environment Configuration
+The project uses **Playwright** for unit and integration API tests and **Artillery** for performance/load testing.
 
-| Component | Tool | Config File |
-|-----------|------|-------------|
-| Unit & Integration Tests | Playwright Test | `backend/playwright-tests/playwright.config.js` |
-| Performance/Load Tests | Artillery | `backend/performance/artillery-load-test.yml` |
-| API Base URL (testing) | — | `http://localhost:5000` |
+📄 **[View full Testing Guide →](TESTING.md)**
 
-**Prerequisites for running tests:**
-```bash
-cd backend
-npm install
-npx playwright install    # Install Playwright browsers (first time only)
-```
-
-Ensure the backend server is running before executing tests:
-```bash
-npm run dev    # In one terminal
-```
-
-### Unit Tests
-
-Unit tests validate individual service functions (e.g., matchmaking algorithm) in isolation.
-
-**Location:** `backend/playwright-tests/tests/unit/`
-
-```bash
-cd backend
-npx playwright test --config=playwright-tests/playwright.config.js playwright-tests/tests/unit/
-```
-
-**Test files:**
-- `matchmaking.unit.spec.js` — Tests the skill-matching scoring algorithm
-
-### Integration Tests
-
-Integration tests verify end-to-end API workflows across multiple endpoints.
-
-**Location:** `backend/playwright-tests/tests/integration/`
-
-```bash
-cd backend
-npx playwright test --config=playwright-tests/playwright.config.js playwright-tests/tests/integration/
-```
-
-**Test files:**
-- `participation.integration.spec.js` — Volunteer participation lifecycle
-- `volunteer.integration.spec.js` — Volunteer profile and endpoint integration
-
-### Module-Specific Tests
-
-Each domain has dedicated test suites covering BDD, assertions, fixtures, mocking, and integration:
-
-```bash
-# Project tests
-npx playwright test --config=playwright-tests/playwright.config.js playwright-tests/tests/project_test/
-
-# Proposal & Funding tests
-npx playwright test --config=playwright-tests/playwright.config.js playwright-tests/tests/proposal_test/
-
-# Volunteer tests
-npx playwright test --config=playwright-tests/playwright.config.js playwright-tests/tests/volunteer_test/
-
-# Resource tests
-npx playwright test --config=playwright-tests/playwright.config.js playwright-tests/tests/resource_test/
-```
-
-### Run All Tests At Once
-
-```bash
-cd backend
-npm test
-```
-
-This runs the full Playwright test suite. Results are output to:
-- Console (list reporter)
-- `backend/playwright-tests/playwright-report/` (HTML report)
-- `backend/playwright-tests/test-results/results.json` (JSON report)
-
-### Performance / Load Testing
-
-Performance tests are conducted using [Artillery](https://www.artillery.io/) to simulate concurrent API load.
-
-**Setup:**
-```bash
-cd backend
-npm install    # Artillery is in devDependencies
-```
-
-**Run public-endpoint load test:**
-```bash
-npm run perf:public
-```
-
-This runs a 4-phase load test:
-1. **Warm up** (30s) — 3 requests/sec
-2. **Ramp up** (60s) — 5→10 requests/sec
-3. **Sustained load** (120s) — 10 requests/sec
-4. **Cool down** (30s) — 3 requests/sec
-
-**Generate HTML report:**
-```bash
-npm run perf:public:report
-```
-
-**Run participation-endpoint load test (authenticated):**
-```bash
-npm run perf:participation:all
-```
-
-**Performance test configurations:**
-| File | Endpoints Tested |
-|------|-----------------|
-| `performance/artillery-load-test.yml` | Public project browsing |
-| `performance/artillery-participation-load-test.yml` | Volunteer participation workflows |
-| `performance/artillery-proposal-load-test.yml` | Corporate proposal endpoints |
-| `performance/artillery-resource.yml` | Resource management endpoints |
+| Type | Tool | Run Command |
+|------|------|-------------|
+| Unit tests | Playwright | `npm test` (in `backend/`) |
+| Integration tests | Playwright | `npm test` (in `backend/`) |
+| Load tests | Artillery | `npm run perf:public` (in `backend/`) |
 
 ---
 
