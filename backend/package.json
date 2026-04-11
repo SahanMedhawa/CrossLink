@@ -5,7 +5,16 @@
   "scripts": {
     "dev": "nodemon src/server.js",
     "start": "node src/server.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "playwright test --config=playwright-tests/playwright.config.js",
+    "perf:public": "npx artillery run performance/artillery-load-test.yml -o performance/report-public-latest.json",
+    "perf:public:report": "node scripts/generateLegacyArtilleryReport.js performance/report-public-latest.json performance/report-public-latest.html performance/report.html",
+    "perf:participation": "node scripts/runParticipationPerf.js",
+    "perf:participation:report": "node scripts/generateLegacyArtilleryReport.js performance/report-participation-latest.json performance/report-participation-latest.html performance/report.html",
+    "perf:participation:all": "npm run perf:participation && npm run perf:participation:report && powershell -NoProfile -Command \"Start-Process 'performance/report-participation-latest.html'\"",
+    "migrate:project-images:dry": "node scripts/migrateProjectImagesToCloudinary.js --dry-run",
+    "migrate:project-images": "node scripts/migrateProjectImagesToCloudinary.js",
+    "sync:volunteer-counts:dry": "node scripts/syncProjectVolunteerCounts.js --dry-run",
+    "sync:volunteer-counts": "node scripts/syncProjectVolunteerCounts.js"
   },
   "keywords": [
     "crosslink",
@@ -17,8 +26,13 @@
   "author": "",
   "license": "ISC",
   "description": "CrossLink - Cross-sector collaboration platform API",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "dependencies": {
+    "axios": "^1.13.5",
     "bcryptjs": "^3.0.2",
+    "cloudinary": "^2.9.0",
     "cors": "^2.8.5",
     "dotenv": "^17.2.1",
     "express": "^4.21.2",
@@ -26,9 +40,14 @@
     "express-rate-limit": "^8.2.1",
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.2",
-    "mongoose": "^8.17.2"
+    "mongoose": "^8.17.2",
+    "multer": "^2.1.1",
+    "nodemailer": "^8.0.1",
+    "socket.io": "^4.8.3"
   },
   "devDependencies": {
+    "@playwright/test": "^1.58.2",
+    "artillery": "^2.0.21",
     "nodemon": "^3.1.10"
   }
 }

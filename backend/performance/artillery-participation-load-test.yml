@@ -1,0 +1,81 @@
+config:
+  target: 'http://localhost:5000'
+
+  phases:
+    - duration: 30
+      arrivalRate: 2
+      name: "Warm up"
+
+    - duration: 60
+      arrivalRate: 4
+      rampTo: 8
+      name: "Ramp up"
+
+    - duration: 90
+      arrivalRate: 8
+      name: "Sustained load"
+
+    - duration: 30
+      arrivalRate: 2
+      name: "Cool down"
+
+  http:
+    timeout: 10
+
+  processor: './artillery.processor.js'
+
+  variables:
+    projectId: 'REPLACE_WITH_ACTIVE_PROJECT_ID'
+    ngoToken: 'REPLACE_WITH_NGO_JWT'
+    participationId: 'REPLACE_WITH_REQUESTED_PARTICIPATION_ID'
+    volunteerToken: 'REPLACE_WITH_VOLUNTEER_JWT_FOR_READS'
+    volunteerRequestToken: 'REPLACE_WITH_VOLUNTEER_JWT_FOR_REQUESTS'
+
+scenarios:
+  - name: "Volunteer - read applications and stats"
+    weight: 50
+    flow:
+      - get:
+          url: "/api/participation/my-applications"
+          headers:
+            Authorization: "Bearer {{ volunteerToken }}"
+          expect:
+            - statusCode: 200
+
+      - get:
+          url: "/api/participation/stats"
+          headers:
+            Authorization: "Bearer {{ volunteerToken }}"
+          expect:
+            - statusCode: 200
+
+  - name: "Volunteer - create participation request"
+    weight: 20
+    flow:
+      - function: setRequestPayload
+
+      - post:
+          url: "/api/participation/request"
+          headers:
+            Authorization: "Bearer {{ volunteerRequestToken }}"
+          json:
+            projectId: "{{ projectId }}"
+            message: "{{ requestMessage }}"
+            experienceSummary: "{{ requestExperience }}"
+            availabilityConfirmed: true
+            preferredRole: "Coordinator"
+            expectedHours: 8
+
+  - name: "NGO - status update operations"
+    weight: 30
+    flow:
+      - function: setRandomStatus
+
+      - patch:
+          url: "/api/participation/{{ participationId }}/status"
+          headers:
+            Authorization: "Bearer {{ ngoToken }}"
+          json:
+            status: "{{ nextStatus }}"
+          expect:
+            - statusCode: 200

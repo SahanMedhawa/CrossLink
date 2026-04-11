@@ -1,10 +1,44 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import axios from "axios";
 import DashboardLayout from "../../components/dashboard/DashboardLayout";
 
 const CorporateDashboard = () => {
   const { user } = useAuth();
+  
+  // State for Dashboard Stats
+  const [stats, setStats] = useState({
+    activePartnerships: 0,
+    projectsFunded: 0,
+    livesImpacted: 0,
+    csrRating: "-"
+  });
+  const [loading, setLoading] = useState(true);
+
+  // Fetch Stats on Mount
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const token = localStorage.getItem("crosslink_token");
+        if (!token) return;
+
+        const res = await axios.get("/api/corporates/dashboard-stats", {
+          headers: { "Authorization": `Bearer ${token}` }
+        });
+        
+        if (res.data && res.data.success) {
+          setStats(res.data.data);
+        }
+      } catch (error) {
+        console.error("Failed to load dashboard stats:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStats();
+  }, []);
 
   return (
     <DashboardLayout userType="corporate">
@@ -38,13 +72,17 @@ const CorporateDashboard = () => {
           </div>
         </div>
 
-        {/* Quick Stats */}
+        {/* Quick Stats (Dynamic) */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          
+          {/* Active Partnerships */}
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-500">Active Partnerships</p>
-                <p className="text-2xl font-bold text-gray-900">0</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {loading ? "..." : stats.activePartnerships}
+                </p>
               </div>
               <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
                 <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -54,11 +92,14 @@ const CorporateDashboard = () => {
             </div>
           </div>
 
+          {/* Projects Funded */}
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-500">Projects Funded</p>
-                <p className="text-2xl font-bold text-gray-900">0</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {loading ? "..." : stats.projectsFunded}
+                </p>
               </div>
               <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center">
                 <svg className="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -68,11 +109,14 @@ const CorporateDashboard = () => {
             </div>
           </div>
 
+          {/* Lives Impacted */}
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-500">Lives Impacted</p>
-                <p className="text-2xl font-bold text-gray-900">0</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {loading ? "..." : stats.livesImpacted}
+                </p>
               </div>
               <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
                 <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -82,11 +126,14 @@ const CorporateDashboard = () => {
             </div>
           </div>
 
+          {/* CSR Rating */}
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-500">CSR Rating</p>
-                <p className="text-2xl font-bold text-gray-900">-</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {loading ? "..." : stats.csrRating}
+                </p>
               </div>
               <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
                 <svg className="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -114,35 +161,46 @@ const CorporateDashboard = () => {
 
         {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow cursor-pointer">
-            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
-              <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
+          
+          {/* Find NGOs */}
+          <Link to="/corporate/ngo-partners" className="block">
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow cursor-pointer h-full">
+              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
+                <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
+              <h4 className="font-semibold text-gray-900 mb-2">Find NGOs</h4>
+              <p className="text-sm text-gray-500">Discover NGOs aligned with your CSR goals</p>
             </div>
-            <h4 className="font-semibold text-gray-900 mb-2">Find NGOs</h4>
-            <p className="text-sm text-gray-500">Discover NGOs aligned with your CSR goals</p>
-          </div>
+          </Link>
 
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow cursor-pointer">
-            <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center mb-4">
-              <svg className="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-              </svg>
+          {/* ✅ Browse Projects (NOW LINKED) */}
+          <Link to="/corporate/ngo-partners" className="block">
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow cursor-pointer h-full">
+              <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center mb-4">
+                <svg className="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+              </div>
+              <h4 className="font-semibold text-gray-900 mb-2">Browse Projects</h4>
+              <p className="text-sm text-gray-500">Find impactful projects to fund</p>
             </div>
-            <h4 className="font-semibold text-gray-900 mb-2">Browse Projects</h4>
-            <p className="text-sm text-gray-500">Find impactful projects to fund</p>
-          </div>
+          </Link>
 
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow cursor-pointer">
-            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
-              <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-              </svg>
+          {/* Impact Reports */}
+          <Link to="/corporate/reports" className="block">
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow cursor-pointer h-full">
+              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
+                <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+              </div>
+              <h4 className="font-semibold text-gray-900 mb-2">Impact Reports</h4>
+              <p className="text-sm text-gray-500">Track your social impact</p>
             </div>
-            <h4 className="font-semibold text-gray-900 mb-2">Impact Reports</h4>
-            <p className="text-sm text-gray-500">Track your social impact</p>
-          </div>
+          </Link>
+
         </div>
 
         {/* Back to Home */}
