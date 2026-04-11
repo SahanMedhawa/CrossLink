@@ -105,3 +105,13 @@ Screenshots to include in your submission:
 3. Vercel deployment status showing **Ready**
 4. Frontend app loaded from Vercel URL
 5. Browser DevTools Network tab showing successful API calls from frontend to backend
+
+### Included Screenshots
+
+#### Frontend Successfully Deployed (Vercel)
+
+![Frontend Live on Vercel](frontend/src/assets/screenshots/frontend-live.png)
+
+#### Backend Successfully Deployed (Render)
+
+![Backend Live on Render](frontend/src/assets/screenshots/backend-live.png)

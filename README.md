@@ -2,6 +2,10 @@
 
 > A full-stack MERN application connecting **NGOs**, **Volunteers**, and **Corporates** for meaningful social impact through project collaboration, volunteer matching, corporate proposals, resource sharing, and real-time notifications.
 
+## Hero Preview
+
+![CrossLink Hero Page](frontend/src/assets/screenshots/hero-page.png)
+
 | Layer | Technology |
 |-------|-----------|
 | **Frontend** | React 19, Vite 7, TailwindCSS 4, Redux Toolkit, MUI, Recharts, Leaflet, Socket.IO Client |
