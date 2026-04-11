@@ -32,6 +32,7 @@ import NGOProfile from "./pages/ngo/ngoprofile";
 import NGOSPECIFICPROJECTS from "./pages/ngo/ngoprojects";
 import SDGDashboard from "./pages/ngo/sdggoals";
 import ProposalsAndFundings from './pages/ngo/ProposalsAndFundings';
+import ResourceManage from './pages/resource/ResourceManage';
 
 import CorporateProfile from './pages/corporate/CorporateProfile';
 import CorporatePartners from './pages/ngo/CorporatePartners';
@@ -315,6 +316,15 @@ function AppRoutes() {
         element={
           <ProtectedRoute allowedRoles={["corporate"]}>
             <ResourceDonationManagement />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/corporate/resourceManage"
+        element={
+          <ProtectedRoute allowedRoles={["corporate"]}>
+            <ResourceManage />
           </ProtectedRoute>
         }
       />

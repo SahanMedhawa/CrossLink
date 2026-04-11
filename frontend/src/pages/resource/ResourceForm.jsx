@@ -242,7 +242,7 @@ const ResourceForm = ({ project, onClose }) => {
       setLoading(false);
     }
   };
-
+  
   // Calculate total donation amount
   const calculateTotalDonation = () => {
     let total = 0;
