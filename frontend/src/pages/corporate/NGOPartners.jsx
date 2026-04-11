@@ -24,17 +24,46 @@ const NGOPartners = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    let isMounted = true;
+
     const fetchNGOs = async () => {
       try {
-        const response = await axios.get('/api/ngos');
-        setNgos(response.data.data || response.data.ngos || []);
+        const limit = 50;
+        let page = 1;
+        let totalPages = 1;
+        const allNgos = [];
+
+        while (page <= totalPages) {
+          const response = await axios.get('/api/ngos', {
+            params: { page, limit },
+          });
+
+          const pageData = response.data?.data || response.data?.ngos || [];
+          allNgos.push(...pageData);
+
+          totalPages = Number(response.data?.totalPages) || 1;
+          page += 1;
+        }
+
+        if (isMounted) {
+          setNgos(allNgos);
+        }
       } catch (error) {
-        console.error("Error fetching NGOs:", error);
+        if (isMounted) {
+          console.error("Error fetching NGOs:", error);
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
+
     fetchNGOs();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const handleViewProjects = (ngoId) => {
