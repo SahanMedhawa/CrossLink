@@ -16,6 +16,12 @@ const notifySafely = async (payload) => {
   }
 };
 
+const sendEmailSafely = (emailOptions, contextLabel) => {
+  sendEmail(emailOptions).catch((emailError) => {
+    console.error(`${contextLabel} email failed:`, emailError.message);
+  });
+};
+
 /**
  * POST /api/participation/request
  * Volunteer requests participation in a project
@@ -72,9 +78,8 @@ const requestParticipation = async (req, res) => {
       },
     });
 
-    try {
-      if (ngoUser?.email) {
-        await sendEmail({
+    if (ngoUser?.email) {
+      sendEmailSafely({
           to: ngoUser.email,
           subject: `🔔 New Volunteer Request: ${projectTitle}`,
           html: `
@@ -89,10 +94,7 @@ const requestParticipation = async (req, res) => {
               </a>
             </div>
           `,
-        });
-      }
-    } catch (emailError) {
-      console.error('Participation request email failed:', emailError.message);
+        }, 'Participation request');
     }
 
     res.status(201).json({
@@ -167,12 +169,11 @@ const updateStatus = async (req, res) => {
     });
 
     if (['approved', 'rejected'].includes(participation.status)) {
-      try {
         if (volunteerUser?.email) {
           const statusLabel = participation.status === 'approved' ? 'Approved' : 'Rejected';
           const accentColor = participation.status === 'approved' ? '#16a34a' : '#dc2626';
 
-          await sendEmail({
+          sendEmailSafely({
             to: volunteerUser.email,
             subject: `${participation.status === 'approved' ? '✅' : '❌'} Application ${statusLabel}: ${projectTitle}`,
             html: `
@@ -187,11 +188,8 @@ const updateStatus = async (req, res) => {
                 </a>
               </div>
             `,
-          });
+          }, 'Participation status');
         }
-      } catch (emailError) {
-        console.error('Participation status email failed:', emailError.message);
-      }
     }
 
     res.status(200).json({
