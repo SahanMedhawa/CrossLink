@@ -70,6 +70,9 @@ const SAMPLE_RESOURCE = {
   createdAt: new Date().toISOString()
 };
 
+const getTokenFromBody = (body) =>
+  body?.data?.token || body?.token || body?.crosslink_token || body?.accessToken || null;
+
 // ── Extended test object with custom fixtures ─────────────────
 const test = baseTest.extend({
 
@@ -86,8 +89,7 @@ const test = baseTest.extend({
     let token = 'mock-ngo-jwt-token';
     if (loginRes.ok()) {
       const body = await loginRes.json();
-      // Check your actual API response structure
-      token = body.token || body.crosslink_token;
+      token = getTokenFromBody(body) || token;
     }
 
     await use(token);
@@ -107,7 +109,7 @@ const test = baseTest.extend({
     let token = 'mock-corporate-jwt-token';
     if (loginRes.ok()) {
       const body = await loginRes.json();
-      token = body.token || body.crosslink_token;
+      token = getTokenFromBody(body) || token;
     }
 
     await use(token);
@@ -127,7 +129,7 @@ const test = baseTest.extend({
     let token = 'mock-other-corporate-jwt-token';
     if (loginRes.ok()) {
       const body = await loginRes.json();
-      token = body.token || body.crosslink_token;
+      token = getTokenFromBody(body) || token;
     }
 
     await use(token);

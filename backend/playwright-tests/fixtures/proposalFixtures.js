@@ -15,6 +15,9 @@ const SAMPLE_PROPOSAL = (projectId) => ({
   priority: 'High',
 });
 
+const getTokenFromBody = (body) =>
+  body?.data?.token || body?.token || body?.crosslink_token || body?.accessToken || null;
+
 const test = baseTest.extend({
   corpAuthToken: async ({ request }, use) => {
     console.log('\n[fixture] Getting Corporate token...');
@@ -28,7 +31,7 @@ const test = baseTest.extend({
 
       if (loginRes.ok()) {
         const body = await loginRes.json();
-        token = body.token || body.accessToken;
+        token = getTokenFromBody(body) || token;
       }
     } catch (e) {
       console.log('[fixture] fallback token used');

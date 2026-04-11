@@ -16,6 +16,9 @@ const SAMPLE_FUNDING = {
   note: 'Initial funding',
 };
 
+const getTokenFromBody = (body) =>
+  body?.data?.token || body?.token || body?.crosslink_token || body?.accessToken || null;
+
 const test = baseTest.extend({
   // 1. DEFINE corpAuthToken HERE
   corpAuthToken: async ({ request }, use) => {
@@ -29,7 +32,7 @@ const test = baseTest.extend({
 
       if (loginRes.ok()) {
         const body = await loginRes.json();
-        token = body.crosslink_token || body.token;
+        token = getTokenFromBody(body) || token;
         console.log('  [fixture] ✅ Token obtained successfully.');
       } else {
         console.log('  [fixture] ⚠️ Login failed, using mock token.');

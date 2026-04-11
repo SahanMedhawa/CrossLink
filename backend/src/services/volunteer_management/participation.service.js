@@ -1,6 +1,7 @@
 const Participation = require('../../models/participation.model');
 const Project = require('../../models/project');
 const User = require('../../models/user.model');
+const mongoose = require('mongoose');
 
 const syncProjectVolunteersCount = async (projectId) => {
   const activeCount = await Participation.countDocuments({
@@ -288,12 +289,14 @@ const getProjectVolunteers = async (projectId, ngoId) => {
  * Get volunteer stats (dashboard counts)
  */
 const getVolunteerStats = async (volunteerId) => {
+  const volunteerObjectId = new mongoose.Types.ObjectId(volunteerId);
+
   const [volunteer, statsRows] = await Promise.all([
     User.findById(volunteerId)
       .select('projectsJoinedCount impactPoints')
       .lean(),
     Participation.aggregate([
-      { $match: { volunteerId: volunteerId } },
+      { $match: { volunteerId: volunteerObjectId } },
       {
         $group: {
           _id: null,
