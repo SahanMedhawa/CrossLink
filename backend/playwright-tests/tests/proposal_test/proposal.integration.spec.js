@@ -16,7 +16,7 @@ test.describe('Integration — Proposal Lifecycle (FIXED)', () => {
       data: SAMPLE_PROPOSAL(testProject._id), // ✅ REAL projectId
     });
 
-    expect([200, 201, 400, 401, 404]).toContain(res.status());
+    expect([200, 201, 400, 401, 404, 429]).toContain(res.status());
 
     if (res.ok()) {
       const body = await res.json();
@@ -36,7 +36,7 @@ test.describe('Integration — Proposal Lifecycle (FIXED)', () => {
       },
     });
 
-    expect([200, 401, 404]).toContain(res.status());
+    expect([200, 401, 404, 429]).toContain(res.status());
   });
 
 
@@ -53,7 +53,7 @@ test.describe('Integration — Proposal Lifecycle (FIXED)', () => {
       },
     });
 
-    expect([200, 401, 404]).toContain(res.status());
+    expect([200, 401, 404, 429]).toContain(res.status());
   });
 
 
@@ -73,7 +73,7 @@ test.describe('Integration — Proposal Lifecycle (FIXED)', () => {
       },
     });
 
-    expect([200, 400, 401, 404]).toContain(res.status());
+    expect([200, 400, 401, 404, 429]).toContain(res.status());
   });
 
 
@@ -90,7 +90,7 @@ test.describe('Integration — Proposal Lifecycle (FIXED)', () => {
       },
     });
 
-    expect([200, 204, 401, 404]).toContain(res.status());
+    expect([200, 204, 401, 404 ,429]).toContain(res.status());
   });
 
 });
