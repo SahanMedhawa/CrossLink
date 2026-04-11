@@ -74,7 +74,9 @@ const calculateDistance = (coord1, coord2) => {
  */
 const getMatchedProjects = async (volunteerId) => {
   // Fetch volunteer profile
-  const volunteer = await User.findById(volunteerId);
+  const volunteer = await User.findById(volunteerId)
+    .select('userType skills coordinates')
+    .lean();
   if (!volunteer || volunteer.userType !== 'volunteer') {
     throw { status: 403, message: 'User is not a volunteer.' };
   }
@@ -87,10 +89,17 @@ const getMatchedProjects = async (volunteerId) => {
 
   // Fetch all active projects first. Capacity filtering is done with live participation counts below.
   const projects = await Project.find({ status: 'active' })
+    .select(
+      'title description skills focusArea location startDate endDate status image volunteersNeeded volunteersCount ngoId createdAt coordinates'
+    )
     .populate('ngoId', 'organizationName email location focusAreas photoURL')
     .lean();
 
   const projectIds = projects.map((project) => project._id);
+
+  if (!projectIds.length) {
+    return [];
+  }
 
   // Build live participant counts from participation records so card counts stay accurate.
   const participationCounts = projectIds.length
@@ -129,8 +138,11 @@ const getMatchedProjects = async (volunteerId) => {
   // Get volunteer's existing participation records to filter out already-applied/completed projects
   const existingParticipations = await Participation.find({
     volunteerId,
+    projectId: { $in: projectIds },
     status: { $in: ['requested', 'approved', 'completed', 'rejected'] },
-  }).select('projectId status _id');
+  })
+    .select('projectId status _id')
+    .lean();
 
   const participationMap = {};
   existingParticipations.forEach((p) => {

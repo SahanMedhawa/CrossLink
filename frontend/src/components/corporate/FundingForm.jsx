@@ -2,14 +2,13 @@ import React, { useState } from 'react';
 
 const FundingForm = ({ project, existingData, onClose, onSubmit }) => {
   const [formData, setFormData] = useState({
-    // Map 'note' from backend to 'message' in UI if needed, but let's stick to backend names for simplicity
     fundingTitle: existingData?.fundingTitle || `Funding for ${project.title}`,
     amount: existingData?.amount || '',
     fundingType: existingData?.fundingType || 'Cash',
     paymentMethod: existingData?.paymentMethod || 'Bank Transfer',
-    note: existingData?.note || '', // Backend expects 'note', not 'message'
-    transactionId: existingData?.transactionId || '', // Optional extra field
-    projectId: existingData?.projectId?._id || project._id 
+    note: existingData?.note || '',
+    transactionRefId: existingData?.transactionRefId || '',
+    projectId: existingData?.projectId?._id || project._id
   });
 
   const handleSubmit = (e) => {
@@ -20,7 +19,7 @@ const FundingForm = ({ project, existingData, onClose, onSubmit }) => {
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col">
-        
+
         {/* Header */}
         <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-white">
           <div>
@@ -33,8 +32,8 @@ const FundingForm = ({ project, existingData, onClose, onSubmit }) => {
         </div>
 
         {/* Form Body */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          
+        <form id="funding-form" onSubmit={handleSubmit} className="p-6 space-y-4">
+
           {/* Funding Title */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Funding Title *</label>
@@ -94,13 +93,13 @@ const FundingForm = ({ project, existingData, onClose, onSubmit }) => {
             </div>
           </div>
 
-          {/* Transaction ID (Optional based on your model, but good to have) */}
+          {/* Transaction Ref ID */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Transaction / Ref ID (Optional)</label>
             <input
               type="text"
-              value={formData.transactionId}
-              onChange={(e) => setFormData({ ...formData, transactionId: e.target.value })}
+              value={formData.transactionRefId}
+              onChange={(e) => setFormData({ ...formData, transactionRefId: e.target.value })}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none"
               placeholder="e.g., TXN123456"
             />
@@ -131,12 +130,13 @@ const FundingForm = ({ project, existingData, onClose, onSubmit }) => {
           </button>
           <button
             type="submit"
-            onClick={handleSubmit}
+            form="funding-form"
             className="px-6 py-2.5 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 shadow-md transition transform active:scale-95"
           >
             {existingData ? 'Update Record' : 'Confirm Funding'}
           </button>
         </div>
+
       </div>
     </div>
   );

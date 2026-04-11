@@ -5,12 +5,20 @@ import DashboardLayout from "../../components/dashboard/DashboardLayout";
 import { getVolunteerStats, getMatchedProjects } from "../../services/volunteerApi";
 import { resolveImageUrl } from "../../utils/imageUrl";
 import { getSocket } from "../../services/socket";
+import { useDispatch, useSelector } from "react-redux";
+import { addNotification, selectAllNotifications, removeNotification } from "../../store/slices/notificationsSlice";
+import { setActiveTab, selectActiveTab } from "../../store/slices/uiSlice";
 
 const VolunteerDashboard = () => {
   const { user } = useAuth();
   const [stats, setStats] = useState(null);
   const [topMatches, setTopMatches] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // ─── Redux Hooks ───────────────────────────────────────────────────────────
+  const dispatch = useDispatch();
+  const notifications = useSelector(selectAllNotifications);
+  const activeTab = useSelector(selectActiveTab);
 
   const fetchData = useCallback(async (showLoader = true) => {
     try {
@@ -23,7 +31,10 @@ const VolunteerDashboard = () => {
       ]);
 
       if (statsRes.success) setStats(statsRes.data);
-      if (matchRes.success) setTopMatches(matchRes.data.slice(0, 3));
+      if (matchRes.success) {
+        setTopMatches(matchRes.data.slice(0, 3));
+        dispatch(setActiveTab("dashboard"));
+      }
     } catch (error) {
       console.error("Dashboard data fetch error:", error);
     } finally {
@@ -99,9 +110,34 @@ const VolunteerDashboard = () => {
     return "bg-rose-50 text-rose-700 border-rose-200";
   };
 
+  // Colour map for notification badges
+  const notifColour = { success: "bg-emerald-500", error: "bg-red-500", warning: "bg-amber-500", info: "bg-blue-500" };
+
   return (
     <DashboardLayout userType="volunteer">
       <div className="space-y-8 max-w-7xl mx-auto pb-10">
+        {/* ── Redux-powered Notification Banner ─────────────────────────── */}
+        {notifications.length > 0 && (
+          <div className="space-y-2">
+            {notifications.slice(0, 3).map((notif) => (
+              <div
+                key={notif.id}
+                className={`flex items-center justify-between px-5 py-3 rounded-2xl text-white text-sm font-medium shadow ${notifColour[notif.type] ?? "bg-gray-700"}`}
+              >
+                <span>{notif.message}</span>
+                <button
+                  id={`dismiss-notif-${notif.id}`}
+                  aria-label="Dismiss notification"
+                  onClick={() => dispatch(removeNotification(notif.id))}
+                  className="ml-4 text-white/80 hover:text-white transition-colors font-bold text-base leading-none"
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
         {/* Modern Premium Welcome Hero */}
         <div className="relative overflow-hidden rounded-[2rem] p-8 lg:p-12 shadow-2xl bg-gradient-to-br from-blue-700 via-indigo-600 to-violet-600 group">
           {/* Animated Background Orbs */}
@@ -110,8 +146,8 @@ const VolunteerDashboard = () => {
 
           <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
             <div className="flex-1 text-center md:text-left">
-              <div className="inline-block px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white/90 text-sm font-medium mb-6 animate-fade-in-up">
-                ✨ Volunteer Portal
+              <div className="inline-block px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white/90 text-sm font-medium mb-6 animate-fade-in-up capitalize">
+                ✨ Volunteer Portal · {activeTab}
               </div>
               <h2 className="text-4xl lg:text-5xl font-extrabold text-white tracking-tight mb-4 drop-shadow-sm">
                 Welcome back, <span className="text-cyan-300 font-black">{user?.name}</span>

@@ -254,7 +254,8 @@ const getVolunteerApplications = async (volunteerId, statusFilter) => {
       path: 'ngoId',
       select: 'organizationName location photoURL',
     })
-    .sort({ appliedAt: -1 });
+    .sort({ appliedAt: -1 })
+    .lean();
 
   return applications;
 };
@@ -277,7 +278,8 @@ const getProjectVolunteers = async (projectId, ngoId) => {
       path: 'volunteerId',
       select: 'name email phone skills interests availability location bio photoURL impactPoints projectsJoinedCount',
     })
-    .sort({ appliedAt: -1 });
+    .sort({ appliedAt: -1 })
+    .lean();
 
   return volunteers;
 };
@@ -286,32 +288,85 @@ const getProjectVolunteers = async (projectId, ngoId) => {
  * Get volunteer stats (dashboard counts)
  */
 const getVolunteerStats = async (volunteerId) => {
-  const volunteer = await User.findById(volunteerId).select(
-    'projectsJoinedCount impactPoints'
-  );
-
-  const [requested, approved, completed, rejected] = await Promise.all([
-    Participation.countDocuments({ volunteerId, status: 'requested' }),
-    Participation.countDocuments({ volunteerId, status: 'approved' }),
-    Participation.countDocuments({ volunteerId, status: 'completed' }),
-    Participation.countDocuments({ volunteerId, status: 'rejected' }),
+  const [volunteer, statsRows] = await Promise.all([
+    User.findById(volunteerId)
+      .select('projectsJoinedCount impactPoints')
+      .lean(),
+    Participation.aggregate([
+      { $match: { volunteerId: volunteerId } },
+      {
+        $group: {
+          _id: null,
+          requested: {
+            $sum: {
+              $cond: [{ $eq: ['$status', 'requested'] }, 1, 0],
+            },
+          },
+          approved: {
+            $sum: {
+              $cond: [{ $eq: ['$status', 'approved'] }, 1, 0],
+            },
+          },
+          completed: {
+            $sum: {
+              $cond: [{ $eq: ['$status', 'completed'] }, 1, 0],
+            },
+          },
+          rejected: {
+            $sum: {
+              $cond: [{ $eq: ['$status', 'rejected'] }, 1, 0],
+            },
+          },
+          ngosHelpedSet: {
+            $addToSet: {
+              $cond: [
+                { $in: ['$status', ['approved', 'completed']] },
+                '$ngoId',
+                null,
+              ],
+            },
+          },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          requested: 1,
+          approved: 1,
+          completed: 1,
+          rejected: 1,
+          ngosHelped: {
+            $size: {
+              $filter: {
+                input: '$ngosHelpedSet',
+                as: 'ngo',
+                cond: { $ne: ['$$ngo', null] },
+              },
+            },
+          },
+        },
+      },
+    ]),
   ]);
 
-  // Count unique NGOs helped
-  const uniqueNgos = await Participation.distinct('ngoId', {
-    volunteerId,
-    status: { $in: ['approved', 'completed'] },
-  });
+  const stats = statsRows[0] || {
+    requested: 0,
+    approved: 0,
+    completed: 0,
+    rejected: 0,
+    ngosHelped: 0,
+  };
 
   return {
     projectsJoined: volunteer?.projectsJoinedCount || 0,
     impactPoints: volunteer?.impactPoints || 0,
-    pending: requested,
-    approved,
-    completed,
-    rejected,
-    ngosHelped: uniqueNgos.length,
-    totalApplications: requested + approved + completed + rejected,
+    pending: stats.requested,
+    approved: stats.approved,
+    completed: stats.completed,
+    rejected: stats.rejected,
+    ngosHelped: stats.ngosHelped,
+    totalApplications:
+      stats.requested + stats.approved + stats.completed + stats.rejected,
   };
 };
 
@@ -319,27 +374,59 @@ const getVolunteerStats = async (volunteerId) => {
  * Get all projects for an NGO with volunteer request counts
  */
 const getNgoProjectsWithVolunteerCounts = async (ngoId) => {
-  const projects = await Project.find({ ngoId }).sort({ createdAt: -1 });
+  const projects = await Project.find({ ngoId }).sort({ createdAt: -1 }).lean();
 
-  const projectsWithCounts = await Promise.all(
-    projects.map(async (project) => {
-      const [requested, approved, completed] = await Promise.all([
-        Participation.countDocuments({ projectId: project._id, status: 'requested' }),
-        Participation.countDocuments({ projectId: project._id, status: 'approved' }),
-        Participation.countDocuments({ projectId: project._id, status: 'completed' }),
-      ]);
-
-      return {
-        ...project.toObject(),
-        volunteerRequests: {
-          requested,
-          approved,
-          completed,
-          total: requested + approved + completed,
+  const projectIds = projects.map((project) => project._id);
+  const groupedCounts = projectIds.length
+    ? await Participation.aggregate([
+        {
+          $match: {
+            projectId: { $in: projectIds },
+            status: { $in: ['requested', 'approved', 'completed'] },
+          },
         },
-      };
-    })
-  );
+        {
+          $group: {
+            _id: {
+              projectId: '$projectId',
+              status: '$status',
+            },
+            count: { $sum: 1 },
+          },
+        },
+      ])
+    : [];
+
+  const countsByProject = new Map();
+  groupedCounts.forEach((row) => {
+    const projectId = row._id.projectId.toString();
+    const status = row._id.status;
+    const existing = countsByProject.get(projectId) || {
+      requested: 0,
+      approved: 0,
+      completed: 0,
+    };
+    existing[status] = row.count;
+    countsByProject.set(projectId, existing);
+  });
+
+  const projectsWithCounts = projects.map((project) => {
+    const counts = countsByProject.get(project._id.toString()) || {
+      requested: 0,
+      approved: 0,
+      completed: 0,
+    };
+
+    return {
+      ...project,
+      volunteerRequests: {
+        requested: counts.requested,
+        approved: counts.approved,
+        completed: counts.completed,
+        total: counts.requested + counts.approved + counts.completed,
+      },
+    };
+  });
 
   return projectsWithCounts;
 };

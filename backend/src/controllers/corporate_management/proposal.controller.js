@@ -376,3 +376,39 @@ exports.getProposalsForNgo = async (req, res) => {
     });
   }
 };
+
+// @desc    Get a single proposal by ID
+// @route   GET /api/proposals/:id
+// @access  Private (Corporate or NGO)
+exports.getProposalById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const proposal = await Proposal.findById(id)
+      .populate('projectId', 'title organizationName status')
+      .populate('corporateId', 'companyName email');
+
+    if (!proposal) {
+      return res.status(404).json({ success: false, message: 'Proposal not found' });
+    }
+
+    // Optional: Security Check 
+    // const isCreator = proposal.corporateId._id.toString() === req.user.id;
+    // const isNgoOwner = proposal.projectId.ngoId.toString() === req.user.id; 
+    // if (!isCreator && !isNgoOwner) {
+    //   return res.status(403).json({ success: false, message: 'Not authorized' });
+    // }
+
+    res.json({
+      success: true,
+      data: proposal
+    });
+
+  } catch (error) {
+    res.status(500).json({ 
+      success: false, 
+      message: 'Server Error', 
+      error: error.message 
+    });
+  }
+};
